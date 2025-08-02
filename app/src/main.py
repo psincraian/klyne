@@ -23,6 +23,7 @@ from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
 from src.schemas.api_key import APIKeyCreate, APIKeyResponse
 from src.services.email import EmailService
+from src.api.analytics import router as analytics_router
 
 
 @asynccontextmanager
@@ -37,6 +38,9 @@ app = FastAPI(title="Klyne", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 templates = Jinja2Templates(directory="src/templates")
+
+# Include API routers
+app.include_router(analytics_router)
 
 
 @app.get("/", response_class=HTMLResponse)
