@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "components/header.html" import header %}
-{% from "components/card.html" import card %}
+{% from "components/card.html" import card, info_box %}
 {% from "components/form.html" import form_group, button %}
 
 {% block title %}Register - Klyne{% endblock %}
@@ -19,6 +19,12 @@
                 subtitle="Join Klyne to start tracking your Python package analytics and insights",
                 centered=True
             ) %}
+                {% if error_message %}
+                    {% call info_box("Error", type="warning", icon="fas fa-exclamation-triangle") %}
+                        {{ error_message }}
+                    {% endcall %}
+                {% endif %}
+                
                 <form action="/register" method="POST" class="form">
                     {{ form_group(
                         label="Email Address",
@@ -26,7 +32,8 @@
                         type="email",
                         placeholder="you@example.com",
                         required=True,
-                        icon="fas fa-envelope"
+                        icon="fas fa-envelope",
+                        value=email if email else ""
                     ) }}
                     
                     {{ form_group(

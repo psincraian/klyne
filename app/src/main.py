@@ -122,48 +122,59 @@ async def register_user(
     password_confirm: str = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    error_message = None
+    
     try:
         if password != password_confirm:
-            raise HTTPException(status_code=400, detail="Passwords do not match")
+            error_message = "Passwords do not match"
+        elif len(password) < 8:
+            error_message = "Password must be at least 8 characters"
+        else:
+            user_data = UserCreate(email=email, password=password)
+            
+            existing_user = await db.execute(
+                select(User).filter(User.email == user_data.email)
+            )
+            if existing_user.scalar_one_or_none():
+                error_message = "An account with this email already exists"
+            else:
+                verification_token = generate_verification_token()
+                token_expiry = get_verification_token_expiry()
+                
+                db_user = User(
+                    email=user_data.email,
+                    hashed_password=get_password_hash(user_data.password),
+                    verification_token=verification_token,
+                    verification_token_expires=token_expiry,
+                    is_verified=False
+                )
+                
+                db.add(db_user)
+                await db.commit()
+                await db.refresh(db_user)
+                
+                await EmailService.send_verification_email(user_data.email, verification_token)
+                
+                return templates.TemplateResponse(
+                    "registration_success.html",
+                    {"request": request, "email": user_data.email}
+                )
         
-        if len(password) < 8:
-            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
-        
-        user_data = UserCreate(email=email, password=password)
-        
-        existing_user = await db.execute(
-            select(User).filter(User.email == user_data.email)
-        )
-        if existing_user.scalar_one_or_none():
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        verification_token = generate_verification_token()
-        token_expiry = get_verification_token_expiry()
-        
-        db_user = User(
-            email=user_data.email,
-            hashed_password=get_password_hash(user_data.password),
-            verification_token=verification_token,
-            verification_token_expires=token_expiry,
-            is_verified=False
-        )
-        
-        db.add(db_user)
-        await db.commit()
-        await db.refresh(db_user)
-        
-        await EmailService.send_verification_email(user_data.email, verification_token)
-        
-        return templates.TemplateResponse(
-            "registration_success.html",
-            {"request": request, "email": user_data.email}
-        )
-        
-    except HTTPException:
-        raise
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Registration failed")
+        error_message = "Registration failed. Please try again."
+    
+    # If we got here, there was an error - show the form again with the error
+    return templates.TemplateResponse(
+        "register.html",
+        {
+            "request": request,
+            "error_message": error_message,
+            "email": email,
+            "password": password,
+            "password_confirm": password_confirm
+        }
+    )
 
 
 @app.get("/verify")
@@ -178,7 +189,21 @@ async def verify_email(request: Request, token: str, db: AsyncSession = Depends(
         user = user.scalar_one_or_none()
         
         if not user:
-            raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+            # Check if token exists but is expired
+            expired_user = await db.execute(
+                select(User).filter(User.verification_token == token)
+            )
+            expired_user = expired_user.scalar_one_or_none()
+            
+            if expired_user:
+                error_message = "Your verification link has expired. Please register again or request a new verification email."
+            else:
+                error_message = "Invalid verification link. Please check your email or register again."
+            
+            return templates.TemplateResponse(
+                "verification_error.html",
+                {"request": request, "error_message": error_message}
+            )
         
         user.is_verified = True
         user.verification_token = None
@@ -191,10 +216,12 @@ async def verify_email(request: Request, token: str, db: AsyncSession = Depends(
             {"request": request}
         )
         
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Verification failed")
+        error_message = "Verification failed. Please try again or contact support."
+        return templates.TemplateResponse(
+            "verification_error.html",
+            {"request": request, "error_message": error_message}
+        )
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -211,6 +238,8 @@ async def login_user(
     password: str = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    error_message = None
+    
     try:
         user_data = UserLogin(email=email, password=password)
         
@@ -220,22 +249,27 @@ async def login_user(
         user = user.scalar_one_or_none()
         
         if not user or not verify_password(user_data.password, user.hashed_password):
-            raise HTTPException(status_code=400, detail="Invalid email or password")
+            error_message = "Invalid email or password"
+        elif not user.is_verified:
+            error_message = "Please verify your email before logging in. Check your inbox for the verification link."
+        elif not user.is_active:
+            error_message = "Your account has been deactivated. Please contact support for assistance."
+        else:
+            create_session(request, user.id, user.email)
+            return RedirectResponse(url="/dashboard", status_code=302)
         
-        if not user.is_verified:
-            raise HTTPException(status_code=400, detail="Please verify your email before logging in")
-        
-        if not user.is_active:
-            raise HTTPException(status_code=400, detail="Account is deactivated")
-        
-        create_session(request, user.id, user.email)
-        
-        return RedirectResponse(url="/dashboard", status_code=302)
-        
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Login failed")
+        error_message = "Login failed. Please try again."
+    
+    # If we got here, there was an error - show the form again with the error
+    return templates.TemplateResponse(
+        "login.html",
+        {
+            "request": request,
+            "error_message": error_message,
+            "email": email
+        }
+    )
 
 
 @app.post("/logout")

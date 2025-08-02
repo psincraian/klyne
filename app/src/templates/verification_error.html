@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card, info_box %}
+{% from "components/form.html" import button %}
+
+{% block title %}Verification Error - Klyne{% endblock %}
+
+{% block content %}
+<div class="app">
+    {{ header(nav_links=[
+        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt"},
+        {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": True}
+    ]) }}
+    
+    <main class="main main--centered">
+        <div style="width: 100%; max-width: 450px;">
+            {% call card(
+                icon={"class": "fas fa-exclamation-triangle", "color": "var(--color-warning)"},
+                title="Verification Failed",
+                subtitle="There was a problem verifying your email address.",
+                centered=True
+            ) %}
+                {% call info_box("Error", type="warning", icon="fas fa-exclamation-triangle") %}
+                    {{ error_message }}
+                {% endcall %}
+                
+                <div style="text-align: center; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="/register" class="button button--primary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
+                        <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                        Create New Account
+                    </a>
+                    
+                    <a href="/login" class="button button--secondary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
+                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                        Sign In Instead
+                    </a>
+                </div>
+                
+                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
+                    <p><a href="/" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Back to Home</a></p>
+                </div>
+            {% endcall %}
+        </div>
+    </main>
+</div>
+{% endblock %}
