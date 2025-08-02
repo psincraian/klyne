@@ -1,56 +1,50 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card %}
+{% from "components/form.html" import form_group, button %}
 
 {% block title %}Login - Klyne{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header>
-        <nav>
-            <div class="logo"><a href="/">Klyne</a></div>
-            <div class="nav-links">
-                <a href="/register" class="nav-link">Register</a>
-            </div>
-        </nav>
-    </header>
+<div class="app">
+    {{ header(nav_links=[
+        {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": True}
+    ]) }}
     
-    <main class="auth-main">
-        <div class="auth-container">
-            <div class="auth-card">
-                <h1>Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to your Klyne account</p>
-                
-                <form action="/login" method="POST" class="auth-form">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input 
-                            type="email" 
-                            id="email"
-                            name="email" 
-                            required
-                            class="form-input"
-                            placeholder="you@example.com"
-                        >
-                    </div>
+    <main class="main main--centered">
+        <div style="width: 100%; max-width: 450px;">
+            {% call card(
+                icon={"class": "fas fa-sign-in-alt"},
+                title="Welcome Back",
+                subtitle="Sign in to access your analytics dashboard",
+                centered=True
+            ) %}
+                <form action="/login" method="POST" class="form">
+                    {{ form_group(
+                        label="Email Address",
+                        name="email",
+                        type="email",
+                        placeholder="you@example.com",
+                        required=True,
+                        icon="fas fa-envelope"
+                    ) }}
                     
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input 
-                            type="password" 
-                            id="password"
-                            name="password" 
-                            required
-                            class="form-input"
-                            placeholder="Your password"
-                        >
-                    </div>
+                    {{ form_group(
+                        label="Password",
+                        name="password",
+                        type="password",
+                        placeholder="Enter your password",
+                        required=True,
+                        icon="fas fa-lock"
+                    ) }}
                     
-                    <button type="submit" class="auth-btn">Sign In</button>
+                    {{ button("Sign In", icon="fas fa-sign-in-alt", variant="primary", full_width=True) }}
                 </form>
                 
-                <div class="auth-footer">
-                    <p>Don't have an account? <a href="/register">Create one</a></p>
+                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
+                    <p>Don't have an account? <a href="/register" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Create one here</a></p>
                 </div>
-            </div>
+            {% endcall %}
         </div>
     </main>
 </div>

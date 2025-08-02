@@ -1,23 +1,48 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card, info_box %}
+{% from "components/form.html" import link_button %}
+
+{% block title %}Success - Klyne{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header>
-        <nav>
-            <div class="logo">Klyne</div>
-        </nav>
-    </header>
+<div class="app">
+    {{ header() }}
     
-    <main class="success-page">
-        <div class="success-content">
-            <div class="success-icon">✓</div>
-            <h1>You're on the list!</h1>
-            <p>Thanks for signing up. We'll notify <strong>{{ email }}</strong> as soon as Klyne is ready.</p>
-            <a href="/" class="back-link">← Back to home</a>
+    <main class="main main--centered">
+        <div style="width: 100%; max-width: 500px;">
+            {% call card(
+                icon={"class": "fas fa-check", "xl": True},
+                title={"text": "You're on the list!", "large": True},
+                centered=True
+            ) %}
+                <!-- Confetti Animation -->
+                <div class="confetti">🎉</div>
+                <div class="confetti">🎊</div>
+                <div class="confetti">✨</div>
+                <div class="confetti">🎉</div>
+                <div class="confetti">🎊</div>
+                <div class="confetti">✨</div>
+                <div class="confetti">🎉</div>
+                <div class="confetti">🎊</div>
+                <div class="confetti">✨</div>
+                
+                <p style="color: var(--color-gray-500); font-size: var(--font-size-lg); margin-bottom: 2.5rem; line-height: 1.6;">
+                    Thanks for signing up! We'll notify <span style="color: var(--color-primary); font-weight: 600;">{{ email }}</span> as soon as Klyne is ready for early access.
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                    {{ link_button("Back to Home", "/", icon="fas fa-arrow-left", variant="secondary") }}
+                </div>
+                
+                {% call info_box("What's Next?", type="info", icon="fas fa-lightbulb") %}
+                    We're working hard to launch Klyne soon. In the meantime, follow us for updates and be among the first to try our powerful Python package analytics platform!
+                {% endcall %}
+            {% endcall %}
         </div>
     </main>
     
-    <footer>
+    <footer style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.2); padding: 2rem; text-align: center; color: rgba(255, 255, 255, 0.8);">
         <p>&copy; 2025 Klyne. Built for the Python community.</p>
     </footer>
 </div>

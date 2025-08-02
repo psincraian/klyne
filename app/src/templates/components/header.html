@@ -1,0 +1,48 @@
+{% macro header(logo_text="Klyne", nav_links=[], user=None, show_nav_tabs=False, active_tab=None) %}
+<header class="header">
+    <div class="container">
+        <nav class="header__nav">
+            <a href="/" class="header__logo">{{ logo_text }}</a>
+            
+            {% if show_nav_tabs %}
+                <div class="header__nav-tabs">
+                    <a href="/dashboard" class="nav-link--tab {{ 'active' if active_tab == 'dashboard' else '' }}">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </a>
+                    <a href="/settings" class="nav-link--tab {{ 'active' if active_tab == 'settings' else '' }}">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            {% endif %}
+            
+            <div class="header__nav-links">
+                {% if user %}
+                    <div class="header__user-info">
+                        <div class="header__user-avatar">
+                            {{ user.email[0].upper() }}
+                        </div>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    {% if not show_nav_tabs %}
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    {% endif %}
+                    <form action="/logout" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn--ghost btn--sm">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                {% else %}
+                    {% for link in nav_links %}
+                        <a href="{{ link.url }}" class="nav-link {{ 'nav-link--primary' if link.primary else '' }}">
+                            {% if link.icon %}<i class="{{ link.icon }}"></i>{% endif %}
+                            {{ link.text }}
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </nav>
+    </div>
+</header>
+{% endmacro %}

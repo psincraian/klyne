@@ -1,0 +1,47 @@
+{% macro form_group(label, name, type="text", placeholder="", required=False, help=None, icon=None, value="", large=False, readonly=False) %}
+<div class="form__group">
+    {% if label %}
+        <label for="{{ name }}" class="form__label">
+            {% if icon %}<i class="{{ icon }}"></i>{% endif %}
+            {{ label }}
+        </label>
+    {% endif %}
+    <input 
+        type="{{ type }}" 
+        id="{{ name }}"
+        name="{{ name }}" 
+        class="form__input {{ 'form__input--large' if large else '' }}"
+        placeholder="{{ placeholder }}"
+        {% if required %}required{% endif %}
+        {% if value %}value="{{ value }}"{% endif %}
+        {% if readonly %}readonly{% endif %}
+        {% if type == 'password' and name == 'password' %}minlength="8"{% endif %}
+    >
+    {% if help %}
+        <div class="form__help">
+            {{ help | safe }}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro button(text, type="submit", variant="primary", size="", icon=None, full_width=False, disabled=False) %}
+<button 
+    type="{{ type }}" 
+    class="btn btn--{{ variant }} {{ 'btn--' + size if size else '' }} {{ 'btn--full' if full_width else '' }}"
+    {% if disabled %}disabled{% endif %}
+>
+    {% if icon %}<i class="{{ icon }}"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro link_button(text, href, variant="secondary", size="", icon=None, full_width=False) %}
+<a 
+    href="{{ href }}" 
+    class="btn btn--{{ variant }} {{ 'btn--' + size if size else '' }} {{ 'btn--full' if full_width else '' }}"
+>
+    {% if icon %}<i class="{{ icon }}"></i>{% endif %}
+    {{ text }}
+</a>
+{% endmacro %}

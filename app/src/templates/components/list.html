@@ -1,0 +1,43 @@
+{% macro api_key_list(api_keys, empty_message="No API keys created yet.") %}
+{% if api_keys %}
+    <div class="list">
+        {% for api_key in api_keys %}
+            <div class="list__item">
+                <div class="list__item-content">
+                    <div class="list__item-title">
+                        <i class="fas fa-box"></i>
+                        {{ api_key.package_name }}
+                    </div>
+                    <div class="list__item-value" title="Click to select">{{ api_key.key }}</div>
+                    <div class="list__item-meta">
+                        <i class="fas fa-calendar"></i>
+                        Created: {{ api_key.created_at.strftime('%B %d, %Y') }}
+                    </div>
+                </div>
+                <form action="/api-keys/{{ api_key.id }}/delete" method="POST" 
+                      style="display: inline;"
+                      onsubmit="return confirm('Are you sure you want to delete this API key? This action cannot be undone.')">
+                    <button type="submit" class="btn btn--danger btn--sm">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="list__empty">
+        <div class="list__empty-icon">
+            <i class="fas fa-key"></i>
+        </div>
+        <p>{{ empty_message }}</p>
+    </div>
+{% endif %}
+{% endmacro %}
+
+{% macro badge(text, type="primary") %}
+<span class="badge badge--{{ type }}">
+    {% if type == "success" %}<i class="fas fa-check-circle"></i>{% endif %}
+    {% if type == "warning" %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
+    {{ text }}
+</span>
+{% endmacro %}

@@ -1,0 +1,34 @@
+{% macro card(title=None, subtitle=None, icon=None, accent_type=None, centered=False, glass=False, class="") %}
+<div class="card {{ 'card--with-accent' if accent_type else '' }} {{ 'card--success' if accent_type == 'success' else '' }} {{ 'card--centered' if centered else '' }} {{ 'card--glass' if glass else '' }} {{ class }}">
+    {% if title or icon %}
+        <div class="card__header">
+            {% if icon %}
+                <div class="card__icon {{ 'card__icon--success' if accent_type == 'success' else '' }} {{ 'card__icon--large' if icon.large else '' }} {{ 'card__icon--xl' if icon.xl else '' }}">
+                    <i class="{{ icon.class }}"></i>
+                </div>
+            {% endif %}
+            {% if title %}
+                <h2 class="card__title {{ 'card__title--large' if title.large else '' }}">{{ title.text if title.text else title }}</h2>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    {% if subtitle %}
+        <p class="card__subtitle">{{ subtitle }}</p>
+    {% endif %}
+    
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{% macro info_box(title, type="info", icon=None) %}
+<div class="form__help" style="background: {% if type == 'info' %}#f0f9ff{% elif type == 'success' %}#f0fdf4{% elif type == 'warning' %}#fffbeb{% endif %}; border-color: {% if type == 'info' %}#bfdbfe{% elif type == 'success' %}#bbf7d0{% elif type == 'warning' %}#fed7aa{% endif %};">
+    <div style="font-weight: 600; color: {% if type == 'info' %}#1e40af{% elif type == 'success' %}#166534{% elif type == 'warning' %}#92400e{% endif %}; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        {% if icon %}<i class="{{ icon }}"></i>{% endif %}
+        {{ title }}
+    </div>
+    <div style="color: {% if type == 'info' %}#1e40af{% elif type == 'success' %}#166534{% elif type == 'warning' %}#92400e{% endif %}; font-size: 0.9rem; line-height: 1.5;">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}

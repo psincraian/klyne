@@ -1,95 +1,157 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card, info_box %}
+{% from "components/form.html" import form_group, button %}
+{% from "components/list.html" import api_key_list, badge %}
 
-{% block title %}Dashboard - Klyne{% endblock %}
+{% block title %}Settings - Klyne{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header>
-        <nav>
-            <div class="logo"><a href="/">Klyne</a></div>
-            <div class="nav-links">
-                <a href="/dashboard" class="nav-link">Analytics</a>
-                <a href="/settings" class="nav-link active">Settings</a>
-                <span class="user-email">{{ user.email }}</span>
-                <form action="/logout" method="POST" style="display: inline;">
-                    <button type="submit" class="logout-btn">Logout</button>
-                </form>
-            </div>
-        </nav>
-    </header>
+<div class="app">
+    {{ header(
+        show_nav_tabs=True,
+        active_tab="settings",
+        user=user
+    ) }}
     
-    <main class="dashboard-main">
-        <div class="dashboard-container">
-            <div class="welcome-section">
-                <h1>Welcome to Klyne</h1>
-                <p class="dashboard-subtitle">Your package analytics dashboard</p>
+    <main class="main">
+        <div class="container">
+            <div class="mb-8 text-center">
+                <h1 class="text-4xl font-bold text-white mb-2">Account Settings</h1>
+                <p class="text-lg text-white" style="opacity: 0.8;">Manage your API keys and account preferences</p>
             </div>
-            
-            <div class="dashboard-content">
-                <div class="info-card">
-                    <h2>Account Information</h2>
-                    <p><strong>Email:</strong> {{ user.email }}</p>
-                    <p><strong>Account Status:</strong> 
+
+            <!-- Account Information Card -->
+            {% call card(
+                title="Account Information",
+                icon={"class": "fas fa-user"}
+            ) %}
+                {{ form_group(
+                    label="Email Address",
+                    name="email",
+                    type="email",
+                    value=user.email,
+                    icon="fas fa-envelope",
+                    readonly=True
+                ) }}
+                
+                <div class="form__group">
+                    <label class="form__label">
+                        <i class="fas fa-shield-alt"></i> Account Status
+                    </label>
+                    <div>
                         {% if user.is_verified %}
-                            <span class="status verified">Verified</span>
+                            {{ badge("Verified", type="success") }}
                         {% else %}
-                            <span class="status unverified">Unverified</span>
+                            {{ badge("Unverified", type="warning") }}
                         {% endif %}
-                    </p>
-                    <p><strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
                 </div>
                 
-                <div class="info-card">
-                    <h2>API Keys</h2>
-                    <p>Manage API keys for your Python packages. Each package needs its own API key.</p>
-                    
-                    <!-- Create new API key form -->
-                    <form action="/api/api-keys" method="POST" class="api-key-form">
-                        <div class="form-group">
-                            <label for="package_name">Package Name:</label>
-                            <input type="text" id="package_name" name="package_name" required 
-                                   placeholder="e.g., pandas, numpy, requests">
-                        </div>
-                        <button type="submit" class="create-btn">Create API Key</button>
-                    </form>
-                    
-                    <!-- Existing API keys -->
-                    {% if api_keys %}
-                        <div class="api-keys-list">
-                            <h3>Your API Keys</h3>
-                            {% for api_key in api_keys %}
-                                <div class="api-key-item">
-                                    <div class="api-key-info">
-                                        <strong>{{ api_key.package_name }}</strong>
-                                        <code class="api-key-value">{{ api_key.key }}</code>
-                                        <small>Created: {{ api_key.created_at.strftime('%B %d, %Y') }}</small>
-                                    </div>
-                                    <form action="/api-keys/{{ api_key.id }}/delete" method="POST" 
-                                          style="display: inline;"
-                                          onsubmit="return confirm('Are you sure you want to delete this API key?')">
-                                        <button type="submit" class="delete-btn">Delete</button>
-                                    </form>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="no-api-keys">No API keys created yet. Create your first API key above.</p>
-                    {% endif %}
+                {{ form_group(
+                    label="Member Since",
+                    name="member_since",
+                    type="text",
+                    value=user.created_at.strftime('%B %d, %Y'),
+                    icon="fas fa-calendar",
+                    readonly=True
+                ) }}
+            {% endcall %}
+
+            <!-- API Keys Management Card -->
+            {% call card(
+                title="API Keys",
+                icon={"class": "fas fa-key"}
+            ) %}
+                <p class="text-gray-500 mb-6">
+                    Create and manage API keys for your Python packages. Each package needs its own unique API key for analytics tracking.
+                </p>
+                
+                <!-- Create new API key form -->
+                <form action="/api/api-keys" method="POST" class="form mb-6">
+                    {{ form_group(
+                        label="Package Name",
+                        name="package_name",
+                        type="text",
+                        placeholder="e.g., pandas, numpy, requests",
+                        required=True,
+                        icon="fas fa-box"
+                    ) }}
+                    {{ button("Create API Key", icon="fas fa-plus", variant="primary") }}
+                </form>
+                
+                <!-- Existing API keys -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-list"></i> Your API Keys
+                    </h3>
+                    {{ api_key_list(api_keys, "No API keys created yet. Create your first API key above to start tracking analytics.") }}
+                </div>
+            {% endcall %}
+            
+            <!-- Integration Instructions Card -->
+            {% call card(
+                title="Integration Instructions",
+                icon={"class": "fas fa-code"}
+            ) %}
+                <p class="text-gray-500 mb-6">
+                    Once you have an API key, integrate Klyne into your Python package with just a few lines of code:
+                </p>
+                
+                <div class="hero__code" style="margin: 1rem 0; max-width: none;">
+                    <pre><code><span class="keyword">import</span> klyne
+
+<span class="comment"># Initialize Klyne with your API key</span>
+klyne.<span class="keyword">init</span>(
+    api_key=<span class="string">"your_api_key_here"</span>,
+    project=<span class="string">"your_package_name"</span>,
+    package_version=<span class="string">"1.0.0"</span>
+)
+
+<span class="comment"># Your package analytics will be automatically tracked!</span></code></pre>
                 </div>
                 
-                <div class="info-card">
-                    <h2>Integration Instructions</h2>
-                    <p>Once you have an API key, integrate Klyne into your Python package:</p>
-                    <pre><code>import klyne
-
-# Initialize Klyne with your API key
-klyne.init(api_key="your_api_key_here", project="your_package_name")
-
-# Your package analytics will be automatically tracked!</code></pre>
-                    <p><em>Note: The Klyne SDK is currently in development. Integration instructions will be available soon.</em></p>
-                </div>
-            </div>
+                {% call info_box("SDK Ready!", type="info", icon="fas fa-lightbulb") %}
+                    The Klyne Python SDK is now available and ready for integration. 
+                    Add the code above to your package's <code>__init__.py</code> file to start collecting analytics data.
+                {% endcall %}
+            {% endcall %}
         </div>
     </main>
 </div>
+
+<script>
+// Add click to select functionality for API keys
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.list__item-value').forEach(element => {
+        element.addEventListener('click', function() {
+            // Select the text
+            if (window.getSelection) {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(this);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // Copy to clipboard
+            try {
+                document.execCommand('copy');
+                
+                // Show feedback
+                const original = this.textContent;
+                this.textContent = 'Copied!';
+                this.style.background = 'var(--color-success)';
+                
+                setTimeout(() => {
+                    this.textContent = original;
+                    this.style.background = 'var(--color-gray-800)';
+                }, 1000);
+            } catch (err) {
+                console.log('Copy failed');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
