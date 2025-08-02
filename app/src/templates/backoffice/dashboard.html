@@ -1,0 +1,121 @@
+{% extends "backoffice/layout.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block backoffice_content %}
+<div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p>Overview of your Klyne instance</p>
+</div>
+
+<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Total Users</h3>
+            <i class="fas fa-users" style="color: #3b82f6; font-size: 1.5rem;"></i>
+        </div>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #1f2937;">{{ stats.total_users }}</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">
+            {% if stats.new_users_this_week > 0 %}
+                <span style="color: #10b981;">+{{ stats.new_users_this_week }}</span> this week
+            {% else %}
+                No new users this week
+            {% endif %}
+        </p>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">API Keys</h3>
+            <i class="fas fa-key" style="color: #8b5cf6; font-size: 1.5rem;"></i>
+        </div>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #1f2937;">{{ stats.total_api_keys }}</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">
+            {% if stats.new_keys_this_week > 0 %}
+                <span style="color: #10b981;">+{{ stats.new_keys_this_week }}</span> this week
+            {% else %}
+                No new keys this week
+            {% endif %}
+        </p>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Packages</h3>
+            <i class="fas fa-box" style="color: #f59e0b; font-size: 1.5rem;"></i>
+        </div>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #1f2937;">{{ stats.unique_packages }}</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">Unique packages tracked</p>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Active Users</h3>
+            <i class="fas fa-user-check" style="color: #10b981; font-size: 1.5rem;"></i>
+        </div>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #1f2937;">{{ stats.active_users }}</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">Verified and active</p>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Analytics Events</h3>
+            <i class="fas fa-chart-line" style="color: #ef4444; font-size: 1.5rem;"></i>
+        </div>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #1f2937;">{{ stats.total_events }}</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">
+            {% if stats.new_events_this_week > 0 %}
+                <span style="color: #10b981;">+{{ stats.new_events_this_week }}</span> this week
+            {% else %}
+                No new events this week
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.125rem; font-weight: 600; color: #1f2937;">Recent Users</h3>
+        {% if recent_users %}
+            {% for user in recent_users %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6;">
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: #1f2937;">{{ user.email }}</p>
+                    <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '-' }}</p>
+                </div>
+                <div>
+                    {% if user.is_admin %}
+                        <span class="badge badge-info">Admin</span>
+                    {% elif user.is_verified %}
+                        <span class="badge badge-success">Verified</span>
+                    {% else %}
+                        <span class="badge badge-warning">Unverified</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="margin: 0; color: #6b7280; text-align: center; padding: 2rem;">No users yet</p>
+        {% endif %}
+    </div>
+
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.125rem; font-weight: 600; color: #1f2937;">Recent API Keys</h3>
+        {% if recent_api_keys %}
+            {% for key in recent_api_keys %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6;">
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: #1f2937;">{{ key.package_name }}</p>
+                    <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">{{ key.user.email if key.user else 'Unknown' }}</p>
+                </div>
+                <div>
+                    <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">{{ key.created_at.strftime('%m/%d') if key.created_at else '-' }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="margin: 0; color: #6b7280; text-align: center; padding: 2rem;">No API keys yet</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
