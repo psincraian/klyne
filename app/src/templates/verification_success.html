@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verified - Klyne{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo"><a href="/">Klyne</a></div>
+        </nav>
+    </header>
+    
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card success-card">
+                <div class="success-icon">✓</div>
+                <h1>Email Verified!</h1>
+                <p class="auth-subtitle">
+                    Your email has been successfully verified. You can now sign in to your account.
+                </p>
+                
+                <a href="/login" class="auth-btn">Sign In</a>
+                
+                <div class="auth-footer">
+                    <p><a href="/">Back to Home</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

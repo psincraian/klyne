@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Klyne{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo"><a href="/">Klyne</a></div>
+            <div class="nav-links">
+                <a href="/login" class="nav-link">Login</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1>Create Account</h1>
+                <p class="auth-subtitle">Join Klyne to track your Python package analytics</p>
+                
+                <form action="/register" method="POST" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            required
+                            class="form-input"
+                            placeholder="you@example.com"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            required
+                            class="form-input"
+                            placeholder="Minimum 8 characters"
+                            minlength="8"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password_confirm">Confirm Password</label>
+                        <input 
+                            type="password" 
+                            id="password_confirm"
+                            name="password_confirm" 
+                            required
+                            class="form-input"
+                            placeholder="Confirm your password"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Create Account</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="/login">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

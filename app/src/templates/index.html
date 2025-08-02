@@ -4,7 +4,19 @@
 <div class="container">
     <header>
         <nav>
-            <div class="logo">Klyne</div>
+            <div class="logo"><a href="/">Klyne</a></div>
+            <div class="nav-links">
+                {% if user_authenticated %}
+                    <span class="user-email">{{ user_email }}</span>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <form action="/logout" method="POST" style="display: inline;">
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/register" class="nav-link nav-link-primary">Sign Up</a>
+                {% endif %}
+            </div>
         </nav>
     </header>
     

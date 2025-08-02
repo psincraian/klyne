@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Registration Successful - Klyne{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo"><a href="/">Klyne</a></div>
+        </nav>
+    </header>
+    
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card success-card">
+                <div class="success-icon">✓</div>
+                <h1>Account Created!</h1>
+                <p class="auth-subtitle">
+                    We've sent a verification email to <strong>{{ email }}</strong>
+                </p>
+                <p class="verification-info">
+                    Please check your email and click the verification link to activate your account.
+                    You'll need to verify your email before you can sign in.
+                </p>
+                
+                <div class="auth-footer">
+                    <p><a href="/login">Back to Login</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

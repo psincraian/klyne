@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Klyne{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo"><a href="/">Klyne</a></div>
+            <div class="nav-links">
+                <span class="user-email">{{ user.email }}</span>
+                <form action="/logout" method="POST" style="display: inline;">
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <div class="welcome-section">
+                <h1>Welcome to Klyne</h1>
+                <p class="dashboard-subtitle">Your package analytics dashboard</p>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="info-card">
+                    <h2>Account Information</h2>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Account Status:</strong> 
+                        {% if user.is_verified %}
+                            <span class="status verified">Verified</span>
+                        {% else %}
+                            <span class="status unverified">Unverified</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
+                
+                <div class="info-card">
+                    <h2>Getting Started</h2>
+                    <p>Welcome to Klyne! Your account is set up and ready.</p>
+                    <p>Package analytics features are coming soon. Stay tuned for updates!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

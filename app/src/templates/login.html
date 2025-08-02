@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Klyne{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo"><a href="/">Klyne</a></div>
+            <div class="nav-links">
+                <a href="/register" class="nav-link">Register</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1>Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your Klyne account</p>
+                
+                <form action="/login" method="POST" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            required
+                            class="form-input"
+                            placeholder="you@example.com"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            required
+                            class="form-input"
+                            placeholder="Your password"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Sign In</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="/register">Create one</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
