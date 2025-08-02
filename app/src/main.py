@@ -14,7 +14,8 @@ from src.core.config import settings
 from src.core.auth import (
     get_password_hash, verify_password, create_session, 
     logout_user, is_authenticated, generate_verification_token,
-    get_verification_token_expiry, get_current_user_id, get_current_user_email
+    get_verification_token_expiry, get_current_user_id, get_current_user_email,
+    require_admin
 )
 from src.models import Base
 from src.models.email_signup import EmailSignup
@@ -26,6 +27,7 @@ from src.schemas.api_key import APIKeyCreate, APIKeyResponse
 from src.services.email import EmailService
 from src.api.analytics import router as analytics_router
 from src.api.dashboard import router as dashboard_router
+from src.api.backoffice import router as backoffice_router
 
 
 # Configure logging
@@ -68,6 +70,7 @@ templates = Jinja2Templates(directory="src/templates")
 # Include API routers
 app.include_router(analytics_router)
 app.include_router(dashboard_router)
+app.include_router(backoffice_router)
 
 
 @app.get("/", response_class=HTMLResponse)

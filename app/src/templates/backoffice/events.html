@@ -1,0 +1,126 @@
+{% extends "backoffice/layout.html" %}
+
+{% block page_title %}Analytics Events{% endblock %}
+
+{% block backoffice_content %}
+<div class="page-header">
+    <h1>Analytics Events</h1>
+    <p>Monitor package usage events and analytics data</p>
+</div>
+
+<div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Total Events</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ total_events }}</p>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Processed</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ processed_events }}</p>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Pending</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ pending_events }}</p>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Unique Packages</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ unique_packages_from_events }}</p>
+    </div>
+</div>
+
+<div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Today</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ events_today }}</p>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">This Week</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ events_this_week }}</p>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">This Month</h3>
+        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ events_this_month }}</p>
+    </div>
+</div>
+
+<div style="background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+    <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #1f2937;">Recent Events (Last 100)</h3>
+        <p style="margin: 0.5rem 0 0 0; color: #6b7280; font-size: 0.875rem;">Latest analytics events received from packages</p>
+    </div>
+
+    {% if events %}
+    <div style="overflow-x: auto;">
+        <table class="data-table" style="margin: 0;">
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Python</th>
+                    <th>OS</th>
+                    <th>Architecture</th>
+                    <th>Status</th>
+                    <th>API Key</th>
+                    <th>Received</th>
+                    <th>Event Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>
+                        <span class="badge" style="background: #ede9fe; color: #7c3aed;">{{ event.package_name }}</span>
+                    </td>
+                    <td>
+                        <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem;">
+                            {{ event.package_version }}
+                        </code>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #fef3c7; color: #92400e;">{{ event.python_version }}</span>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #dbeafe; color: #1e40af;">{{ event.os_type }}</span>
+                        {% if event.architecture %}
+                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">{{ event.architecture }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ event.architecture or '-' }}</td>
+                    <td>
+                        {% if event.processed %}
+                            <span class="badge badge-success">Processed</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+                            {{ event.api_key[:15] }}...
+                        </code>
+                    </td>
+                    <td>{{ event.received_at.strftime('%Y-%m-%d %H:%M') if event.received_at else '-' }}</td>
+                    <td>{{ event.event_timestamp.strftime('%Y-%m-%d %H:%M') if event.event_timestamp else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+        <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p style="margin: 0; font-size: 1.125rem;">No analytics events found.</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Events will appear here when packages start sending analytics data.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% if events and events|length >= 100 %}
+<div style="background: #fffbeb; border: 1px solid #fbbf24; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
+    <div style="display: flex; align-items: center;">
+        <i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+        <p style="margin: 0; color: #92400e; font-size: 0.875rem;">
+            Showing the most recent 100 events. Total events: {{ total_events }}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

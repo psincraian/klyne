@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Klyne Backoffice - {% block page_title %}Admin Panel{% endblock %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.backoffice-nav {
+    background: #1f2937;
+    padding: 1rem 0;
+    border-bottom: 1px solid #374151;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand {
+    color: #f9fafb;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: #d1d5db;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background: #374151;
+    color: #f9fafb;
+}
+
+.backoffice-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.page-header p {
+    color: #6b7280;
+    margin: 0.5rem 0 0 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+.data-table tr:hover {
+    background: #f9fafb;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="backoffice-nav">
+    <div class="nav-container">
+        <a href="/backoffice" class="nav-brand">
+            <i class="fas fa-cogs"></i> Klyne Admin
+        </a>
+        <ul class="nav-links">
+            <li><a href="/backoffice" class="{% if request.url.path == '/backoffice' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="/backoffice/users" class="{% if '/users' in request.url.path %}active{% endif %}">Users</a></li>
+            <li><a href="/backoffice/api-keys" class="{% if '/api-keys' in request.url.path %}active{% endif %}">API Keys</a></li>
+            <li><a href="/backoffice/events" class="{% if '/events' in request.url.path %}active{% endif %}">Events</a></li>
+            <li><a href="/" target="_blank">View Site</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main class="backoffice-main">
+    {% block backoffice_content %}{% endblock %}
+</main>
+{% endblock %}

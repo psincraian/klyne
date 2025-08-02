@@ -3,7 +3,10 @@ from typing import Optional
 import secrets
 from passlib.context import CryptContext
 from fastapi import Request, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
+from src.core.database import get_db
+from src.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -61,4 +64,26 @@ async def require_authentication(request: Request) -> int:
     user_id = get_current_user_id(request)
     if not user_id:
         raise HTTPException(status_code=401, detail="Authentication required")
+    return user_id
+
+
+async def require_admin(
+    request: Request, 
+    db: AsyncSession = Depends(get_db)
+) -> int:
+    """Dependency to require admin authentication and return user ID."""
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check if user is admin
+    from sqlalchemy import select
+    result = await db.execute(
+        select(User.is_admin).where(User.id == user_id)
+    )
+    is_admin = result.scalar_one_or_none()
+    
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
     return user_id
