@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
+import logging
 
 from src.core.database import engine, get_db
 from src.core.config import settings
@@ -27,11 +28,35 @@ from src.api.analytics import router as analytics_router
 from src.api.dashboard import router as dashboard_router
 
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+    ]
+)
+
+# Set specific loggers
+logging.getLogger("src.api.dashboard").setLevel(logging.INFO)
+logging.getLogger("src.api.analytics").setLevel(logging.INFO)
+
+# Completely disable SQLAlchemy logging
+logging.getLogger("sqlalchemy").setLevel(logging.CRITICAL)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.CRITICAL)
+logging.getLogger("sqlalchemy.pool").setLevel(logging.CRITICAL)
+
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Starting up Klyne application...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables created/verified")
     yield
+    logger.info("Shutting down Klyne application...")
 
 
 app = FastAPI(title="Klyne", lifespan=lifespan)

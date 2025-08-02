@@ -49,10 +49,6 @@ class AnalyticsEvent(Base):
     # Timestamps
     event_timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     received_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    
-    # Data processing
-    processed = Column(Boolean, default=False, index=True)
-    processed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Indexes for common queries
     __table_args__ = (
@@ -61,7 +57,6 @@ class AnalyticsEvent(Base):
         Index('idx_analytics_api_key_date', 'api_key', 'event_timestamp'),
         Index('idx_analytics_python_version', 'package_name', 'python_version'),
         Index('idx_analytics_os_type', 'package_name', 'os_type'),
-        Index('idx_analytics_processing', 'processed', 'received_at'),
         
         # Composite indexes for aggregation queries
         Index('idx_analytics_aggregation', 'package_name', 'event_timestamp', 'python_version', 'os_type'),

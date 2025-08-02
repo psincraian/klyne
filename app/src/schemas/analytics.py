@@ -73,7 +73,7 @@ class AnalyticsEventCreate(BaseModel):
         # Allow extra fields for forward compatibility
         extra = "ignore"
         # Example data for documentation
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "api_key": "klyne_abc123...",
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -112,7 +112,6 @@ class AnalyticsEventResponse(BaseModel):
     os_type: str
     event_timestamp: datetime
     received_at: datetime
-    processed: bool
 
     class Config:
         from_attributes = True
@@ -125,7 +124,7 @@ class AnalyticsEventBatch(BaseModel):
                                               description="List of analytics events")
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "events": [
                     {
@@ -140,41 +139,3 @@ class AnalyticsEventBatch(BaseModel):
                 ]
             }
         }
-
-
-class DailyStatsResponse(BaseModel):
-    """Schema for daily package statistics."""
-    
-    package_name: str
-    date: str  # ISO date format
-    total_events: int
-    unique_sessions: int
-    unique_users_estimate: int
-
-    class Config:
-        from_attributes = True
-
-
-class PythonVersionDistribution(BaseModel):
-    """Schema for Python version distribution data."""
-    
-    python_version: str
-    event_count: int
-    unique_sessions: int
-    percentage: float
-
-    class Config:
-        from_attributes = True
-
-
-class OperatingSystemDistribution(BaseModel):
-    """Schema for OS distribution data."""
-    
-    os_type: str
-    os_version: Optional[str] = None
-    event_count: int
-    unique_sessions: int
-    percentage: float
-
-    class Config:
-        from_attributes = True

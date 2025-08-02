@@ -25,12 +25,14 @@ def main():
     # Initialize Klyne (this would normally be done in your package's __init__.py)
     print("1. Initializing Klyne...")
     klyne.init(
-        api_key="klyne_example_api_key_123456789",
-        project="example-package",
+        base_url="http://localhost:8000",  # Use local server for testing
+        api_key="klyne__HVqua3oQTYeF_w_u_dCh4JmA21KMcwL6j5gmPNsEvU",
+        project="asd",
         package_version="1.0.0",
-        enabled=False,  # Disabled for demo to avoid network calls
+        enabled=True,  # Disabled for demo to avoid network calls
         debug=True
     )
+    klyne.enable()  # Enable analytics for this example
     print(f"   ✓ Klyne initialized (enabled: {klyne.is_enabled()})")
     
     # Track some example events
@@ -63,9 +65,6 @@ def main():
     # Demonstrate enable/disable
     klyne.enable()
     print(f"   After enable(): {'enabled' if klyne.is_enabled() else 'disabled'}")
-    
-    klyne.disable()
-    print(f"   After disable(): {'enabled' if klyne.is_enabled() else 'disabled'}")
     
     print("\n4. Flushing events...")
     klyne.flush(timeout=2.0)

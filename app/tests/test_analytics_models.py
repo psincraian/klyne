@@ -4,7 +4,6 @@ from datetime import datetime, timezone, date
 from uuid import uuid4
 from sqlalchemy import select
 from src.models.analytics_event import AnalyticsEvent
-from src.models.analytics_aggregates import DailyPackageStats, PythonVersionStats
 from src.schemas.analytics import AnalyticsEventCreate
 
 
@@ -77,56 +76,6 @@ class TestAnalyticsModels:
         )
         events = result.scalars().all()
         assert len(events) >= 1
-    
-    @pytest_asyncio.fixture
-    async def test_daily_package_stats(self, async_session):
-        """Test daily package stats model."""
-        stats = DailyPackageStats(
-            package_name="requests",
-            api_key="klyne_test123",
-            date=date.today(),
-            total_events=100,
-            unique_sessions=85,
-            unique_users_estimate=75
-        )
-        
-        async_session.add(stats)
-        await async_session.commit()
-        await async_session.refresh(stats)
-        
-        # Verify stats were created
-        assert stats.id is not None
-        assert stats.package_name == "requests"
-        assert stats.total_events == 100
-        assert stats.unique_sessions == 85
-        assert stats.unique_users_estimate == 75
-        assert stats.created_at is not None
-        
-        return stats
-    
-    @pytest_asyncio.fixture
-    async def test_python_version_stats(self, async_session):
-        """Test Python version stats model."""
-        stats = PythonVersionStats(
-            package_name="requests",
-            api_key="klyne_test123",
-            python_version="3.11.5",
-            date=date.today(),
-            event_count=50,
-            unique_sessions=45
-        )
-        
-        async_session.add(stats)
-        await async_session.commit()
-        await async_session.refresh(stats)
-        
-        # Verify stats were created
-        assert stats.id is not None
-        assert stats.python_version == "3.11.5"
-        assert stats.event_count == 50
-        assert stats.unique_sessions == 45
-        
-        return stats
 
     def test_analytics_event_schema_validation(self):
         """Test analytics event schema validation."""

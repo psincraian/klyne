@@ -66,8 +66,7 @@ async def create_analytics_event(
             total_memory_gb=event_data.total_memory_gb,
             entry_point=event_data.entry_point,
             extra_data=event_data.extra_data,
-            event_timestamp=event_data.event_timestamp,
-            processed=False
+            event_timestamp=event_data.event_timestamp
         )
         
         db.add(analytics_event)
@@ -169,8 +168,7 @@ async def create_analytics_events_batch(
                     total_memory_gb=event_data.total_memory_gb,
                     entry_point=event_data.entry_point,
                     extra_data=event_data.extra_data,
-                    event_timestamp=event_data.event_timestamp,
-                    processed=False
+                    event_timestamp=event_data.event_timestamp
                 )
                 
                 db.add(analytics_event)

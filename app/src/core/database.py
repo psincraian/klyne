@@ -3,7 +3,7 @@ from src.core.config import settings
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=True,
+    echo=False,  # Disable SQLAlchemy query logging
 )
 
 AsyncSessionLocal = async_sessionmaker(

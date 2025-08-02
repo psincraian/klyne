@@ -104,7 +104,7 @@ class KlyneClient:
         try:
             event = create_analytics_event(
                 api_key=self.api_key,
-                package_name=self.project,
+                    package_name=self.project,
                 package_version=self.package_version,
                 session_id=session_id or self.session_id,
                 entry_point=entry_point,

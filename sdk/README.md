@@ -8,12 +8,12 @@ Lightweight Python package analytics SDK for [Klyne](https://klyne.dev). Track p
 
 ## Features
 
-- =€ **Lightweight**: Zero dependencies, uses only Python standard library
-- ¡ **Non-blocking**: Asynchronous data transmission in background threads
+- =ï¿½ **Lightweight**: Zero dependencies, uses only Python standard library
+- ï¿½ **Non-blocking**: Asynchronous data transmission in background threads
 - = **Privacy-first**: No PII collection, only aggregated usage metrics
-- =á **Robust**: Graceful error handling and automatic retries
-- =Ê **Rich insights**: Python versions, OS distribution, environment detection
-- <¯ **Simple API**: One-line integration with sensible defaults
+- =ï¿½ **Robust**: Graceful error handling and automatic retries
+- =ï¿½ **Rich insights**: Python versions, OS distribution, environment detection
+- <ï¿½ **Simple API**: One-line integration with sensible defaults
 
 ## Installation
 
@@ -124,4 +124,4 @@ MIT License
 
 ---
 
-**[Get your free API key at klyne.dev ’](https://klyne.dev)**
+**[Get your free API key at klyne.dev](https://klyne.dev)**
