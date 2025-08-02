@@ -1,0 +1,26 @@
+[project]
+name = "klyne-app"
+version = "0.1.0"
+description = "Klyne - Package Analytics Landing Page"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "sqlalchemy>=2.0.35",
+    "asyncpg>=0.30.0",
+    "greenlet>=3.1.1",
+    "python-multipart>=0.0.17",
+    "jinja2>=3.1.4",
+    "email-validator>=2.2.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    "alembic>=1.14.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

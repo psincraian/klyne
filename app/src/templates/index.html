@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo">Klyne</div>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <h1>Analytics for Python Packages</h1>
+            <p class="subtitle">
+                Understand how your Python packages are being used. 
+                Get insights on OS distribution, Python versions, and active usage patterns.
+            </p>
+            <div class="code-example">
+                <pre><code><span class="keyword">import</span> klyne
+
+klyne.init(
+    api_key=<span class="string">'your-api-key'</span>,
+    project=<span class="string">'pandas'</span>
+)</code></pre>
+            </div>
+        </section>
+        
+        <section class="coming-soon">
+            <h2>Coming Soon</h2>
+            <p>Be the first to know when Klyne launches. Join our early access list.</p>
+            
+            <form action="/signup" method="POST" class="signup-form">
+                <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="Enter your email" 
+                    required
+                    class="email-input"
+                >
+                <button type="submit" class="submit-btn">Get Early Access</button>
+            </form>
+        </section>
+        
+        <section class="features">
+            <h2>Track What Matters</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>Operating Systems</h3>
+                    <p>See which OS your users are on - Windows, macOS, Linux distributions.</p>
+                </div>
+                <div class="feature">
+                    <h3>Python Versions</h3>
+                    <p>Track Python version adoption to inform your support strategy.</p>
+                </div>
+                <div class="feature">
+                    <h3>Active Usage</h3>
+                    <p>Understand usage patterns and identify your most engaged users.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Klyne. Built for the Python community.</p>
+    </footer>
+</div>
+{% endblock %}
