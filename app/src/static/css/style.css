@@ -551,3 +551,155 @@ nav {
         gap: 0.5rem;
     }
 }
+
+/* API Key Management Styles */
+.api-key-form {
+    background-color: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.api-key-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.api-key-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.api-key-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.create-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.create-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.api-keys-list {
+    margin-top: 1.5rem;
+}
+
+.api-keys-list h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.api-key-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.api-key-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.api-key-info strong {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.api-key-value {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin: 0.25rem 0;
+    word-break: break-all;
+    max-width: 300px;
+}
+
+.api-key-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.delete-btn {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 1rem;
+}
+
+.delete-btn:hover {
+    background-color: #b91c1c;
+}
+
+.no-api-keys {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 1.5rem;
+    background-color: var(--bg-light);
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.info-card pre {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    margin: 1rem 0;
+}
+
+.info-card code {
+    font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 640px) {
+    .api-key-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .api-key-value {
+        max-width: 100%;
+        font-size: 0.8rem;
+    }
+    
+    .delete-btn {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+}

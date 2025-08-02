@@ -18,8 +18,10 @@ from src.core.auth import (
 from src.models import Base
 from src.models.email_signup import EmailSignup
 from src.models.user import User
+from src.models.api_key import APIKey
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
+from src.schemas.api_key import APIKeyCreate, APIKeyResponse
 from src.services.email import EmailService
 
 
@@ -221,10 +223,107 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
     
+    # Get user's API keys
+    api_keys_result = await db.execute(
+        select(APIKey).filter(APIKey.user_id == user_id)
+    )
+    api_keys = api_keys_result.scalars().all()
+    
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request, "user": user}
+        {"request": request, "user": user, "api_keys": api_keys}
     )
+
+
+@app.post("/api/api-keys")
+async def create_api_key(
+    request: Request,
+    package_name: str = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = get_current_user_id(request)
+    
+    # Check if package name already exists for this user
+    existing_key = await db.execute(
+        select(APIKey).filter(
+            APIKey.user_id == user_id,
+            APIKey.package_name == package_name
+        )
+    )
+    if existing_key.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="API key for this package already exists")
+    
+    # Create new API key
+    api_key = APIKey(
+        package_name=package_name,
+        key=APIKey.generate_key(),
+        user_id=user_id
+    )
+    
+    db.add(api_key)
+    await db.commit()
+    await db.refresh(api_key)
+    
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@app.delete("/api/api-keys/{api_key_id}")
+async def delete_api_key(
+    request: Request,
+    api_key_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = get_current_user_id(request)
+    
+    # Get the API key and verify ownership
+    api_key = await db.execute(
+        select(APIKey).filter(
+            APIKey.id == api_key_id,
+            APIKey.user_id == user_id
+        )
+    )
+    api_key = api_key.scalar_one_or_none()
+    
+    if not api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    await db.delete(api_key)
+    await db.commit()
+    
+    return {"success": True}
+
+
+@app.post("/api-keys/{api_key_id}/delete")
+async def delete_api_key_form(
+    request: Request,
+    api_key_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    if not is_authenticated(request):
+        return RedirectResponse(url="/login", status_code=302)
+    
+    user_id = get_current_user_id(request)
+    
+    # Get the API key and verify ownership
+    api_key = await db.execute(
+        select(APIKey).filter(
+            APIKey.id == api_key_id,
+            APIKey.user_id == user_id
+        )
+    )
+    api_key = api_key.scalar_one_or_none()
+    
+    if api_key:
+        await db.delete(api_key)
+        await db.commit()
+    
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 
 @app.get("/health")

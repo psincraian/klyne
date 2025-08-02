@@ -38,9 +38,53 @@
                 </div>
                 
                 <div class="info-card">
-                    <h2>Getting Started</h2>
-                    <p>Welcome to Klyne! Your account is set up and ready.</p>
-                    <p>Package analytics features are coming soon. Stay tuned for updates!</p>
+                    <h2>API Keys</h2>
+                    <p>Manage API keys for your Python packages. Each package needs its own API key.</p>
+                    
+                    <!-- Create new API key form -->
+                    <form action="/api/api-keys" method="POST" class="api-key-form">
+                        <div class="form-group">
+                            <label for="package_name">Package Name:</label>
+                            <input type="text" id="package_name" name="package_name" required 
+                                   placeholder="e.g., pandas, numpy, requests">
+                        </div>
+                        <button type="submit" class="create-btn">Create API Key</button>
+                    </form>
+                    
+                    <!-- Existing API keys -->
+                    {% if api_keys %}
+                        <div class="api-keys-list">
+                            <h3>Your API Keys</h3>
+                            {% for api_key in api_keys %}
+                                <div class="api-key-item">
+                                    <div class="api-key-info">
+                                        <strong>{{ api_key.package_name }}</strong>
+                                        <code class="api-key-value">{{ api_key.key }}</code>
+                                        <small>Created: {{ api_key.created_at.strftime('%B %d, %Y') }}</small>
+                                    </div>
+                                    <form action="/api-keys/{{ api_key.id }}/delete" method="POST" 
+                                          style="display: inline;"
+                                          onsubmit="return confirm('Are you sure you want to delete this API key?')">
+                                        <button type="submit" class="delete-btn">Delete</button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="no-api-keys">No API keys created yet. Create your first API key above.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="info-card">
+                    <h2>Integration Instructions</h2>
+                    <p>Once you have an API key, integrate Klyne into your Python package:</p>
+                    <pre><code>import klyne
+
+# Initialize Klyne with your API key
+klyne.init(api_key="your_api_key_here", project="your_package_name")
+
+# Your package analytics will be automatically tracked!</code></pre>
+                    <p><em>Note: The Klyne SDK is currently in development. Integration instructions will be available soon.</em></p>
                 </div>
             </div>
         </div>
