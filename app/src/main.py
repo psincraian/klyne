@@ -24,6 +24,7 @@ from src.schemas.user import UserCreate, UserLogin
 from src.schemas.api_key import APIKeyCreate, APIKeyResponse
 from src.services.email import EmailService
 from src.api.analytics import router as analytics_router
+from src.api.dashboard import router as dashboard_router
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ templates = Jinja2Templates(directory="src/templates")
 
 # Include API routers
 app.include_router(analytics_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -216,6 +218,32 @@ async def logout(request: Request):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
+    if not is_authenticated(request):
+        return RedirectResponse(url="/login", status_code=302)
+    
+    user_id = get_current_user_id(request)
+    user = await db.execute(select(User).filter(User.id == user_id))
+    user = user.scalar_one_or_none()
+    
+    if not user:
+        logout_user(request)
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # Get user's API keys
+    api_keys_result = await db.execute(
+        select(APIKey).filter(APIKey.user_id == user_id)
+    )
+    api_keys = api_keys_result.scalars().all()
+    
+    return templates.TemplateResponse(
+        "analytics-dashboard.html",
+        {"request": request, "user": user, "api_keys": api_keys}
+    )
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
+    """API key management and account settings."""
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
     

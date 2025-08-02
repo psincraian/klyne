@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 import secrets
 from passlib.context import CryptContext
-from fastapi import Request
+from fastapi import Request, HTTPException, Depends
 from src.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -54,3 +54,11 @@ def generate_verification_token() -> str:
 def get_verification_token_expiry() -> datetime:
     """Get expiry time for verification token."""
     return datetime.now(timezone.utc) + timedelta(hours=VERIFICATION_TOKEN_EXPIRE_HOURS)
+
+
+async def require_authentication(request: Request) -> int:
+    """Dependency to require authentication and return user ID."""
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return user_id
