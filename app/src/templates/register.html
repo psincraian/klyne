@@ -7,9 +7,12 @@
 
 {% block content %}
 <div class="app">
-    {{ header(nav_links=[
-        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
-    ]) }}
+    {{ header(
+        page_title="Create Account",
+        nav_links=[
+            {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
+        ]
+    ) }}
     
     <main class="main main--centered">
         <div style="width: 100%; max-width: 450px;">

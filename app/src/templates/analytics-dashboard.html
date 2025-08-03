@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
 
 {% block title %}Analytics Dashboard - Klyne{% endblock %}
 
@@ -15,67 +16,10 @@
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    padding-top: 100px; /* Account for fixed header */
 }
 
-.analytics-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid #e5e7eb;
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.analytics-header .container {
-    background: none;
-    box-shadow: none;
-    margin: 0;
-    padding: 0;
-    min-height: auto;
-    display: block;
-}
-
-.analytics-header nav {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.analytics-nav-tabs {
-    display: flex;
-    background: #f3f4f6;
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
-    margin: 0 2rem;
-}
-
-.analytics-nav-tab {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 500;
-    text-decoration: none;
-    color: #6b7280;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.analytics-nav-tab.active {
-    background: white;
-    color: #6366f1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.analytics-nav-tab:hover:not(.active) {
-    color: #374151;
-    background: rgba(255, 255, 255, 0.7);
-}
+/* Analytics page specific styles */
 
 .analytics-container {
     max-width: 1400px;
@@ -468,96 +412,21 @@
     }
 }
 
-/* User section styles */
-.user-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.user-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.user-email {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.logout-btn {
-    background: none;
-    border: 1px solid #d1d5db;
-    color: #6b7280;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.logout-btn:hover {
-    border-color: #ef4444;
-    color: #ef4444;
-}
-
-@media (max-width: 480px) {
-    .user-section {
-        display: none;
-    }
-}
+/* Analytics specific responsive styles */
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="analytics-body">
-    <header class="analytics-header">
-        <div class="container">
-            <nav>
-                <div class="logo">
-                    <a href="/" style="text-decoration: none; color: inherit;">Klyne</a>
-                </div>
-                
-                <div class="analytics-nav-tabs">
-                    <a href="/dashboard" class="analytics-nav-tab active">
-                        <i class="fas fa-chart-line"></i> Analytics
-                    </a>
-                    <a href="/settings" class="analytics-nav-tab">
-                        <i class="fas fa-cog"></i> Settings
-                    </a>
-                </div>
-                
-                <div class="user-section">
-                    <div class="user-avatar">
-                        {{ user.email[0].upper() }}
-                    </div>
-                    <div class="user-info">
-                        <span class="user-email">{{ user.email }}</span>
-                    </div>
-                    <form action="/logout" method="POST" style="display: inline;">
-                        <button type="submit" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </form>
-                </div>
-            </nav>
-        </div>
-    </header>
+    {{ header(
+        page_title="Analytics Dashboard",
+        show_nav_tabs=True,
+        active_tab="dashboard",
+        user=user
+    ) }}
     
     <div class="analytics-container">
         <div class="analytics-title-section">
-            <h1 class="analytics-title">Analytics Dashboard</h1>
             <p class="analytics-subtitle">Monitor your package usage and performance metrics</p>
         </div>
 

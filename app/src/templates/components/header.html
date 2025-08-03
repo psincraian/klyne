@@ -1,8 +1,24 @@
-{% macro header(logo_text="Klyne", nav_links=[], user=None, show_nav_tabs=False, active_tab=None) %}
-<header class="header">
+{% macro header(
+    logo_text="Klyne", 
+    page_title=None,
+    nav_links=[], 
+    user=None, 
+    show_nav_tabs=False, 
+    active_tab=None,
+    header_style="default"
+) %}
+<header class="header {{ 'header--analytics' if header_style == 'analytics' else 'header--default' }}">
     <div class="container">
         <nav class="header__nav">
-            <a href="/" class="header__logo">{{ logo_text }}</a>
+            <div class="header__brand">
+                <a href="/" class="header__logo">{{ logo_text }}</a>
+                {% if page_title %}
+                    <div class="header__page-title">
+                        <span class="header__separator">|</span>
+                        <h1>{{ page_title }}</h1>
+                    </div>
+                {% endif %}
+            </div>
             
             {% if show_nav_tabs %}
                 <div class="header__nav-tabs">
@@ -21,7 +37,7 @@
                         <div class="header__user-avatar">
                             {{ user.email[0].upper() }}
                         </div>
-                        <span>{{ user.email }}</span>
+                        <span class="header__user-email">{{ user.email }}</span>
                     </div>
                     {% if not show_nav_tabs %}
                         <a href="/dashboard" class="nav-link">
