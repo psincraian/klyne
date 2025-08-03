@@ -1,0 +1,15 @@
+# Hetzner Cloud API Token
+# Get this from https://console.hetzner.cloud/
+hcloud_token = "your-hetzner-cloud-api-token"
+
+# SSH public key for server access
+# Generate with: ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAA... your-email@example.com"
+
+# Domain name for your application (optional)
+# If provided, will attempt to get SSL certificate from Let's Encrypt
+domain_name = "your-domain.com"
+
+# Resend API Key for email services
+# Get this from https://resend.com/api-keys
+resend_api_key = "your-resend-api-key"

@@ -1,0 +1,174 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types:
+      - completed
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    
+    environment: production
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add servers to known hosts
+      run: |
+        # Get server IPs from Terraform outputs (assuming they're stored as secrets)
+        # Alternative: parse from Terraform state or use a service discovery method
+        
+        # For now, we'll skip strict host key checking for deployment
+        # In production, you should properly manage known_hosts
+        mkdir -p ~/.ssh
+        echo "StrictHostKeyChecking no" >> ~/.ssh/config
+        echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
+        chmod 600 ~/.ssh/config
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Get server IPs from Terraform
+      id: terraform
+      working-directory: ./deployment
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+        TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+        TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        terraform init
+        
+        # Get server IPs from Terraform state
+        SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
+        echo "server_ips=$SERVER_IPS" >> $GITHUB_OUTPUT
+        
+        # Get load balancer IP
+        LB_IP=$(terraform output -raw load_balancer_ipv4)
+        echo "load_balancer_ip=$LB_IP" >> $GITHUB_OUTPUT
+
+    - name: Deploy to production
+      env:
+        SERVERS: ${{ steps.terraform.outputs.server_ips }}
+        IMAGE_TAG: ${{ github.sha }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        # Make deployment script executable
+        chmod +x ./deployment/deploy.sh
+        
+        # Run deployment
+        ./deployment/deploy.sh
+
+    - name: Verify deployment
+      env:
+        LB_IP: ${{ steps.terraform.outputs.load_balancer_ip }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        # Test the application health through load balancer
+        if [[ -n "$DOMAIN_NAME" ]]; then
+          ENDPOINT="https://$DOMAIN_NAME"
+        else
+          ENDPOINT="http://$LB_IP"
+        fi
+        
+        echo "Testing endpoint: $ENDPOINT"
+        
+        # Wait for deployment to settle
+        sleep 30
+        
+        # Test health endpoint
+        for i in {1..10}; do
+          if curl -f -s "$ENDPOINT/health" | grep -q "healthy"; then
+            echo "✅ Deployment verification successful!"
+            exit 0
+          fi
+          echo "⏳ Waiting for deployment to be ready... (attempt $i/10)"
+          sleep 15
+        done
+        
+        echo "❌ Deployment verification failed"
+        exit 1
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [[ "${{ job.status }}" == "success" ]]; then
+          echo "🚀 Deployment to production completed successfully!"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        else
+          echo "💥 Deployment to production failed!"
+        fi
+
+  rollback:
+    if: ${{ failure() && github.event.workflow_run.conclusion == 'success' }}
+    needs: deploy
+    runs-on: ubuntu-latest
+    
+    environment: production
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "StrictHostKeyChecking no" >> ~/.ssh/config
+        echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
+        chmod 600 ~/.ssh/config
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Get server IPs
+      id: terraform
+      working-directory: ./deployment
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+        TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+        TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        terraform init
+        SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
+        echo "server_ips=$SERVER_IPS" >> $GITHUB_OUTPUT
+
+    - name: Rollback deployment
+      env:
+        SERVERS: ${{ steps.terraform.outputs.server_ips }}
+        IMAGE_TAG: latest  # Rollback to latest stable
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        PREVIOUS_IMAGE_TAG: latest
+      run: |
+        echo "🔄 Starting rollback procedure..."
+        chmod +x ./deployment/deploy.sh
+        ./deployment/deploy.sh || {
+          echo "❌ Rollback failed! Manual intervention required."
+          exit 1
+        }
+        echo "✅ Rollback completed successfully!"
