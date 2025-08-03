@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, feat-deploy ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: klyne_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      working-directory: ./app
+      run: |
+        uv sync --dev
+
+    - name: Run tests
+      working-directory: ./app
+      env:
+        DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/klyne_test
+        SECRET_KEY: test-secret-key-for-ci
+        ENVIRONMENT: test
+      run: |
+        uv run pytest -v
+
+    - name: Run linting
+      working-directory: ./app
+      run: |
+        uv run ruff check .
+      continue-on-error: true
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: ./app
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  security-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ needs.build.outputs.image-tag }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
