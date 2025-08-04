@@ -8,7 +8,6 @@ class AnalyticsEventCreate(BaseModel):
     """Schema for creating a new analytics event."""
     
     # Required fields
-    api_key: str = Field(..., description="API key for the package")
     session_id: str = Field(..., description="Unique session identifier")
     package_name: str = Field(..., min_length=1, max_length=100, description="Package name")
     package_version: str = Field(..., min_length=1, max_length=50, description="Package version")
@@ -119,15 +118,13 @@ class AnalyticsEventResponse(BaseModel):
 class AnalyticsEventBatch(BaseModel):
     """Schema for batch analytics event submission."""
     
-    events: list[AnalyticsEventCreate] = Field(..., min_items=1, max_items=100, 
-                                              description="List of analytics events")
+    events: list[AnalyticsEventCreate] = Field(..., description="List of analytics events")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "events": [
                     {
-                        "api_key": "klyne_abc123...",
                         "session_id": "550e8400-e29b-41d4-a716-446655440000",
                         "package_name": "requests",
                         "package_version": "2.31.0",
