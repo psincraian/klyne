@@ -173,7 +173,8 @@ async def register_user(
             "email": email,
             "password": password,
             "password_confirm": password_confirm
-        }
+        },
+        status_code=400
     )
 
 
@@ -202,7 +203,8 @@ async def verify_email(request: Request, token: str, db: AsyncSession = Depends(
             
             return templates.TemplateResponse(
                 "verification_error.html",
-                {"request": request, "error_message": error_message}
+                {"request": request, "error_message": error_message},
+                status_code=400
             )
         
         user.is_verified = True
@@ -220,7 +222,8 @@ async def verify_email(request: Request, token: str, db: AsyncSession = Depends(
         error_message = "Verification failed. Please try again or contact support."
         return templates.TemplateResponse(
             "verification_error.html",
-            {"request": request, "error_message": error_message}
+            {"request": request, "error_message": error_message},
+            status_code=400
         )
 
 
@@ -268,7 +271,8 @@ async def login_user(
             "request": request,
             "error_message": error_message,
             "email": email
-        }
+        },
+        status_code=400
     )
 
 

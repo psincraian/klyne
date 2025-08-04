@@ -1,11 +1,14 @@
 from typing import Optional
 import logging
+import os
 import resend
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
 
-resend.api_key = settings.RESEND_API_KEY
+# Only set API key if it exists and we're not in test mode
+if settings.RESEND_API_KEY and not os.getenv("TESTING"):
+    resend.api_key = settings.RESEND_API_KEY
 
 
 class EmailService:
@@ -15,6 +18,14 @@ class EmailService:
     async def send_verification_email(email: str, verification_token: str) -> bool:
         """Send verification email to user using Resend."""
         verification_url = f"http://localhost:8000/verify?token={verification_token}"
+        
+        # In test mode, just print to stdout and log
+        if os.getenv("TESTING") or not settings.RESEND_API_KEY:
+            print(f"EMAIL VERIFICATION - To: {email}")
+            print(f"Verification URL: {verification_url}")
+            logger.info(f"Test mode: Email verification would be sent to {email}")
+            logger.info(f"Verification URL: {verification_url}")
+            return True
         
         try:
             params: resend.Emails.SendParams = {
@@ -41,6 +52,14 @@ class EmailService:
     async def send_password_reset_email(email: str, reset_token: str) -> bool:
         """Send password reset email to user using Resend."""
         reset_url = f"http://localhost:8000/reset-password?token={reset_token}"
+        
+        # In test mode, just print to stdout and log
+        if os.getenv("TESTING") or not settings.RESEND_API_KEY:
+            print(f"PASSWORD RESET - To: {email}")
+            print(f"Reset URL: {reset_url}")
+            logger.info(f"Test mode: Password reset email would be sent to {email}")
+            logger.info(f"Reset URL: {reset_url}")
+            return True
         
         try:
             params: resend.Emails.SendParams = {

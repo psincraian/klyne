@@ -75,7 +75,6 @@ class AnalyticsEventCreate(BaseModel):
         # Example data for documentation
         json_schema_extra = {
             "example": {
-                "api_key": "klyne_abc123...",
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
                 "package_name": "requests",
                 "package_version": "2.31.0",

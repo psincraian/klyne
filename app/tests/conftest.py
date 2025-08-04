@@ -1,3 +1,4 @@
+import os
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
@@ -8,6 +9,9 @@ from sqlalchemy.pool import StaticPool
 from src.main import app
 from src.models import Base
 from src.core.database import get_db
+
+# Set testing environment variable
+os.environ["TESTING"] = "1"
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
