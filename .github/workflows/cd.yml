@@ -52,7 +52,7 @@ jobs:
         TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
         TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
       run: |
-        terraform init
+        terraform init -backend-config=backend.hcl
         
         # Get server IPs from Terraform state
         SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
@@ -69,6 +69,8 @@ jobs:
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_ACTOR: ${{ github.actor }}
       run: |
         # Make deployment script executable
         chmod +x ./deployment/deploy.sh
@@ -151,8 +153,10 @@ jobs:
         TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
         TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
         TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        terraform init
+        terraform init -backend-config=backend.hcl
         SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
         echo "server_ips=$SERVER_IPS" >> $GITHUB_OUTPUT
 

@@ -140,7 +140,11 @@ EOF"
     
     # Pull the new image
     log "Pulling Docker image on $server..."
-    ssh deploy@$server "cd /opt/klyne && docker compose -f docker-compose.prod.yml pull app"
+    ssh deploy@$server "
+        cd /opt/klyne
+        echo '${GITHUB_TOKEN}' | docker login ghcr.io -u '${GITHUB_ACTOR}' --password-stdin
+        docker compose -f docker-compose.prod.yml pull app
+    "
     
     # Backup database if this is the primary server
     if [[ "$is_first_server" == "true" ]]; then

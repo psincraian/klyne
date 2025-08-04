@@ -20,9 +20,7 @@ services:
       - app-network
 
   app:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
+    image: ghcr.io/psincraian/klyne:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-klyne}

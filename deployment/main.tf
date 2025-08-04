@@ -7,13 +7,8 @@ terraform {
   }
   required_version = ">= 1.0"
   
-  # S3 backend configuration - values provided via:
-  # 1. Environment variables (TF_VAR_* or AWS_* style)
-  # 2. terraform init -backend-config options
-  # 3. backend.hcl configuration file
-  backend "s3" {
-    key = "terraform/klyne-infrastructure.tfstate"
-  }
+  # Using local backend for simplicity
+  # For production, consider using remote backend (S3, Terraform Cloud, etc.)
 }
 
 # Note: S3 backend variables are configured via environment variables or backend config
@@ -133,6 +128,15 @@ output "server_ipv4" {
   value       = hcloud_server.klyne_server.ipv4_address
 }
 
+output "server_ips" {
+  description = "List of server IPs (for compatibility with deploy script)"
+  value       = [hcloud_server.klyne_server.ipv4_address]
+}
+
+output "load_balancer_ipv4" {
+  description = "Load balancer IP (same as server IP in single-server setup)"
+  value       = hcloud_server.klyne_server.ipv4_address
+}
 
 output "server_name" {
   description = "Name of the server"
