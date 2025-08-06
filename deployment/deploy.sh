@@ -79,8 +79,8 @@ deploy_to_server() {
     ssh deploy@$server "mkdir -p /opt/klyne/{ssl,backups,logs,config}"
     
     # Copy docker-compose configuration
-    scp docker-compose.prod.yml deploy@$server:/opt/klyne/
-    scp nginx.conf deploy@$server:/opt/klyne/
+    scp deployment/docker-compose.prod.yml deploy@$server:/opt/klyne/
+    scp deployment/nginx.conf deploy@$server:/opt/klyne/
     
     # Create environment file
     ssh deploy@$server "cat > /opt/klyne/.env << EOF

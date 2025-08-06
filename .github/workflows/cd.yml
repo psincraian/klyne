@@ -44,7 +44,7 @@ jobs:
       with:
         terraform_version: 1.5.0
 
-    - name: Get server IPs from Terraform
+    - name: Provision infrastructure with Terraform
       id: terraform
       working-directory: ./deployment
       env:
@@ -55,32 +55,27 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
+        echo "🏗️ Initializing Terraform..."
         terraform init -backend-config=backend.hcl
         
-        # Check if infrastructure exists, if not create it
-        if ! terraform show > /dev/null 2>&1; then
-          echo "No existing infrastructure found, creating..."
-          terraform plan -out=tfplan
-          terraform apply tfplan
-        fi
+        echo "📋 Planning infrastructure changes..."
+        terraform plan -out=tfplan
         
+        echo "🚀 Applying infrastructure changes..."
+        terraform apply -auto-approve tfplan
+        
+        echo "📤 Getting infrastructure outputs..."
         # Get server IPs from Terraform state
-        if terraform output server_ips > /dev/null 2>&1; then
-          SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
-          echo "server_ips=$SERVER_IPS" >> $GITHUB_OUTPUT
-        else
-          echo "❌ No server_ips output found. Infrastructure may not be deployed."
-          exit 1
-        fi
+        SERVER_IPS=$(terraform output -json server_ips | jq -r '.[]' | tr '\n' ' ')
+        echo "server_ips=$SERVER_IPS" >> $GITHUB_OUTPUT
         
         # Get load balancer IP
-        if terraform output load_balancer_ipv4 > /dev/null 2>&1; then
-          LB_IP=$(terraform output -raw load_balancer_ipv4)
-          echo "load_balancer_ip=$LB_IP" >> $GITHUB_OUTPUT
-        else
-          echo "❌ No load_balancer_ipv4 output found. Infrastructure may not be deployed."
-          exit 1
-        fi
+        LB_IP=$(terraform output -raw load_balancer_ipv4)
+        echo "load_balancer_ip=$LB_IP" >> $GITHUB_OUTPUT
+        
+        echo "✅ Infrastructure ready!"
+        echo "Server IPs: $SERVER_IPS"
+        echo "Load Balancer IP: $LB_IP"
 
     - name: Deploy to production
       env:
