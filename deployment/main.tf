@@ -7,8 +7,9 @@ terraform {
   }
   required_version = ">= 1.0"
   
-  # Using local backend for simplicity
-  # For production, consider using remote backend (S3, Terraform Cloud, etc.)
+  backend "s3" {
+    key = "terraform.tfstate"
+  }
 }
 
 # Note: S3 backend variables are configured via environment variables or backend config
