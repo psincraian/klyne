@@ -427,3 +427,8 @@ async def delete_api_key_form(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
