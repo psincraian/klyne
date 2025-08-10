@@ -4,6 +4,10 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.47"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.1"
+    }
   }
   required_version = ">= 1.0"
   
@@ -44,15 +48,20 @@ provider "hcloud" {
 
 # SSH Key
 resource "hcloud_ssh_key" "klyne_key" {
-  name       = "klyne-deployment-key"
+  name       = "klyne-deployment-key-${random_id.deployment_id.hex}"
   public_key = var.ssh_public_key
 }
 
 # Network configuration removed - using only public IP
 
+# Random ID for unique resource names
+resource "random_id" "deployment_id" {
+  byte_length = 4
+}
+
 # Firewall
 resource "hcloud_firewall" "klyne_firewall" {
-  name = "klyne-firewall"
+  name = "klyne-firewall-${random_id.deployment_id.hex}"
 
   rule {
     direction = "in"
