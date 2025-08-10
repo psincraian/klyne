@@ -2,7 +2,6 @@ import os
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 

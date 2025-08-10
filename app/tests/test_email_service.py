@@ -1,6 +1,5 @@
 import pytest
-import pytest_asyncio
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import io
 import sys
 

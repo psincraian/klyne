@@ -1,8 +1,6 @@
-import pytest
 import pytest_asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
-from httpx import AsyncClient
 from sqlalchemy import select
 from src.models.analytics_event import AnalyticsEvent
 from src.models.api_key import APIKey

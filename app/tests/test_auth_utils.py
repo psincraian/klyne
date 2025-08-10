@@ -1,6 +1,5 @@
 import pytest
 from datetime import datetime, timezone, timedelta
-from fastapi import Request
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.testclient import TestClient
 from starlette.applications import Starlette

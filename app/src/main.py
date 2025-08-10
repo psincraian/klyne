@@ -14,8 +14,7 @@ from src.core.config import settings
 from src.core.auth import (
     get_password_hash, verify_password, create_session, 
     logout_user, is_authenticated, generate_verification_token,
-    get_verification_token_expiry, get_current_user_id, get_current_user_email,
-    require_admin
+    get_verification_token_expiry, get_current_user_id, get_current_user_email
 )
 from src.models import Base
 from src.models.email_signup import EmailSignup
@@ -23,7 +22,6 @@ from src.models.user import User
 from src.models.api_key import APIKey
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
-from src.schemas.api_key import APIKeyCreate, APIKeyResponse
 from src.services.email import EmailService
 from src.api.analytics import router as analytics_router
 from src.api.dashboard import router as dashboard_router
@@ -160,7 +158,7 @@ async def register_user(
                     {"request": request, "email": user_data.email}
                 )
         
-    except Exception as e:
+    except Exception:
         await db.rollback()
         error_message = "Registration failed. Please try again."
     
@@ -218,7 +216,7 @@ async def verify_email(request: Request, token: str, db: AsyncSession = Depends(
             {"request": request}
         )
         
-    except Exception as e:
+    except Exception:
         error_message = "Verification failed. Please try again or contact support."
         return templates.TemplateResponse(
             "verification_error.html",
@@ -261,7 +259,7 @@ async def login_user(
             create_session(request, user.id, user.email)
             return RedirectResponse(url="/dashboard", status_code=302)
         
-    except Exception as e:
+    except Exception:
         error_message = "Login failed. Please try again."
     
     # If we got here, there was an error - show the form again with the error

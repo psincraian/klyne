@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 import os
 import resend

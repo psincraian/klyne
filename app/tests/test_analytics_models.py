@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 from uuid import uuid4
 from sqlalchemy import select
 from src.models.analytics_event import AnalyticsEvent

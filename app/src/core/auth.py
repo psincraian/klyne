@@ -4,7 +4,6 @@ import secrets
 from passlib.context import CryptContext
 from fastapi import Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.config import settings
 from src.core.database import get_db
 from src.models.user import User
 

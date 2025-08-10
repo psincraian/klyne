@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from sqlalchemy import select
 from src.models.api_key import APIKey

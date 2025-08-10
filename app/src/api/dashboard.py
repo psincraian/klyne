@@ -3,14 +3,13 @@ Dashboard API endpoints for analytics data.
 """
 
 from datetime import datetime, date, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, and_, or_
-from sqlalchemy.orm import aliased
+from sqlalchemy import select, func, desc, and_
 import logging
 from src.core.database import get_db
-from src.core.auth import get_current_user_id, require_authentication
+from src.core.auth import require_authentication
 from src.models.api_key import APIKey
 from src.models.analytics_event import AnalyticsEvent
 from src.schemas.dashboard import (

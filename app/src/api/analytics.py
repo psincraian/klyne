@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List
 import logging
 from datetime import datetime, timezone
 from uuid import UUID
@@ -13,7 +11,6 @@ from src.models.analytics_event import AnalyticsEvent
 from src.models.api_key import APIKey
 from src.schemas.analytics import (
     AnalyticsEventCreate, 
-    AnalyticsEventResponse, 
     AnalyticsEventBatch
 )
 
