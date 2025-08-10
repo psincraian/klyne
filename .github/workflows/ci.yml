@@ -94,3 +94,10 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Trigger Coolify Deployment
+      if: success()
+      run: |
+        curl -X POST "https://app.coolify.io/api/v1/deploy?uuid=bgo4sogwowcow0k8cock8wcw&force=false" \
+          -H "Authorization: Bearer ${{ secrets.COOLIFY }}" \
+          -H "Content-Type: application/json"
+
