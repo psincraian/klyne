@@ -1,9 +1,6 @@
-from sqlalchemy.ext.declarative import declarative_base
-
 from .analytics_event import AnalyticsEvent
 from .api_key import APIKey
 from .user import User
-
-Base = declarative_base()
+from ..core.database import Base
 
 __all__ = ["User", "APIKey", "AnalyticsEvent", "Base"]
