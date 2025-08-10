@@ -4,7 +4,9 @@ from typing import Optional
 
 
 class APIKeyBase(BaseModel):
-    package_name: str = Field(..., min_length=1, max_length=100, description="Package name to track")
+    package_name: str = Field(
+        ..., min_length=1, max_length=100, description="Package name to track"
+    )
 
 
 class APIKeyCreate(APIKeyBase):

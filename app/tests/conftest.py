@@ -23,14 +23,14 @@ async def async_engine():
         TEST_DATABASE_URL,
         echo=True,
         poolclass=StaticPool,
-        connect_args={"check_same_thread": False}
+        connect_args={"check_same_thread": False},
     )
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     yield engine
-    
+
     await engine.dispose()
 
 
@@ -38,11 +38,9 @@ async def async_engine():
 async def async_session(async_engine):
     """Create an async session for testing."""
     async_session_maker = async_sessionmaker(
-        async_engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        async_engine, class_=AsyncSession, expire_on_commit=False
     )
-    
+
     async with async_session_maker() as session:
         yield session
 
@@ -50,6 +48,7 @@ async def async_session(async_engine):
 @pytest_asyncio.fixture
 async def override_get_db(async_session):
     """Override the get_db dependency."""
+
     async def _override_get_db():
         try:
             yield async_session
@@ -57,7 +56,7 @@ async def override_get_db(async_session):
         except Exception:
             await async_session.rollback()
             raise
-    
+
     return _override_get_db
 
 
@@ -65,12 +64,14 @@ async def override_get_db(async_session):
 async def client(override_get_db):
     """Create test client with overridden database."""
     from httpx import ASGITransport
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
-    
+
     app.dependency_overrides.clear()
 
 
@@ -80,7 +81,7 @@ def user_data():
     return {
         "email": "test@example.com",
         "password": "testpassword123",
-        "password_confirm": "testpassword123"
+        "password_confirm": "testpassword123",
     }
 
 
@@ -90,5 +91,5 @@ def invalid_user_data():
     return {
         "email": "invalid-email",
         "password": "short",
-        "password_confirm": "different"
+        "password_confirm": "different",
     }

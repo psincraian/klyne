@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class PackageOverview(BaseModel):
     """Overview statistics for a package."""
+
     package_name: str
     api_key: str
     total_events: int = Field(ge=0)
@@ -23,6 +24,7 @@ class PackageOverview(BaseModel):
 
 class TimeSeriesData(BaseModel):
     """Time series data for charts."""
+
     dates: List[str]  # ISO date strings
     events: List[int]
     sessions: List[int]
@@ -32,6 +34,7 @@ class TimeSeriesData(BaseModel):
 
 class PythonVersionDistribution(BaseModel):
     """Python version usage distribution."""
+
     python_version: str
     event_count: int = Field(ge=0)
     session_count: int = Field(ge=0)
@@ -41,6 +44,7 @@ class PythonVersionDistribution(BaseModel):
 
 class OSDistribution(BaseModel):
     """Operating system usage distribution."""
+
     os_type: str
     event_count: int = Field(ge=0)
     session_count: int = Field(ge=0)
@@ -50,6 +54,7 @@ class OSDistribution(BaseModel):
 
 class PackageVersionAdoption(BaseModel):
     """Package version adoption statistics."""
+
     package_version: str
     event_count: int = Field(ge=0)
     session_count: int = Field(ge=0)
@@ -60,6 +65,7 @@ class PackageVersionAdoption(BaseModel):
 
 class DashboardFilters(BaseModel):
     """Filters for dashboard data."""
+
     package_name: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -69,6 +75,7 @@ class DashboardFilters(BaseModel):
 
 class DashboardSummary(BaseModel):
     """Summary statistics for the entire dashboard."""
+
     total_packages: int = Field(ge=0)
     total_events: int = Field(ge=0)
     total_sessions: int = Field(ge=0)

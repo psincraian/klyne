@@ -12,9 +12,15 @@ import logging
 from src.core.database import engine, get_db
 from src.core.config import settings
 from src.core.auth import (
-    get_password_hash, verify_password, create_session, 
-    logout_user, is_authenticated, generate_verification_token,
-    get_verification_token_expiry, get_current_user_id, get_current_user_email
+    get_password_hash,
+    verify_password,
+    create_session,
+    logout_user,
+    is_authenticated,
+    generate_verification_token,
+    get_verification_token_expiry,
+    get_current_user_id,
+    get_current_user_email,
 )
 from src.models import Base
 from src.models.email_signup import EmailSignup
@@ -31,10 +37,10 @@ from src.api.backoffice import router as backoffice_router
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-    ]
+    ],
 )
 
 # Set specific loggers
@@ -75,31 +81,35 @@ app.include_router(backoffice_router)
 async def landing_page(request: Request):
     user_authenticated = is_authenticated(request)
     user_email = get_current_user_email(request) if user_authenticated else None
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "user_authenticated": user_authenticated,
-        "user_email": user_email
-    })
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "user_authenticated": user_authenticated,
+            "user_email": user_email,
+        },
+    )
 
 
 @app.post("/signup")
-async def signup(request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)):
+async def signup(
+    request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)
+):
     try:
         email_obj = EmailCreate(email=email)
-        
+
         existing = await db.execute(
             select(EmailSignup).filter(EmailSignup.email == email_obj.email)
         )
         if existing.scalar_one_or_none():
             raise HTTPException(status_code=400, detail="Email already registered")
-        
+
         db_email = EmailSignup(email=email_obj.email)
         db.add(db_email)
         await db.commit()
-        
+
         return templates.TemplateResponse(
-            "success.html", 
-            {"request": request, "email": email}
+            "success.html", {"request": request, "email": email}
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -118,10 +128,10 @@ async def register_user(
     email: str = Form(...),
     password: str = Form(...),
     password_confirm: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     error_message = None
-    
+
     try:
         if password != password_confirm:
             error_message = "Passwords do not match"
@@ -129,7 +139,7 @@ async def register_user(
             error_message = "Password must be at least 8 characters"
         else:
             user_data = UserCreate(email=email, password=password)
-            
+
             existing_user = await db.execute(
                 select(User).filter(User.email == user_data.email)
             )
@@ -138,30 +148,32 @@ async def register_user(
             else:
                 verification_token = generate_verification_token()
                 token_expiry = get_verification_token_expiry()
-                
+
                 db_user = User(
                     email=user_data.email,
                     hashed_password=get_password_hash(user_data.password),
                     verification_token=verification_token,
                     verification_token_expires=token_expiry,
-                    is_verified=False
+                    is_verified=False,
                 )
-                
+
                 db.add(db_user)
                 await db.commit()
                 await db.refresh(db_user)
-                
-                await EmailService.send_verification_email(user_data.email, verification_token)
-                
+
+                await EmailService.send_verification_email(
+                    user_data.email, verification_token
+                )
+
                 return templates.TemplateResponse(
                     "registration_success.html",
-                    {"request": request, "email": user_data.email}
+                    {"request": request, "email": user_data.email},
                 )
-        
+
     except Exception:
         await db.rollback()
         error_message = "Registration failed. Please try again."
-    
+
     # If we got here, there was an error - show the form again with the error
     return templates.TemplateResponse(
         "register.html",
@@ -170,58 +182,59 @@ async def register_user(
             "error_message": error_message,
             "email": email,
             "password": password,
-            "password_confirm": password_confirm
+            "password_confirm": password_confirm,
         },
-        status_code=400
+        status_code=400,
     )
 
 
 @app.get("/verify")
-async def verify_email(request: Request, token: str, db: AsyncSession = Depends(get_db)):
+async def verify_email(
+    request: Request, token: str, db: AsyncSession = Depends(get_db)
+):
     try:
         user = await db.execute(
             select(User).filter(
                 User.verification_token == token,
-                User.verification_token_expires > datetime.now(timezone.utc)
+                User.verification_token_expires > datetime.now(timezone.utc),
             )
         )
         user = user.scalar_one_or_none()
-        
+
         if not user:
             # Check if token exists but is expired
             expired_user = await db.execute(
                 select(User).filter(User.verification_token == token)
             )
             expired_user = expired_user.scalar_one_or_none()
-            
+
             if expired_user:
                 error_message = "Your verification link has expired. Please register again or request a new verification email."
             else:
                 error_message = "Invalid verification link. Please check your email or register again."
-            
+
             return templates.TemplateResponse(
                 "verification_error.html",
                 {"request": request, "error_message": error_message},
-                status_code=400
+                status_code=400,
             )
-        
+
         user.is_verified = True
         user.verification_token = None
         user.verification_token_expires = None
-        
+
         await db.commit()
-        
+
         return templates.TemplateResponse(
-            "verification_success.html",
-            {"request": request}
+            "verification_success.html", {"request": request}
         )
-        
+
     except Exception:
         error_message = "Verification failed. Please try again or contact support."
         return templates.TemplateResponse(
             "verification_error.html",
             {"request": request, "error_message": error_message},
-            status_code=400
+            status_code=400,
         )
 
 
@@ -237,18 +250,16 @@ async def login_user(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     error_message = None
-    
+
     try:
         user_data = UserLogin(email=email, password=password)
-        
-        user = await db.execute(
-            select(User).filter(User.email == user_data.email)
-        )
+
+        user = await db.execute(select(User).filter(User.email == user_data.email))
         user = user.scalar_one_or_none()
-        
+
         if not user or not verify_password(user_data.password, user.hashed_password):
             error_message = "Invalid email or password"
         elif not user.is_verified:
@@ -258,19 +269,15 @@ async def login_user(
         else:
             create_session(request, user.id, user.email)
             return RedirectResponse(url="/dashboard", status_code=302)
-        
+
     except Exception:
         error_message = "Login failed. Please try again."
-    
+
     # If we got here, there was an error - show the form again with the error
     return templates.TemplateResponse(
         "login.html",
-        {
-            "request": request,
-            "error_message": error_message,
-            "email": email
-        },
-        status_code=400
+        {"request": request, "error_message": error_message, "email": email},
+        status_code=400,
     )
 
 
@@ -284,24 +291,22 @@ async def logout(request: Request):
 async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
-    
+
     user_id = get_current_user_id(request)
     user = await db.execute(select(User).filter(User.id == user_id))
     user = user.scalar_one_or_none()
-    
+
     if not user:
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
-    
+
     # Get user's API keys
-    api_keys_result = await db.execute(
-        select(APIKey).filter(APIKey.user_id == user_id)
-    )
+    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
-    
+
     return templates.TemplateResponse(
         "analytics-dashboard.html",
-        {"request": request, "user": user, "api_keys": api_keys}
+        {"request": request, "user": user, "api_keys": api_keys},
     )
 
 
@@ -310,115 +315,99 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
     """API key management and account settings."""
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
-    
+
     user_id = get_current_user_id(request)
     user = await db.execute(select(User).filter(User.id == user_id))
     user = user.scalar_one_or_none()
-    
+
     if not user:
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
-    
+
     # Get user's API keys
-    api_keys_result = await db.execute(
-        select(APIKey).filter(APIKey.user_id == user_id)
-    )
+    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
-    
+
     return templates.TemplateResponse(
-        "dashboard.html",
-        {"request": request, "user": user, "api_keys": api_keys}
+        "dashboard.html", {"request": request, "user": user, "api_keys": api_keys}
     )
 
 
 @app.post("/api/api-keys")
 async def create_api_key(
-    request: Request,
-    package_name: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+    request: Request, package_name: str = Form(...), db: AsyncSession = Depends(get_db)
 ):
     if not is_authenticated(request):
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     user_id = get_current_user_id(request)
-    
+
     # Check if package name already exists for this user
     existing_key = await db.execute(
         select(APIKey).filter(
-            APIKey.user_id == user_id,
-            APIKey.package_name == package_name
+            APIKey.user_id == user_id, APIKey.package_name == package_name
         )
     )
     if existing_key.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="API key for this package already exists")
-    
+        raise HTTPException(
+            status_code=400, detail="API key for this package already exists"
+        )
+
     # Create new API key
     api_key = APIKey(
-        package_name=package_name,
-        key=APIKey.generate_key(),
-        user_id=user_id
+        package_name=package_name, key=APIKey.generate_key(), user_id=user_id
     )
-    
+
     db.add(api_key)
     await db.commit()
     await db.refresh(api_key)
-    
+
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
 @app.delete("/api/api-keys/{api_key_id}")
 async def delete_api_key(
-    request: Request,
-    api_key_id: int,
-    db: AsyncSession = Depends(get_db)
+    request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
 ):
     if not is_authenticated(request):
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     user_id = get_current_user_id(request)
-    
+
     # Get the API key and verify ownership
     api_key = await db.execute(
-        select(APIKey).filter(
-            APIKey.id == api_key_id,
-            APIKey.user_id == user_id
-        )
+        select(APIKey).filter(APIKey.id == api_key_id, APIKey.user_id == user_id)
     )
     api_key = api_key.scalar_one_or_none()
-    
+
     if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")
-    
+
     await db.delete(api_key)
     await db.commit()
-    
+
     return {"success": True}
 
 
 @app.post("/api-keys/{api_key_id}/delete")
 async def delete_api_key_form(
-    request: Request,
-    api_key_id: int,
-    db: AsyncSession = Depends(get_db)
+    request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
 ):
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
-    
+
     user_id = get_current_user_id(request)
-    
+
     # Get the API key and verify ownership
     api_key = await db.execute(
-        select(APIKey).filter(
-            APIKey.id == api_key_id,
-            APIKey.user_id == user_id
-        )
+        select(APIKey).filter(APIKey.id == api_key_id, APIKey.user_id == user_id)
     )
     api_key = api_key.scalar_one_or_none()
-    
+
     if api_key:
         await db.delete(api_key)
         await db.commit()
-    
+
     return RedirectResponse(url="/dashboard", status_code=302)
 
 

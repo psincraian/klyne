@@ -8,7 +8,7 @@ from src.core.auth import get_password_hash
 
 class TestUserModel:
     """Test User model functionality."""
-    
+
     @pytest.mark.asyncio
     async def test_create_user(self, async_session):
         """Test creating a user."""
@@ -16,20 +16,20 @@ class TestUserModel:
             email="test@example.com",
             hashed_password=get_password_hash("testpassword123"),
             is_verified=False,
-            is_active=True
+            is_active=True,
         )
-        
+
         async_session.add(user)
         await async_session.commit()
         await async_session.refresh(user)
-        
+
         assert user.id is not None
         assert user.email == "test@example.com"
         assert user.is_verified is False
         assert user.is_active is True
         assert user.created_at is not None
         assert isinstance(user.created_at, datetime)
-    
+
     @pytest.mark.asyncio
     async def test_user_unique_email(self, async_session):
         """Test that user emails are unique."""
@@ -37,22 +37,22 @@ class TestUserModel:
             email="test@example.com",
             hashed_password=get_password_hash("password1"),
             is_verified=False,
-            is_active=True
+            is_active=True,
         )
         async_session.add(user1)
         await async_session.commit()
-        
+
         user2 = User(
             email="test@example.com",  # Same email
             hashed_password=get_password_hash("password2"),
             is_verified=False,
-            is_active=True
+            is_active=True,
         )
         async_session.add(user2)
-        
+
         with pytest.raises(Exception):  # Should raise integrity error
             await async_session.commit()
-    
+
     @pytest.mark.asyncio
     async def test_user_with_verification_token(self, async_session):
         """Test creating user with verification token."""
@@ -62,16 +62,16 @@ class TestUserModel:
             verification_token="test_token_123",
             verification_token_expires=datetime.now(timezone.utc),
             is_verified=False,
-            is_active=True
+            is_active=True,
         )
-        
+
         async_session.add(user)
         await async_session.commit()
         await async_session.refresh(user)
-        
+
         assert user.verification_token == "test_token_123"
         assert user.verification_token_expires is not None
-    
+
     @pytest.mark.asyncio
     async def test_query_user_by_email(self, async_session):
         """Test querying user by email."""
@@ -79,33 +79,33 @@ class TestUserModel:
             email="test@example.com",
             hashed_password=get_password_hash("testpassword123"),
             is_verified=True,
-            is_active=True
+            is_active=True,
         )
         async_session.add(user)
         await async_session.commit()
-        
+
         # Query by email
         result = await async_session.execute(
             select(User).filter(User.email == "test@example.com")
         )
         found_user = result.scalar_one_or_none()
-        
+
         assert found_user is not None
         assert found_user.email == "test@example.com"
         assert found_user.is_verified is True
-    
+
     @pytest.mark.asyncio
     async def test_user_defaults(self, async_session):
         """Test user model defaults."""
         user = User(
             email="test@example.com",
-            hashed_password=get_password_hash("testpassword123")
+            hashed_password=get_password_hash("testpassword123"),
         )
-        
+
         async_session.add(user)
         await async_session.commit()
         await async_session.refresh(user)
-        
+
         # Test defaults
         assert user.is_verified is False
         assert user.is_active is True

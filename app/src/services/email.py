@@ -12,12 +12,12 @@ if settings.RESEND_API_KEY and not os.getenv("TESTING"):
 
 class EmailService:
     """Email service for sending verification emails."""
-    
+
     @staticmethod
     async def send_verification_email(email: str, verification_token: str) -> bool:
         """Send verification email to user using Resend."""
         verification_url = f"http://localhost:8000/verify?token={verification_token}"
-        
+
         # In test mode, just print to stdout and log
         if os.getenv("TESTING") or not settings.RESEND_API_KEY:
             print(f"EMAIL VERIFICATION - To: {email}")
@@ -25,7 +25,7 @@ class EmailService:
             logger.info(f"Test mode: Email verification would be sent to {email}")
             logger.info(f"Verification URL: {verification_url}")
             return True
-        
+
         try:
             params: resend.Emails.SendParams = {
                 "from": "Klyne <support@transactional.klyne.dev>",
@@ -38,20 +38,22 @@ class EmailService:
                 <p>If you didn't create this account, you can safely ignore this email.</p>
                 """,
             }
-            
+
             email_result = resend.Emails.send(params)
-            logger.info(f"Verification email sent to {email}, ID: {email_result.get('id')}")
+            logger.info(
+                f"Verification email sent to {email}, ID: {email_result.get('id')}"
+            )
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send verification email to {email}: {str(e)}")
             return False
-    
+
     @staticmethod
     async def send_password_reset_email(email: str, reset_token: str) -> bool:
         """Send password reset email to user using Resend."""
         reset_url = f"http://localhost:8000/reset-password?token={reset_token}"
-        
+
         # In test mode, just print to stdout and log
         if os.getenv("TESTING") or not settings.RESEND_API_KEY:
             print(f"PASSWORD RESET - To: {email}")
@@ -59,7 +61,7 @@ class EmailService:
             logger.info(f"Test mode: Password reset email would be sent to {email}")
             logger.info(f"Reset URL: {reset_url}")
             return True
-        
+
         try:
             params: resend.Emails.SendParams = {
                 "from": "Klyne <support@transactional.klyne.dev>",
@@ -73,11 +75,13 @@ class EmailService:
                 <p>If you didn't request this reset, you can safely ignore this email.</p>
                 """,
             }
-            
+
             email_result = resend.Emails.send(params)
-            logger.info(f"Password reset email sent to {email}, ID: {email_result.get('id')}")
+            logger.info(
+                f"Password reset email sent to {email}, ID: {email_result.get('id')}"
+            )
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send password reset email to {email}: {str(e)}")
             return False

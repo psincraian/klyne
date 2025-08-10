@@ -6,67 +6,88 @@ from uuid import UUID
 
 class AnalyticsEventCreate(BaseModel):
     """Schema for creating a new analytics event."""
-    
+
     # Required fields
     session_id: str = Field(..., description="Unique session identifier")
-    package_name: str = Field(..., min_length=1, max_length=100, description="Package name")
-    package_version: str = Field(..., min_length=1, max_length=50, description="Package version")
+    package_name: str = Field(
+        ..., min_length=1, max_length=100, description="Package name"
+    )
+    package_version: str = Field(
+        ..., min_length=1, max_length=50, description="Package version"
+    )
     python_version: str = Field(..., description="Python version (e.g., '3.11.5')")
     os_type: str = Field(..., description="Operating system type")
     event_timestamp: datetime = Field(..., description="When the event occurred")
-    
+
     # Optional environment fields
-    python_implementation: Optional[str] = Field(None, max_length=50, description="Python implementation")
+    python_implementation: Optional[str] = Field(
+        None, max_length=50, description="Python implementation"
+    )
     os_version: Optional[str] = Field(None, max_length=100, description="OS version")
-    os_release: Optional[str] = Field(None, max_length=100, description="OS release name")
-    architecture: Optional[str] = Field(None, max_length=20, description="CPU architecture")
-    
+    os_release: Optional[str] = Field(
+        None, max_length=100, description="OS release name"
+    )
+    architecture: Optional[str] = Field(
+        None, max_length=20, description="CPU architecture"
+    )
+
     # Optional installation context
-    installation_method: Optional[str] = Field(None, max_length=50, description="Installation method")
-    virtual_env: Optional[bool] = Field(False, description="Running in virtual environment")
-    virtual_env_type: Optional[str] = Field(None, max_length=50, description="Virtual environment type")
-    
+    installation_method: Optional[str] = Field(
+        None, max_length=50, description="Installation method"
+    )
+    virtual_env: Optional[bool] = Field(
+        False, description="Running in virtual environment"
+    )
+    virtual_env_type: Optional[str] = Field(
+        None, max_length=50, description="Virtual environment type"
+    )
+
     # Optional hardware data
     cpu_count: Optional[int] = Field(None, ge=1, le=1000, description="CPU core count")
-    total_memory_gb: Optional[int] = Field(None, ge=1, le=1000, description="Total memory in GB")
-    
-    # Optional usage context
-    entry_point: Optional[str] = Field(None, max_length=200, description="Entry point used")
-    
-    # Extensible metadata
-    extra_data: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    total_memory_gb: Optional[int] = Field(
+        None, ge=1, le=1000, description="Total memory in GB"
+    )
 
-    @validator('python_version')
+    # Optional usage context
+    entry_point: Optional[str] = Field(
+        None, max_length=200, description="Entry point used"
+    )
+
+    # Extensible metadata
+    extra_data: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata"
+    )
+
+    @validator("python_version")
     def validate_python_version(cls, v):
         """Validate Python version format."""
         if not v:
-            raise ValueError('Python version is required')
+            raise ValueError("Python version is required")
         # Basic format validation (e.g., "3.11.5" or "3.11")
-        parts = v.split('.')
+        parts = v.split(".")
         if len(parts) < 2 or not all(part.isdigit() for part in parts):
-            raise ValueError('Invalid Python version format')
+            raise ValueError("Invalid Python version format")
         return v
 
-    @validator('os_type')
+    @validator("os_type")
     def validate_os_type(cls, v):
         """Validate OS type."""
-        valid_os_types = ['Linux', 'Windows', 'Darwin', 'FreeBSD', 'OpenBSD', 'Other']
+        valid_os_types = ["Linux", "Windows", "Darwin", "FreeBSD", "OpenBSD", "Other"]
         if v not in valid_os_types:
-            return 'Other'  # Default to 'Other' for unknown OS types
+            return "Other"  # Default to 'Other' for unknown OS types
         return v
 
-    @validator('session_id')
+    @validator("session_id")
     def validate_session_id(cls, v):
         """Validate session ID format."""
         if not v:
-            raise ValueError('Session ID is required')
+            raise ValueError("Session ID is required")
         # Try to parse as UUID to ensure it's a valid format
         try:
             UUID(v)
         except ValueError:
-            raise ValueError('Session ID must be a valid UUID')
+            raise ValueError("Session ID must be a valid UUID")
         return v
-
 
     class Config:
         # Allow extra fields for forward compatibility
@@ -92,15 +113,15 @@ class AnalyticsEventCreate(BaseModel):
                 "event_timestamp": "2024-01-15T10:30:00Z",
                 "extra_data": {
                     "user_agent": "requests/2.31.0",
-                    "custom_field": "value"
-                }
+                    "custom_field": "value",
+                },
             }
         }
 
 
 class AnalyticsEventResponse(BaseModel):
     """Schema for analytics event responses."""
-    
+
     id: UUID
     api_key: str
     session_id: UUID
@@ -117,9 +138,11 @@ class AnalyticsEventResponse(BaseModel):
 
 class AnalyticsEventBatch(BaseModel):
     """Schema for batch analytics event submission."""
-    
-    events: list[AnalyticsEventCreate] = Field(..., description="List of analytics events")
-    
+
+    events: list[AnalyticsEventCreate] = Field(
+        ..., description="List of analytics events"
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -130,7 +153,7 @@ class AnalyticsEventBatch(BaseModel):
                         "package_version": "2.31.0",
                         "python_version": "3.11.5",
                         "os_type": "Linux",
-                        "event_timestamp": "2024-01-15T10:30:00Z"
+                        "event_timestamp": "2024-01-15T10:30:00Z",
                     }
                 ]
             }
