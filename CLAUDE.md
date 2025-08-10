@@ -30,6 +30,15 @@ uv run uvicorn src.main:app --reload
 - Dependencies are defined in `pyproject.toml` files
 - Lock files (`uv.lock`) ensure reproducible builds
 
+### Linting and Code Quality
+```bash
+# Run linting (from app/ directory)
+uv run ruff check .
+
+# Auto-fix linting issues
+uv run ruff check --fix .
+```
+
 ## Architecture
 
 ### FastAPI Application Structure (app/src/)
@@ -76,6 +85,7 @@ The app requires these key dependencies:
 - `jinja2` (templating)
 - `pydantic`, `pydantic-settings`, `email-validator` (validation)
 - `alembic` (migrations)
+- `ruff` (linting - dev dependency)
 
 ## Development Patterns
 
@@ -105,3 +115,19 @@ Klyne aims to provide analytics for Python packages including:
 - Active usage patterns
 
 The integration pattern will be: `klyne.init(api_key='XX', project='pandas')`
+
+## Deployment
+
+### CI/CD Pipeline
+- **GitHub Actions**: `.github/workflows/ci.yml`
+- **Triggers**: Push to main branch or manual workflow dispatch
+- **Process**: Tests → Linting → Docker build → Push to GHCR → Deploy to Coolify
+
+### Production Deployment
+- **Platform**: Coolify (self-hosted PaaS)
+- **Container Registry**: GitHub Container Registry (`ghcr.io/petru/klyne:latest`)
+- **Deployment**: Automatic via Coolify API call from GitHub Actions
+
+### Required Secrets
+Add these secrets to your GitHub repository (Settings → Secrets):
+- `COOLIFY`: Bearer token for Coolify API deployment trigger
