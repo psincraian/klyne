@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "components/header.html" import header %}
 {% from "components/card.html" import card %}
-{% from "components/form.html" import form_field, button %}
+{% from "components/form.html" import form_group, button %}
 
 {% block title %}Resend Verification - Klyne{% endblock %}
 
@@ -21,10 +21,10 @@
                 centered=True
             ) %}
                 <form method="post" action="/resend-verification">
-                    {{ form_field(
-                        type="email",
-                        name="email",
+                    {{ form_group(
                         label="Email Address",
+                        name="email",
+                        type="email",
                         placeholder="your@email.com",
                         required=True,
                         value=email,
@@ -33,9 +33,9 @@
                     
                     <div style="margin-top: 1.5rem;">
                         {{ button(
-                            text="Send Verification Email",
+                            "Send Verification Email",
                             type="submit",
-                            style="primary",
+                            variant="primary",
                             icon="fas fa-paper-plane",
                             full_width=True
                         ) }}
