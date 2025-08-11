@@ -16,7 +16,7 @@ class EmailService:
     @staticmethod
     async def send_verification_email(email: str, verification_token: str) -> bool:
         """Send verification email to user using Resend."""
-        verification_url = f"http://localhost:8000/verify?token={verification_token}"
+        verification_url = f"{settings.APP_DOMAIN}/verify?token={verification_token}"
 
         # In test mode, just print to stdout and log
         if os.getenv("TESTING") or not settings.RESEND_API_KEY:
@@ -52,7 +52,7 @@ class EmailService:
     @staticmethod
     async def send_password_reset_email(email: str, reset_token: str) -> bool:
         """Send password reset email to user using Resend."""
-        reset_url = f"http://localhost:8000/reset-password?token={reset_token}"
+        reset_url = f"{settings.APP_DOMAIN}/reset-password?token={reset_token}"
 
         # In test mode, just print to stdout and log
         if os.getenv("TESTING") or not settings.RESEND_API_KEY:

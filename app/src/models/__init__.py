@@ -1,6 +1,7 @@
-from .analytics_event import AnalyticsEvent
-from .api_key import APIKey
-from .user import User
-from ..core.database import Base
+from sqlalchemy.ext.declarative import declarative_base
 
-__all__ = ["User", "APIKey", "AnalyticsEvent", "Base"]
+Base = declarative_base()
+
+from .user import User as User  # noqa: E402
+from .api_key import APIKey as APIKey  # noqa: E402
+from .analytics_event import AnalyticsEvent as AnalyticsEvent  # noqa: E402

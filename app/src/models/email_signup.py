@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
-from src.core.database import Base
+from src.models import Base
 
 
 class EmailSignup(Base):

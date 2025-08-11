@@ -209,13 +209,22 @@ async def verify_email(
             expired_user = expired_user.scalar_one_or_none()
 
             if expired_user:
-                error_message = "Your verification link has expired. Please register again or request a new verification email."
+                error_message = "Your verification link has expired. Please request a new verification email."
+                show_resend = True
+                email = expired_user.email
             else:
                 error_message = "Invalid verification link. Please check your email or register again."
+                show_resend = False
+                email = None
 
             return templates.TemplateResponse(
                 "verification_error.html",
-                {"request": request, "error_message": error_message},
+                {
+                    "request": request,
+                    "error_message": error_message,
+                    "show_resend": show_resend,
+                    "email": email,
+                },
                 status_code=400,
             )
 
@@ -233,8 +242,65 @@ async def verify_email(
         error_message = "Verification failed. Please try again or contact support."
         return templates.TemplateResponse(
             "verification_error.html",
-            {"request": request, "error_message": error_message},
+            {"request": request, "error_message": error_message, "show_resend": False},
             status_code=400,
+        )
+
+
+@app.get("/resend-verification", response_class=HTMLResponse)
+async def resend_verification_page(request: Request):
+    email = request.query_params.get("email", "")
+    return templates.TemplateResponse(
+        "resend_verification.html", {"request": request, "email": email}
+    )
+
+
+@app.post("/resend-verification")
+async def resend_verification(
+    request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)
+):
+    try:
+        # Find the user by email
+        user = await db.execute(select(User).filter(User.email == email))
+        user = user.scalar_one_or_none()
+
+        if not user:
+            # Don't reveal if email exists or not for security
+            return templates.TemplateResponse(
+                "resend_verification_success.html",
+                {"request": request, "email": email},
+            )
+
+        if user.is_verified:
+            # User is already verified
+            return templates.TemplateResponse(
+                "resend_verification_already_verified.html",
+                {"request": request, "email": email},
+            )
+
+        # Generate new verification token
+        verification_token = generate_verification_token()
+        token_expiry = get_verification_token_expiry()
+
+        user.verification_token = verification_token
+        user.verification_token_expires = token_expiry
+
+        await db.commit()
+
+        # Send new verification email
+        await EmailService.send_verification_email(email, verification_token)
+
+        return templates.TemplateResponse(
+            "resend_verification_success.html",
+            {"request": request, "email": email},
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to resend verification email: {str(e)}")
+        # Don't reveal errors for security
+        return templates.TemplateResponse(
+            "resend_verification_success.html",
+            {"request": request, "email": email},
         )
 
 
@@ -262,21 +328,30 @@ async def login_user(
 
         if not user or not verify_password(user_data.password, user.hashed_password):
             error_message = "Invalid email or password"
+            show_resend = False
         elif not user.is_verified:
             error_message = "Please verify your email before logging in. Check your inbox for the verification link."
+            show_resend = True
         elif not user.is_active:
             error_message = "Your account has been deactivated. Please contact support for assistance."
+            show_resend = False
         else:
             create_session(request, user.id, user.email)
             return RedirectResponse(url="/dashboard", status_code=302)
 
     except Exception:
         error_message = "Login failed. Please try again."
+        show_resend = False
 
     # If we got here, there was an error - show the form again with the error
     return templates.TemplateResponse(
         "login.html",
-        {"request": request, "error_message": error_message, "email": email},
+        {
+            "request": request,
+            "error_message": error_message,
+            "email": email,
+            "show_resend": show_resend,
+        },
         status_code=400,
     )
 

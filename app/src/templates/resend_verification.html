@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card %}
+{% from "components/form.html" import form_field, button %}
+
+{% block title %}Resend Verification - Klyne{% endblock %}
+
+{% block content %}
+<div class="app">
+    {{ header(nav_links=[
+        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt"},
+        {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": True}
+    ]) }}
+    
+    <main class="main main--centered">
+        <div style="width: 100%; max-width: 450px;">
+            {% call card(
+                icon={"class": "fas fa-envelope", "color": "var(--color-primary)"},
+                title="Resend Verification Email",
+                subtitle="Enter your email address to receive a new verification link.",
+                centered=True
+            ) %}
+                <form method="post" action="/resend-verification">
+                    {{ form_field(
+                        type="email",
+                        name="email",
+                        label="Email Address",
+                        placeholder="your@email.com",
+                        required=True,
+                        value=email,
+                        icon="fas fa-envelope"
+                    ) }}
+                    
+                    <div style="margin-top: 1.5rem;">
+                        {{ button(
+                            text="Send Verification Email",
+                            type="submit",
+                            style="primary",
+                            icon="fas fa-paper-plane",
+                            full_width=True
+                        ) }}
+                    </div>
+                </form>
+                
+                <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
+                    <p style="margin-bottom: 0.5rem;">
+                        Already verified? <a href="/login" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign In</a>
+                    </p>
+                    <p>
+                        Need a new account? <a href="/register" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign Up</a>
+                    </p>
+                </div>
+            {% endcall %}
+        </div>
+    </main>
+</div>
+{% endblock %}

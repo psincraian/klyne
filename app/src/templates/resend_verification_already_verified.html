@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "components/header.html" import header %}
+{% from "components/card.html" import card, info_box %}
+{% from "components/form.html" import button %}
+
+{% block title %}Already Verified - Klyne{% endblock %}
+
+{% block content %}
+<div class="app">
+    {{ header(nav_links=[
+        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
+    ]) }}
+    
+    <main class="main main--centered">
+        <div style="width: 100%; max-width: 450px;">
+            {% call card(
+                icon={"class": "fas fa-check-circle", "color": "var(--color-success)"},
+                title="Email Already Verified",
+                subtitle="Your email address has already been verified.",
+                centered=True
+            ) %}
+                {% call info_box("Good news!", type="success", icon="fas fa-check") %}
+                    The email address <strong>{{ email }}</strong> has already been verified. 
+                    You can sign in to your account now.
+                {% endcall %}
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="/login" class="button button--primary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
+                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                        Sign In to Your Account
+                    </a>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
+                    <p style="margin-bottom: 0.5rem;">
+                        Forgot your password? <a href="/forgot-password" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Reset Password</a>
+                    </p>
+                    <p><a href="/" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Back to Home</a></p>
+                </div>
+            {% endcall %}
+        </div>
+    </main>
+</div>
+{% endblock %}

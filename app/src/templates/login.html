@@ -25,6 +25,13 @@
                 {% if error_message %}
                     {% call info_box("Error", type="warning", icon="fas fa-exclamation-triangle") %}
                         {{ error_message }}
+                        {% if show_resend %}
+                        <div style="margin-top: 1rem;">
+                            <a href="/resend-verification?email={{ email }}" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">
+                                <i class="fas fa-envelope"></i> Resend verification email
+                            </a>
+                        </div>
+                        {% endif %}
                     {% endcall %}
                 {% endif %}
                 

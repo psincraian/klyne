@@ -27,9 +27,7 @@ async def backoffice_dashboard(
     # Get basic statistics
     total_users = await db.scalar(select(func.count(User.id)))
     active_users = await db.scalar(
-        select(func.count(User.id)).where(
-            User.is_active, User.is_verified
-        )
+        select(func.count(User.id)).where(User.is_active, User.is_verified)
     )
     total_api_keys = await db.scalar(select(func.count(APIKey.id)))
     unique_packages = await db.scalar(
@@ -99,16 +97,12 @@ async def backoffice_users(
     # Get user statistics
     total_users = await db.scalar(select(func.count(User.id)))
     active_users = await db.scalar(
-        select(func.count(User.id)).where(
-            User.is_active, User.is_verified
-        )
+        select(func.count(User.id)).where(User.is_active, User.is_verified)
     )
     verified_users = await db.scalar(
         select(func.count(User.id)).where(User.is_verified)
     )
-    admin_users = await db.scalar(
-        select(func.count(User.id)).where(User.is_admin)
-    )
+    admin_users = await db.scalar(select(func.count(User.id)).where(User.is_admin))
 
     # Get all users with their API key counts
     users_result = await db.execute(
