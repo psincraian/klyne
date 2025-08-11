@@ -13,7 +13,7 @@
         <div style="width: 100%; max-width: 500px;">
             {% call card(
                 icon={"class": "fas fa-check", "xl": True},
-                title={"text": "You're on the list!", "large": True},
+                title={"text": "Welcome to Klyne!", "large": True},
                 centered=True
             ) %}
                 <!-- Confetti Animation -->
@@ -28,7 +28,7 @@
                 <div class="confetti">✨</div>
                 
                 <p style="color: var(--color-gray-500); font-size: var(--font-size-lg); margin-bottom: 2.5rem; line-height: 1.6;">
-                    Thanks for signing up! We'll notify <span style="color: var(--color-primary); font-weight: 600;">{{ email }}</span> as soon as Klyne is ready for early access.
+                    Thank you for registering! Check your email at <span style="color: var(--color-primary); font-weight: 600;">{{ email }}</span> to complete your account setup.
                 </p>
                 
                 <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
@@ -36,7 +36,7 @@
                 </div>
                 
                 {% call info_box("What's Next?", type="info", icon="fas fa-lightbulb") %}
-                    We're working hard to launch Klyne soon. In the meantime, follow us for updates and be among the first to try our powerful Python package analytics platform!
+                    You'll receive an email with instructions to verify your account and get started with Klyne. Start tracking your Python packages in minutes!
                 {% endcall %}
             {% endcall %}
         </div>

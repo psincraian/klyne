@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "components/header.html" import header %}
 {% from "components/card.html" import card %}
-{% from "components/form.html" import button %}
+{% from "components/form.html" import button, link_button %}
 
 {% block title %}Klyne - Package Analytics for Python{% endblock %}
 
@@ -18,10 +18,10 @@
     <main class="main">
         <div class="container">
             <section class="hero">
-                <h1 class="hero__title">Analytics for Python Packages</h1>
+                <h1 class="hero__title">Package Analytics for Python</h1>
                 <p class="hero__subtitle">
-                    Understand how your Python packages are being used. 
-                    Get insights on OS distribution, Python versions, and active usage patterns.
+                    Track and understand how developers use your Python packages.
+                    Real-time insights on OS distribution, Python versions, and usage patterns.
                 </p>
                 <div class="hero__code">
                     <pre><code><span class="keyword">import</span> klyne
@@ -34,29 +34,23 @@ klyne.init(
             </section>
             
             {% call card(
-                title={"text": "Coming Soon", "large": False},
-                icon={"class": "fas fa-rocket", "large": False},
+                title={"text": "Start Tracking Your Packages", "large": True},
+                icon={"class": "fas fa-chart-bar", "large": True},
                 centered=True
             ) %}
                 <p class="card__subtitle">
-                    Be the first to know when Klyne launches. Join our early access list and get exclusive access to powerful package analytics.
+                    Join developers who trust Klyne to understand their package usage.
+                    Get started in minutes with our simple SDK integration.
                 </p>
                 
-                <form action="/signup" method="POST" class="form form--inline">
-                    <input 
-                        type="email" 
-                        name="email" 
-                        placeholder="Enter your email address" 
-                        required
-                        class="form__input form__input--large"
-                        style="flex: 1;"
-                    >
-                    {{ button("Get Early Access", icon="fas fa-paper-plane", variant="primary", size="lg") }}
-                </form>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    {{ link_button("Get Started Free", "/register", icon="fas fa-rocket", variant="primary", size="lg") }}
+                    {{ link_button("View Documentation", "#docs", icon="fas fa-book", variant="secondary", size="lg") }}
+                </div>
             {% endcall %}
             
             <section class="mt-8">
-                <h2 class="text-4xl font-bold text-center text-white mb-8">Track What Matters</h2>
+                <h2 class="text-4xl font-bold text-center text-white mb-8">Powerful Analytics for Your Python Packages</h2>
                 <div class="grid grid--3">
                     {% call card(glass=True, centered=True) %}
                         <div class="card__icon card__icon--large" style="background: rgba(255, 255, 255, 0.2); color: white; margin: 0 auto 1.5rem;">
@@ -64,7 +58,7 @@ klyne.init(
                         </div>
                         <h3 class="text-2xl font-semibold mb-4 text-white">Operating Systems</h3>
                         <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
-                            See which OS your users are on - Windows, macOS, Linux distributions.
+                            Monitor OS distribution across Windows, macOS, and Linux. Optimize compatibility and prioritize platform support.
                         </p>
                     {% endcall %}
                     
@@ -74,7 +68,7 @@ klyne.init(
                         </div>
                         <h3 class="text-2xl font-semibold mb-4 text-white">Python Versions</h3>
                         <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
-                            Track Python version adoption to inform your support strategy.
+                            Track Python version adoption across your user base. Make informed decisions about version support and deprecation.
                         </p>
                     {% endcall %}
                     
@@ -84,9 +78,65 @@ klyne.init(
                         </div>
                         <h3 class="text-2xl font-semibold mb-4 text-white">Active Usage</h3>
                         <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
-                            Understand usage patterns and identify your most engaged users.
+                            Analyze usage patterns, track growth trends, and understand how developers interact with your packages.
                         </p>
                     {% endcall %}
+                </div>
+            </section>
+            
+            <section class="mt-8">
+                <h2 class="text-4xl font-bold text-center text-white mb-8">Why Choose Klyne?</h2>
+                <div class="grid grid--2" style="gap: 2rem; max-width: 900px; margin: 0 auto;">
+                    {% call card(glass=True) %}
+                        <h3 class="text-2xl font-semibold mb-3 text-white">
+                            <i class="fas fa-bolt" style="color: #fbbf24; margin-right: 0.5rem;"></i>
+                            Simple Integration
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                            Add analytics to your package with just 3 lines of code. No complex setup or configuration required.
+                        </p>
+                    {% endcall %}
+                    
+                    {% call card(glass=True) %}
+                        <h3 class="text-2xl font-semibold mb-3 text-white">
+                            <i class="fas fa-shield-alt" style="color: #10b981; margin-right: 0.5rem;"></i>
+                            Privacy-First
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                            We respect user privacy. Collect only essential metrics without compromising user data or security.
+                        </p>
+                    {% endcall %}
+                    
+                    {% call card(glass=True) %}
+                        <h3 class="text-2xl font-semibold mb-3 text-white">
+                            <i class="fas fa-tachometer-alt" style="color: #a78bfa; margin-right: 0.5rem;"></i>
+                            Real-Time Insights
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                            Get instant visibility into package usage. Monitor trends and respond to user needs in real-time.
+                        </p>
+                    {% endcall %}
+                    
+                    {% call card(glass=True) %}
+                        <h3 class="text-2xl font-semibold mb-3 text-white">
+                            <i class="fas fa-code" style="color: #f472b6; margin-right: 0.5rem;"></i>
+                            Developer-Friendly
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                            Built by developers, for developers. Clean API, comprehensive docs, and responsive support.
+                        </p>
+                    {% endcall %}
+                </div>
+            </section>
+            
+            <section class="mt-8" style="text-align: center; padding: 3rem 0;">
+                <h2 class="text-4xl font-bold text-white mb-4">Ready to Understand Your Users?</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.25rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Join the growing community of Python developers using Klyne to build better packages.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    {{ link_button("Start Free Trial", "/register", icon="fas fa-rocket", variant="primary", size="lg") }}
+                    {{ link_button("Contact Sales", "mailto:sales@klyne.io", icon="fas fa-envelope", variant="secondary", size="lg") }}
                 </div>
             </section>
         </div>
