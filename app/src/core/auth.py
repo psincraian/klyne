@@ -1,11 +1,18 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import secrets
+import logging
 from passlib.context import CryptContext
 from fastapi import Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.models.user import User
+
+# Configure logging for auth module
+logger = logging.getLogger(__name__)
+
+# Suppress passlib bcrypt version warnings
+logging.getLogger("passlib").setLevel(logging.ERROR)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -19,7 +26,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """Hash a password."""
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except Exception as e:
+        logger.error(f"Failed to hash password: {str(e)}")
+        raise HTTPException(status_code=500, detail="Password hashing failed")
 
 
 def create_session(request: Request, user_id: int, user_email: str) -> None:

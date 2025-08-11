@@ -58,9 +58,27 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up Klyne application...")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Database tables created/verified")
+    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"Database URL: {settings.DATABASE_URL.split('@')[-1] if '@' in settings.DATABASE_URL else 'local'}")
+    logger.info(f"App Domain: {settings.APP_DOMAIN}")
+    
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created/verified")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise
+    
+    # Test bcrypt functionality on startup
+    try:
+        from src.core.auth import get_password_hash, verify_password
+        test_hash = get_password_hash("test")
+        test_verify = verify_password("test", test_hash)
+        logger.info(f"Bcrypt functionality verified: {test_verify}")
+    except Exception as e:
+        logger.error(f"Bcrypt test failed: {str(e)}")
+    
     yield
     logger.info("Shutting down Klyne application...")
 
@@ -170,8 +188,9 @@ async def register_user(
                     {"request": request, "email": user_data.email},
                 )
 
-    except Exception:
+    except Exception as e:
         await db.rollback()
+        logger.error(f"Registration failed for {email}: {str(e)}", exc_info=True)
         error_message = "Registration failed. Please try again."
 
     # If we got here, there was an error - show the form again with the error

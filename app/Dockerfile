@@ -5,16 +5,21 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    SECRET_KEY=production-secret-key-change-in-deployment \
+    ENVIRONMENT=production
 
 # Create app user for security
 RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 
 # Install system dependencies required for PostgreSQL and other packages
+# Include rust for bcrypt compilation on different architectures
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     curl \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv for faster dependency management
@@ -27,7 +32,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies
-RUN uv sync --frozen --no-dev
+# Use --no-cache to avoid cross-platform issues
+RUN uv sync --frozen --no-dev --no-cache
 
 # Copy application code
 COPY . .
