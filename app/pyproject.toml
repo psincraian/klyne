@@ -2,7 +2,7 @@
 name = "klyne-app"
 version = "0.1.0"
 description = "Klyne - Package Analytics Landing Page"
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
