@@ -12,14 +12,11 @@ ENV PYTHONUNBUFFERED=1 \
 # Create app user for security
 RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 
-# Install system dependencies required for PostgreSQL and other packages
-# Include rust for bcrypt compilation on different architectures
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
+# Install system dependencies in a single layer
+# Use --no-install-recommends and clean up in same layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
     curl \
-    pkg-config \
-    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv for faster dependency management
@@ -28,17 +25,17 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 # Set work directory
 WORKDIR /app
 
-# Copy dependency files and README
-COPY pyproject.toml uv.lock README.md ./
+# Copy only dependency files first for better caching
+COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-# Use --no-cache to avoid cross-platform issues
-RUN uv sync --frozen --no-dev --no-cache
+# Install dependencies in a separate stage for better caching
+# Use pre-compiled wheels when possible
+RUN uv sync --frozen --no-dev
 
-# Copy application code
+# Copy application code (this will be the layer that changes most often)
 COPY . .
 
-# Create cache directory and change ownership
+# Create cache directory and change ownership in single layer
 RUN mkdir -p /home/appuser/.cache && \
     chown -R appuser:appuser /app /home/appuser/.cache
 
@@ -48,7 +45,8 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+# Simplified healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/healthz || exit 1
 
 # Run the application

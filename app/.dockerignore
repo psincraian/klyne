@@ -1,8 +1,11 @@
-# Python
+# Ignore development files and caches
+.env
+.env.local
+.venv/
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
 build/
 develop-eggs/
@@ -16,35 +19,22 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
-.nox/
+.cache
+nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
 .hypothesis/
 
-# Environment
-.env
-.env.*
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -65,10 +55,12 @@ Thumbs.db
 .gitignore
 
 # Documentation
+README.md
 docs/
-
-# Development
-tests/
 
 # Logs
 *.log
+
+# Temporary files
+tmp/
+temp/
