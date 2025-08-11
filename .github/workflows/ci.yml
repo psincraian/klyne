@@ -104,7 +104,7 @@ jobs:
     - name: Trigger Coolify Deployment
       if: success()
       run: |
-        curl -X POST "https://app.coolify.io/api/v1/deploy?uuid=bgo4sogwowcow0k8cock8wcw&force=false" \
+        curl -X POST "https://app.coolify.io/api/v1/deploy?uuid=t40k4cgw0skwogw8kkws00wk&force=false" \
           -H "Authorization: Bearer ${{ secrets.COOLIFY }}" \
           -H "Content-Type: application/json"
 
