@@ -14,5 +14,67 @@
 </head>
 <body>
     {% block content %}{% endblock %}
+    
+    <script>
+        // Mobile menu toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.querySelector('.header__mobile-toggle');
+            const menu = document.querySelector('.header__mobile-menu');
+            const body = document.body;
+            
+            if (toggle && menu) {
+                toggle.addEventListener('click', function() {
+                    const isOpen = menu.classList.contains('header__mobile-menu--open');
+                    
+                    if (isOpen) {
+                        menu.classList.remove('header__mobile-menu--open');
+                        toggle.classList.remove('header__mobile-toggle--active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        body.style.overflow = '';
+                    } else {
+                        menu.classList.add('header__mobile-menu--open');
+                        toggle.classList.add('header__mobile-toggle--active');
+                        toggle.setAttribute('aria-expanded', 'true');
+                        body.style.overflow = 'hidden';
+                    }
+                });
+                
+                // Close menu when clicking on the overlay (outside menu content)
+                menu.addEventListener('click', function(e) {
+                    // If clicking directly on the overlay div (not its children)
+                    if (e.target === menu) {
+                        menu.classList.remove('header__mobile-menu--open');
+                        toggle.classList.remove('header__mobile-toggle--active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Alternative: Close menu when clicking anywhere on the document except menu content
+                document.addEventListener('click', function(e) {
+                    if (menu.classList.contains('header__mobile-menu--open')) {
+                        const content = menu.querySelector('.header__mobile-menu-content');
+                        // Check if click is outside menu content and not on toggle button
+                        if (!content.contains(e.target) && !toggle.contains(e.target)) {
+                            menu.classList.remove('header__mobile-menu--open');
+                            toggle.classList.remove('header__mobile-toggle--active');
+                            toggle.setAttribute('aria-expanded', 'false');
+                            body.style.overflow = '';
+                        }
+                    }
+                });
+                
+                // Close menu when pressing Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && menu.classList.contains('header__mobile-menu--open')) {
+                        menu.classList.remove('header__mobile-menu--open');
+                        toggle.classList.remove('header__mobile-toggle--active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        body.style.overflow = '';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
