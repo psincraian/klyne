@@ -173,6 +173,7 @@ async def register_user(
                     verification_token=verification_token,
                     verification_token_expires=token_expiry,
                     is_verified=False,
+                    is_admin=False,  # Explicitly set is_admin to handle cloud database
                 )
 
                 db.add(db_user)
