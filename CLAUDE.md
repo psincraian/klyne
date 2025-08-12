@@ -19,16 +19,36 @@ The current implementation is a pre-launch landing page to capture early access 
 docker-compose up -d postgres
 
 # Install dependencies (from app/ directory)
-cd app && uv sync
+cd app && uv sync && npm install
 
-# Run development server
+# Run development server with hot reload (CSS + Python)
+npm run dev:server
+
+# OR run components separately:
+# Terminal 1: CSS hot reload
+npm run dev
+
+# Terminal 2: Python server
 uv run uvicorn src.main:app --reload
 ```
 
 ### Package Management
 - Use **UV** for Python package management: `uv add <package>`
-- Dependencies are defined in `pyproject.toml` files
-- Lock files (`uv.lock`) ensure reproducible builds
+- Use **npm** for frontend dependencies: `npm install <package>`
+- Dependencies are defined in `pyproject.toml` and `package.json` files
+- Lock files (`uv.lock` and `package-lock.json`) ensure reproducible builds
+
+### Frontend Development
+```bash
+# Build CSS for production
+npm run build
+
+# Watch CSS changes during development
+npm run dev
+
+# Clean generated CSS
+npm run clean
+```
 
 ### Linting and Code Quality
 ```bash

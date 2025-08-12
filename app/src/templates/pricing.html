@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - Klyne{% endblock %}
+
+{% block content %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm fixed top-0 z-50 border-b border-base-300">
+  <div class="navbar-start">
+    <div class="dropdown">
+      <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+        </svg>
+      </div>
+      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+        <li><a href="/">Home</a></li>
+        <li><a href="/pricing" class="active">Pricing</a></li>
+        <li><a href="/documentation">Docs</a></li>
+        <li class="divider"></li>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Sign Up</a></li>
+      </ul>
+    </div>
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  
+  <div class="navbar-center hidden lg:flex">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="/">Home</a></li>
+      <li><a href="/pricing" class="active font-semibold">Pricing</a></li>
+      <li><a href="/documentation">Docs</a></li>
+    </ul>
+  </div>
+  
+  <div class="navbar-end">
+    <div class="hidden lg:flex">
+      <a href="/login" class="btn btn-ghost mr-2">Login</a>
+      <a href="/register" class="btn btn-primary">Start Free Trial</a>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing Hero Section -->
+<section class="pt-24 pb-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
+  <div class="container mx-auto px-4 text-center">
+    <div class="max-w-4xl mx-auto">
+      <div class="badge badge-primary badge-lg mb-6">
+        <i class="fas fa-rocket mr-2"></i>
+        14-Day Free Trial
+      </div>
+      
+      <h1 class="text-5xl md:text-6xl font-bold mb-6">
+        Pricing that <span class="klyne-gradient-text">scales with you</span>
+      </h1>
+      
+      <p class="text-xl text-base-content/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+        Start free, pay only for what you use. No hidden fees, no surprises. 
+        Join thousands of Python developers tracking their package analytics.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+        <a href="/register" class="klyne-btn-primary">
+          <i class="fas fa-play mr-2"></i>
+          Start Free Trial
+        </a>
+        <a href="/documentation" class="btn btn-outline btn-lg">
+          <i class="fas fa-book mr-2"></i>
+          View Documentation
+        </a>
+      </div>
+      
+      <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-base-content/60">
+        <span class="flex items-center gap-2">
+          <i class="fas fa-check text-success"></i>
+          No credit card required
+        </span>
+        <span class="flex items-center gap-2">
+          <i class="fas fa-check text-success"></i>
+          Cancel anytime
+        </span>
+        <span class="flex items-center gap-2">
+          <i class="fas fa-check text-success"></i>
+          Full feature access
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Toggle -->
+<section class="py-12 bg-base-100">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12">
+      <div class="flex justify-center items-center gap-4">
+        <span class="text-lg font-medium">Monthly</span>
+        <input type="checkbox" class="toggle toggle-primary" id="pricing-toggle" />
+        <span class="text-lg font-medium">
+          Annual 
+          <span class="badge badge-success badge-sm ml-2">Save 20%</span>
+        </span>
+      </div>
+      <p class="text-base-content/60 mt-2">Choose the billing cycle that works for you</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="pb-20 bg-base-100">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      
+      <!-- Starter Plan -->
+      <div class="klyne-card transform hover:scale-105 transition-all duration-300">
+        <div class="card-body">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-box text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Starter</h3>
+            <p class="text-base-content/70">Perfect for single package developers</p>
+          </div>
+          
+          <div class="text-center mb-8">
+            <div class="pricing-amount" data-monthly="19" data-annual="152">
+              <span class="text-5xl font-bold klyne-gradient-text">$19</span>
+              <span class="text-base-content/60 ml-2">/month</span>
+            </div>
+            <div class="annual-savings hidden text-success text-sm mt-1">
+              Save $76/year with annual billing
+            </div>
+            <p class="text-sm text-base-content/60 mt-2">Billed monthly • Cancel anytime</p>
+          </div>
+          
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>1 Python package</strong> with unlimited tracking</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Real-time analytics dashboard</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>OS & Python version insights</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Usage trends & patterns</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Geographic distribution</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>API access & webhooks</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Email support</span>
+            </li>
+          </ul>
+          
+          <a href="/register" class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors">
+            Start Free Trial
+          </a>
+        </div>
+      </div>
+      
+      <!-- Pro Plan -->
+      <div class="klyne-card border-2 border-primary transform hover:scale-105 transition-all duration-300 relative">
+        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div class="badge badge-primary badge-lg px-6">
+            <i class="fas fa-crown mr-2"></i>
+            Most Popular
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-boxes text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Pro</h3>
+            <p class="text-base-content/70">For developers with multiple packages</p>
+          </div>
+          
+          <div class="text-center mb-8">
+            <div class="pricing-amount" data-monthly="19" data-annual="152">
+              <span class="text-3xl font-bold klyne-gradient-text">$19</span>
+              <span class="text-xl text-base-content/80"> + $9</span>
+              <div class="text-sm text-base-content/60 mt-1">per additional package/month</div>
+            </div>
+            <div class="annual-savings hidden text-success text-sm mt-1">
+              20% off with annual billing
+            </div>
+          </div>
+          
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>Multiple packages</strong> with bulk pricing</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>Everything in Starter</strong> plan</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Cross-package analytics & comparisons</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Advanced filtering & segmentation</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Data export (CSV, JSON, API)</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Custom dashboard & reports</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Priority support & onboarding</span>
+            </li>
+          </ul>
+          
+          <a href="/register" class="klyne-btn-primary w-full">
+            Start Free Trial
+          </a>
+        </div>
+      </div>
+      
+      <!-- Enterprise Plan -->
+      <div class="klyne-card transform hover:scale-105 transition-all duration-300">
+        <div class="card-body">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-building text-accent text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Enterprise</h3>
+            <p class="text-base-content/70">For large organizations & teams</p>
+          </div>
+          
+          <div class="text-center mb-8">
+            <div class="text-4xl font-bold klyne-gradient-text mb-2">Custom</div>
+            <p class="text-sm text-base-content/60">Pricing based on your needs</p>
+          </div>
+          
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>Unlimited packages</strong> & team members</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>Everything in Pro</strong> plan</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>White-label analytics dashboard</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Custom integrations & APIs</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Advanced security & compliance</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Dedicated support manager</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>SLA & uptime guarantees</span>
+            </li>
+          </ul>
+          
+          <a href="mailto:enterprise@klyne.com" class="btn btn-outline btn-lg w-full">
+            Contact Sales
+          </a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Calculator -->
+<section class="py-20 bg-base-200">
+  <div class="container mx-auto px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-4xl font-bold mb-6">Calculate Your Costs</h2>
+      <p class="text-lg text-base-content/70 mb-12">
+        See exactly how much you'll pay based on your package count
+      </p>
+      
+      <div class="klyne-card mb-8">
+        <div class="card-body">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <label class="label">
+                <span class="label-text text-lg font-semibold">Number of packages</span>
+              </label>
+              <input type="range" min="1" max="20" value="3" class="range range-primary" id="package-slider" />
+              <div class="w-full flex justify-between text-xs px-2 mt-1">
+                <span>1</span>
+                <span>10</span>
+                <span>20+</span>
+              </div>
+              <div class="text-center mt-4">
+                <span class="text-3xl font-bold klyne-gradient-text" id="package-count">3</span>
+                <span class="text-lg text-base-content/70"> packages</span>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-sm text-base-content/60 mb-2">Monthly cost</div>
+              <div class="text-5xl font-bold klyne-gradient-text mb-2" id="monthly-cost">$37</div>
+              <div class="text-sm text-base-content/60 mb-4" id="cost-breakdown">$19 + $9 × 2</div>
+              <div class="text-success font-semibold" id="annual-discount">Save $88/year with annual billing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div class="klyne-card">
+          <div class="card-body py-4">
+            <div class="text-2xl font-bold klyne-gradient-text">1 pkg</div>
+            <div class="text-sm text-base-content/60">$19/mo</div>
+          </div>
+        </div>
+        <div class="klyne-card border-primary border-2">
+          <div class="card-body py-4">
+            <div class="text-2xl font-bold klyne-gradient-text">3 pkgs</div>
+            <div class="text-sm text-base-content/60">$37/mo</div>
+          </div>
+        </div>
+        <div class="klyne-card">
+          <div class="card-body py-4">
+            <div class="text-2xl font-bold klyne-gradient-text">5 pkgs</div>
+            <div class="text-sm text-base-content/60">$55/mo</div>
+          </div>
+        </div>
+        <div class="klyne-card">
+          <div class="card-body py-4">
+            <div class="text-2xl font-bold klyne-gradient-text">10 pkgs</div>
+            <div class="text-sm text-base-content/60">$100/mo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Comparison -->
+<section class="py-20 bg-base-100">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-bold mb-4">Feature Comparison</h2>
+      <p class="text-lg text-base-content/70">Everything you need to know about each plan</p>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="table table-lg w-full max-w-5xl mx-auto">
+        <thead>
+          <tr>
+            <th class="text-left">Feature</th>
+            <th class="text-center">Starter</th>
+            <th class="text-center">Pro</th>
+            <th class="text-center">Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="font-semibold">Packages included</td>
+            <td class="text-center">1</td>
+            <td class="text-center">Unlimited</td>
+            <td class="text-center">Unlimited</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Analytics events</td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Real-time dashboard</td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Cross-package analytics</td>
+            <td class="text-center">—</td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Data export</td>
+            <td class="text-center">Basic</td>
+            <td class="text-center">Advanced</td>
+            <td class="text-center">Advanced + API</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Custom reports</td>
+            <td class="text-center">—</td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">White-label dashboard</td>
+            <td class="text-center">—</td>
+            <td class="text-center">—</td>
+            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Support</td>
+            <td class="text-center">Email</td>
+            <td class="text-center">Priority</td>
+            <td class="text-center">Dedicated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-20 bg-base-200">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+      <p class="text-lg text-base-content/70">Everything you need to know about Klyne pricing</p>
+    </div>
+    
+    <div class="max-w-3xl mx-auto">
+      <div class="join join-vertical w-full">
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" checked="checked" />
+          <div class="collapse-title text-lg font-semibold">
+            How does the pricing work exactly?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              Our pricing is simple: $19/month for your first package, then $9/month for each additional package. 
+              For example, if you have 3 packages, you'll pay $19 + $9 + $9 = $37/month. No hidden fees, no usage limits.
+            </p>
+          </div>
+        </div>
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" />
+          <div class="collapse-title text-lg font-semibold">
+            What counts as a "package"?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              A package is a unique Python package published to PyPI that you want to track with Klyne. 
+              Each package requires its own API key. If you maintain multiple versions of the same package, that still counts as one package.
+            </p>
+          </div>
+        </div>
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" />
+          <div class="collapse-title text-lg font-semibold">
+            Is there really a free trial?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              Yes! We offer a genuine 14-day free trial with full access to all features. 
+              No credit card required to start, and you can track up to 3 packages during your trial. 
+              Cancel anytime before the trial ends with no charges.
+            </p>
+          </div>
+        </div>
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" />
+          <div class="collapse-title text-lg font-semibold">
+            Are there any usage limits or overage fees?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              No! Once you're on a plan, there are no limits on analytics events, dashboard views, or API calls. 
+              Our pricing is based solely on the number of packages you're tracking, not your usage volume.
+            </p>
+          </div>
+        </div>
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" />
+          <div class="collapse-title text-lg font-semibold">
+            Do you offer discounts for open source projects?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              We're working on an open source program! If you maintain popular open source packages, 
+              please reach out to us at <a href="mailto:opensource@klyne.com" class="link link-primary">opensource@klyne.com</a> 
+              to discuss potential discounts or free access.
+            </p>
+          </div>
+        </div>
+        
+        <div class="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+          <input type="radio" name="faq-accordion" />
+          <div class="collapse-title text-lg font-semibold">
+            Can I change plans or cancel anytime?
+          </div>
+          <div class="collapse-content">
+            <p class="text-base-content/80">
+              Absolutely! You can upgrade, downgrade, or cancel your subscription at any time. 
+              Changes take effect at your next billing cycle, and you'll always have access to your data 
+              even after cancellation (with export options available).
+            </p>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA Section -->
+<section class="py-20 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
+  <div class="container mx-auto px-4 text-center">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">
+        Ready to understand your users?
+      </h2>
+      <p class="text-xl text-base-content/80 mb-8">
+        Join thousands of Python developers who rely on Klyne for package analytics. 
+        Start your free trial today and see what your users are really doing.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+        <a href="/register" class="klyne-btn-primary text-lg px-8">
+          <i class="fas fa-rocket mr-2"></i>
+          Start Free Trial
+        </a>
+        <a href="/docs" class="btn btn-outline btn-lg px-8">
+          <i class="fas fa-book mr-2"></i>
+          Read the Docs
+        </a>
+      </div>
+      
+      <div class="flex flex-wrap justify-center items-center gap-8 text-sm text-base-content/60">
+        <span class="flex items-center gap-2">
+          <i class="fas fa-shield-alt text-success"></i>
+          SOC 2 compliant
+        </span>
+        <span class="flex items-center gap-2">
+          <i class="fas fa-lock text-success"></i>
+          Privacy-first design
+        </span>
+        <span class="flex items-center gap-2">
+          <i class="fas fa-headset text-success"></i>
+          Expert support
+        </span>
+        <span class="flex items-center gap-2">
+          <i class="fas fa-chart-line text-success"></i>
+          Real-time insights
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer footer-center p-10 bg-base-200 text-base-content">
+  <div>
+    <div class="flex items-center space-x-2 mb-4">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+        <i class="fas fa-cube text-primary-content"></i>
+      </div>
+      <span class="text-xl font-bold klyne-gradient-text">Klyne</span>
+    </div>
+    <p class="text-base-content/70 max-w-md">
+      Analytics for Python packages, built by developers who understand what matters.
+    </p>
+    <div class="flex gap-6 mt-4">
+      <a href="/pricing" class="link link-hover">Pricing</a>
+      <a href="/docs" class="link link-hover">Documentation</a>
+      <a href="mailto:support@klyne.com" class="link link-hover">Support</a>
+      <a href="mailto:privacy@klyne.com" class="link link-hover">Privacy</a>
+    </div>
+    <p class="text-base-content/60 text-sm mt-4">
+      &copy; 2025 Klyne. All rights reserved. Made with ❤️ for the Python community.
+    </p>
+  </div>
+</footer>
+
+<script>
+// Pricing calculator
+document.addEventListener('DOMContentLoaded', function() {
+  const packageSlider = document.getElementById('package-slider');
+  const packageCount = document.getElementById('package-count');
+  const monthlyCost = document.getElementById('monthly-cost');
+  const costBreakdown = document.getElementById('cost-breakdown');
+  const annualDiscount = document.getElementById('annual-discount');
+  
+  function updatePricing() {
+    const packages = parseInt(packageSlider.value);
+    const monthly = packages === 1 ? 19 : 19 + (packages - 1) * 9;
+    const annualSavings = Math.round(monthly * 12 * 0.2);
+    
+    packageCount.textContent = packages;
+    monthlyCost.textContent = `$${monthly}`;
+    
+    if (packages === 1) {
+      costBreakdown.textContent = '$19 base price';
+    } else {
+      costBreakdown.textContent = `$19 + $9 × ${packages - 1}`;
+    }
+    
+    annualDiscount.textContent = `Save $${annualSavings}/year with annual billing`;
+  }
+  
+  packageSlider.addEventListener('input', updatePricing);
+  updatePricing();
+  
+  // Annual/Monthly toggle
+  const pricingToggle = document.getElementById('pricing-toggle');
+  const pricingAmounts = document.querySelectorAll('.pricing-amount');
+  const annualSavings = document.querySelectorAll('.annual-savings');
+  
+  pricingToggle.addEventListener('change', function() {
+    const isAnnual = this.checked;
+    
+    pricingAmounts.forEach(amount => {
+      const monthly = amount.dataset.monthly;
+      const annual = amount.dataset.annual;
+      
+      if (isAnnual) {
+        amount.querySelector('span').textContent = `$${annual}`;
+        amount.querySelector('.text-base-content\\/60').textContent = '/year';
+      } else {
+        amount.querySelector('span').textContent = `$${monthly}`;
+        amount.querySelector('.text-base-content\\/60').textContent = '/month';
+      }
+    });
+    
+    annualSavings.forEach(savings => {
+      if (isAnnual) {
+        savings.classList.remove('hidden');
+      } else {
+        savings.classList.add('hidden');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

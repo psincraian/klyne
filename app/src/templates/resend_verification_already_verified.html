@@ -1,44 +1,69 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card, info_box %}
-{% from "components/form.html" import button %}
 
 {% block title %}Already Verified - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(nav_links=[
-        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
-    ]) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-check-circle", "color": "var(--color-success)"},
-                title="Email Already Verified",
-                subtitle="Your email address has already been verified.",
-                centered=True
-            ) %}
-                {% call info_box("Good news!", type="success", icon="fas fa-check") %}
-                    The email address <strong>{{ email }}</strong> has already been verified. 
-                    You can sign in to your account now.
-                {% endcall %}
-                
-                <div style="text-align: center; margin-top: 2rem;">
-                    <a href="/login" class="button button--primary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
-                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-                        Sign In to Your Account
-                    </a>
-                </div>
-                
-                <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p style="margin-bottom: 0.5rem;">
-                        Forgot your password? <a href="/forgot-password" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Reset Password</a>
-                    </p>
-                    <p><a href="/" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Back to Home</a></p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <!-- Already Verified Card -->
+    <div class="klyne-card text-center">
+      <div class="card-body">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div class="w-12 h-12 bg-success rounded-full flex items-center justify-center">
+            <i class="fas fa-check-circle text-2xl text-success-content"></i>
+          </div>
         </div>
-    </main>
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold mb-4">Email Already Verified</h1>
+        <p class="text-lg text-base-content/80 mb-8">
+          Your email address has already been verified
+        </p>
+
+        <!-- Success Message -->
+        <div class="alert alert-success mb-8">
+          <i class="fas fa-check"></i>
+          <div>
+            <div class="font-semibold">Good news!</div>
+            <div class="text-sm">
+              The email address <strong>{{ email }}</strong> has already been verified. 
+              You can sign in to your account now.
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-4">
+          <a href="/login" class="btn btn-success btn-lg w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In to Your Account
+          </a>
+          
+          <div class="divider"></div>
+          
+          <div class="text-center">
+            <p class="text-sm text-base-content/70">
+              <a href="/" class="link link-primary font-semibold">Back to Home</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

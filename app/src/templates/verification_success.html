@@ -1,36 +1,66 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card %}
-{% from "components/form.html" import button %}
 
 {% block title %}Email Verified - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(nav_links=[
-        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
-    ]) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-check-circle", "color": "var(--color-success)"},
-                title="Email Verified!",
-                subtitle="Your email has been successfully verified. You can now sign in to your account.",
-                centered=True
-            ) %}
-                <div style="text-align: center; margin: 1.5rem 0;">
-                    <a href="/login" class="button button--primary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
-                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-                        Sign In
-                    </a>
-                </div>
-                
-                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p><a href="/" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Back to Home</a></p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <!-- Success Card -->
+    <div class="klyne-card text-center">
+      <div class="card-body">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div class="w-12 h-12 bg-success rounded-full flex items-center justify-center">
+            <i class="fas fa-check-circle text-2xl text-success-content"></i>
+          </div>
         </div>
-    </main>
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold mb-4">Email Verified!</h1>
+        <p class="text-lg text-base-content/80 mb-8">
+          Your email has been successfully verified. You can now sign in to your account.
+        </p>
+
+        <!-- Success Message -->
+        <div class="bg-success/10 border border-success/20 rounded-lg p-6 mb-8">
+          <div class="flex items-center justify-center space-x-3">
+            <i class="fas fa-shield-check text-success text-2xl"></i>
+            <div class="text-success font-semibold">
+              Account Activated
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-4">
+          <a href="/login" class="btn btn-success btn-lg w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In Now
+          </a>
+          
+          <div class="divider"></div>
+          
+          <a href="/" class="btn btn-outline w-full">
+            <i class="fas fa-home mr-2"></i>
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

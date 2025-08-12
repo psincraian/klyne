@@ -1,71 +1,119 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card, info_box %}
-{% from "components/form.html" import form_group, button %}
 
 {% block title %}Register - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(
-        page_title="Create Account",
-        nav_links=[
-            {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
-        ]
-    ) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-user-plus"},
-                title="Create Account",
-                subtitle="Join Klyne to start tracking your Python package analytics and insights",
-                centered=True
-            ) %}
-                {% if error_message %}
-                    {% call info_box("Error", type="warning", icon="fas fa-exclamation-triangle") %}
-                        {{ error_message }}
-                    {% endcall %}
-                {% endif %}
-                
-                <form action="/register" method="POST" class="form">
-                    {{ form_group(
-                        label="Email Address",
-                        name="email",
-                        type="email",
-                        placeholder="you@example.com",
-                        required=True,
-                        icon="fas fa-envelope",
-                        value=email if email else ""
-                    ) }}
-                    
-                    {{ form_group(
-                        label="Password",
-                        name="password",
-                        type="password",
-                        placeholder="Create a secure password",
-                        required=True,
-                        icon="fas fa-lock",
-                        help="<ul><li>At least 8 characters long</li><li>Use a mix of letters, numbers, and symbols</li></ul>"
-                    ) }}
-                    
-                    {{ form_group(
-                        label="Confirm Password",
-                        name="password_confirm",
-                        type="password",
-                        placeholder="Confirm your password",
-                        required=True,
-                        icon="fas fa-shield-alt"
-                    ) }}
-                    
-                    {{ button("Create Account", icon="fas fa-user-plus", variant="primary", full_width=True) }}
-                </form>
-                
-                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p>Already have an account? <a href="/login" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign in here</a></p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Registration Card -->
+    <div class="klyne-card">
+      <div class="card-body">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-plus text-2xl text-primary"></i>
+          </div>
+          <h1 class="text-3xl font-bold mb-2">Create Account</h1>
+          <p class="text-base-content/70">Join Klyne to start tracking your Python package analytics</p>
         </div>
-    </main>
+
+        <!-- Error Message -->
+        {% if error_message %}
+        <div class="alert alert-warning mb-6">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <div class="font-semibold">Error</div>
+            <div class="text-sm">{{ error_message }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Registration Form -->
+        <form action="/register" method="POST" class="space-y-6">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-envelope mr-2 text-primary"></i>Email Address
+              </span>
+            </label>
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="you@example.com"
+              class="klyne-input"
+              required
+              value="{{ email if email else '' }}"
+            >
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-lock mr-2 text-primary"></i>Password
+              </span>
+            </label>
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Create a secure password"
+              class="klyne-input"
+              required
+            >
+            <div class="label">
+              <span class="label-text-alt text-xs text-base-content/60">
+                <ul class="list-disc list-inside space-y-1">
+                  <li>At least 8 characters long</li>
+                  <li>Use a mix of letters, numbers, and symbols</li>
+                </ul>
+              </span>
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-shield-alt mr-2 text-primary"></i>Confirm Password
+              </span>
+            </label>
+            <input 
+              type="password" 
+              name="password_confirm" 
+              placeholder="Confirm your password"
+              class="klyne-input"
+              required
+            >
+          </div>
+
+          <button type="submit" class="klyne-btn-primary w-full">
+            <i class="fas fa-user-plus mr-2"></i>
+            Create Account
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="divider mt-8"></div>
+        <div class="text-center">
+          <p class="text-sm text-base-content/70">
+            Already have an account? 
+            <a href="/login" class="link link-primary font-semibold">Sign in here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

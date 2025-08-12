@@ -1,51 +1,83 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card, info_box %}
-{% from "components/form.html" import button %}
 
 {% block title %}Email Sent - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(nav_links=[
-        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": True}
-    ]) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-check-circle", "color": "var(--color-success)"},
-                title="Verification Email Sent",
-                subtitle="Check your inbox for the verification link.",
-                centered=True
-            ) %}
-                {% call info_box("Success", type="success", icon="fas fa-envelope") %}
-                    If an account exists for <strong>{{ email }}</strong>, we've sent a new verification email. 
-                    Please check your inbox and click the verification link.
-                {% endcall %}
-                
-                <div style="margin: 1.5rem 0;">
-                    {% call info_box("Didn't receive the email?", type="info", icon="fas fa-info-circle") %}
-                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem; text-align: left;">
-                            <li>Check your spam folder</li>
-                            <li>Make sure you entered the correct email</li>
-                            <li>Wait a few minutes and try again</li>
-                        </ul>
-                    {% endcall %}
-                </div>
-                
-                <div style="text-align: center; margin-top: 2rem;">
-                    <a href="/login" class="button button--primary button--full" style="text-decoration: none; display: inline-block; width: 100%;">
-                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-                        Go to Sign In
-                    </a>
-                </div>
-                
-                <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p><a href="/" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Back to Home</a></p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <!-- Success Card -->
+    <div class="klyne-card text-center">
+      <div class="card-body">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div class="w-12 h-12 bg-success rounded-full flex items-center justify-center">
+            <i class="fas fa-check-circle text-2xl text-success-content"></i>
+          </div>
         </div>
-    </main>
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold mb-4">Verification Email Sent</h1>
+        <p class="text-lg text-base-content/80 mb-8">
+          Check your inbox for the verification link
+        </p>
+
+        <!-- Success Message -->
+        <div class="alert alert-success mb-6">
+          <i class="fas fa-envelope"></i>
+          <div>
+            <div class="font-semibold">Success</div>
+            <div class="text-sm">
+              If an account exists for <strong>{{ email }}</strong>, we've sent a new verification email. 
+              Please check your inbox and click the verification link.
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Info -->
+        <div class="bg-info/10 border border-info/20 rounded-lg p-6 mb-8">
+          <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-info text-xl mt-1"></i>
+            <div class="text-left">
+              <div class="font-semibold text-info mb-2">Didn't receive the email?</div>
+              <ul class="text-sm text-base-content/80 space-y-1 list-disc list-inside">
+                <li>Check your spam folder</li>
+                <li>Make sure you entered the correct email</li>
+                <li>Wait a few minutes and try again</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-4">
+          <a href="/login" class="btn btn-success btn-lg w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Go to Sign In
+          </a>
+          
+          <div class="divider"></div>
+          
+          <a href="/" class="btn btn-ghost w-full">
+            <i class="fas fa-home mr-2"></i>
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

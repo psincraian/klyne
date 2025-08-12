@@ -3,31 +3,73 @@
 {% block title %}Registration Successful - Klyne{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header>
-        <nav>
-            <div class="logo"><a href="/">Klyne</a></div>
-        </nav>
-    </header>
-    
-    <main class="auth-main">
-        <div class="auth-container">
-            <div class="auth-card success-card">
-                <div class="success-icon">✓</div>
-                <h1>Account Created!</h1>
-                <p class="auth-subtitle">
-                    We've sent a verification email to <strong>{{ email }}</strong>
-                </p>
-                <p class="verification-info">
-                    Please check your email and click the verification link to activate your account.
-                    You'll need to verify your email before you can sign in.
-                </p>
-                
-                <div class="auth-footer">
-                    <p><a href="/login">Back to Login</a></p>
-                </div>
-            </div>
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <!-- Success Card -->
+    <div class="klyne-card text-center">
+      <div class="card-body">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div class="w-12 h-12 bg-success rounded-full flex items-center justify-center">
+            <i class="fas fa-check text-2xl text-success-content"></i>
+          </div>
         </div>
-    </main>
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold mb-4">Account Created!</h1>
+        <p class="text-lg text-base-content/80 mb-6">
+          We've sent a verification email to <span class="font-semibold text-primary">{{ email }}</span>
+        </p>
+
+        <!-- Instructions -->
+        <div class="bg-base-200 rounded-lg p-6 mb-8">
+          <div class="flex items-start space-x-3">
+            <i class="fas fa-envelope text-primary text-xl mt-1"></i>
+            <div class="text-left">
+              <p class="text-base-content/90 mb-2">
+                <strong>Check your email</strong> and click the verification link to activate your account.
+              </p>
+              <p class="text-sm text-base-content/70">
+                You'll need to verify your email before you can sign in to your dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-4">
+          <a href="/login" class="btn btn-primary btn-lg w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Back to Login
+          </a>
+          
+          <div class="divider">Need help?</div>
+          
+          <div class="text-center space-y-2">
+            <p class="text-sm text-base-content/70">
+              Didn't receive the email? Check your spam folder or
+            </p>
+            <a href="/resend-verification?email={{ email }}" class="link link-primary font-semibold">
+              <i class="fas fa-redo mr-1"></i>Resend verification email
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

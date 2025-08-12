@@ -1,68 +1,103 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card, info_box %}
-{% from "components/form.html" import form_group, button %}
 
 {% block title %}Login - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(
-        page_title="Sign In",
-        nav_links=[
-            {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": True}
-        ]
-    ) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-sign-in-alt"},
-                title="Welcome Back",
-                subtitle="Sign in to access your analytics dashboard",
-                centered=True
-            ) %}
-                {% if error_message %}
-                    {% call info_box("Error", type="warning", icon="fas fa-exclamation-triangle") %}
-                        {{ error_message }}
-                        {% if show_resend %}
-                        <div style="margin-top: 1rem;">
-                            <a href="/resend-verification?email={{ email }}" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">
-                                <i class="fas fa-envelope"></i> Resend verification email
-                            </a>
-                        </div>
-                        {% endif %}
-                    {% endcall %}
-                {% endif %}
-                
-                <form action="/login" method="POST" class="form">
-                    {{ form_group(
-                        label="Email Address",
-                        name="email",
-                        type="email",
-                        placeholder="you@example.com",
-                        required=True,
-                        icon="fas fa-envelope",
-                        value=email if email else ""
-                    ) }}
-                    
-                    {{ form_group(
-                        label="Password",
-                        name="password",
-                        type="password",
-                        placeholder="Enter your password",
-                        required=True,
-                        icon="fas fa-lock"
-                    ) }}
-                    
-                    {{ button("Sign In", icon="fas fa-sign-in-alt", variant="primary", full_width=True) }}
-                </form>
-                
-                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p>Don't have an account? <a href="/register" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Create one here</a></p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/register" class="btn btn-primary">
+      <i class="fas fa-user-plus mr-2"></i>
+      Sign Up
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Login Card -->
+    <div class="klyne-card">
+      <div class="card-body">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-sign-in-alt text-2xl text-primary"></i>
+          </div>
+          <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
+          <p class="text-base-content/70">Sign in to access your analytics dashboard</p>
         </div>
-    </main>
+
+        <!-- Error Message -->
+        {% if error_message %}
+        <div class="alert alert-warning mb-6">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <div class="font-semibold">Error</div>
+            <div class="text-sm">{{ error_message }}</div>
+            {% if show_resend %}
+            <div class="mt-2">
+              <a href="/resend-verification?email={{ email }}" class="link link-primary font-semibold">
+                <i class="fas fa-envelope mr-1"></i>Resend verification email
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form action="/login" method="POST" class="space-y-6">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-envelope mr-2 text-primary"></i>Email Address
+              </span>
+            </label>
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="you@example.com"
+              class="klyne-input"
+              required
+              value="{{ email if email else '' }}"
+            >
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-lock mr-2 text-primary"></i>Password
+              </span>
+            </label>
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Enter your password"
+              class="klyne-input"
+              required
+            >
+          </div>
+
+          <button type="submit" class="klyne-btn-primary w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="divider mt-8"></div>
+        <div class="text-center">
+          <p class="text-sm text-base-content/70">
+            Don't have an account? 
+            <a href="/register" class="link link-primary font-semibold">Create one here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

@@ -29,10 +29,10 @@
             
             {% if show_nav_tabs %}
                 <div class="header__nav-tabs">
-                    <a href="/dashboard" class="nav-link--tab {{ 'active' if active_tab == 'dashboard' else '' }}">
+                    <a href="/analytics" class="nav-link--tab {{ 'active' if active_tab == 'dashboard' else '' }}">
                         <i class="fas fa-chart-line"></i> Analytics
                     </a>
-                    <a href="/settings" class="nav-link--tab {{ 'active' if active_tab == 'settings' else '' }}">
+                    <a href="/dashboard" class="nav-link--tab {{ 'active' if active_tab == 'settings' else '' }}">
                         <i class="fas fa-cog"></i> Settings
                     </a>
                 </div>
@@ -47,7 +47,7 @@
                         <span class="header__user-email">{{ user.email }}</span>
                     </div>
                     {% if not show_nav_tabs %}
-                        <a href="/dashboard" class="nav-link">
+                        <a href="/analytics" class="nav-link">
                             <i class="fas fa-chart-line"></i> Dashboard
                         </a>
                     {% endif %}
@@ -72,10 +72,10 @@
             <div class="header__mobile-menu-content">
                 {% if show_nav_tabs %}
                 <div class="header__mobile-tabs">
-                    <a href="/dashboard" class="header__mobile-link {{ 'active' if active_tab == 'dashboard' else '' }}">
+                    <a href="/analytics" class="header__mobile-link {{ 'active' if active_tab == 'dashboard' else '' }}">
                         <i class="fas fa-chart-line"></i> Analytics
                     </a>
-                    <a href="/settings" class="header__mobile-link {{ 'active' if active_tab == 'settings' else '' }}">
+                    <a href="/dashboard" class="header__mobile-link {{ 'active' if active_tab == 'settings' else '' }}">
                         <i class="fas fa-cog"></i> Settings
                     </a>
                 </div>
@@ -88,7 +88,7 @@
                     <span>{{ user.email }}</span>
                 </div>
                 {% if not show_nav_tabs %}
-                <a href="/dashboard" class="header__mobile-link">
+                <a href="/analytics" class="header__mobile-link">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </a>
                 {% endif %}

@@ -5,3 +5,4 @@ __pycache__/
 **/*.env
 **/.env
 !**/secrets.example.env
+**/node_modules

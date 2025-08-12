@@ -1,57 +1,74 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card %}
-{% from "components/form.html" import form_group, button %}
 
 {% block title %}Resend Verification - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header(nav_links=[
-        {"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt"},
-        {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": True}
-    ]) }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 450px;">
-            {% call card(
-                icon={"class": "fas fa-envelope", "color": "var(--color-primary)"},
-                title="Resend Verification Email",
-                subtitle="Enter your email address to receive a new verification link.",
-                centered=True
-            ) %}
-                <form method="post" action="/resend-verification">
-                    {{ form_group(
-                        label="Email Address",
-                        name="email",
-                        type="email",
-                        placeholder="your@email.com",
-                        required=True,
-                        value=email,
-                        icon="fas fa-envelope"
-                    ) }}
-                    
-                    <div style="margin-top: 1.5rem;">
-                        {{ button(
-                            "Send Verification Email",
-                            type="submit",
-                            variant="primary",
-                            icon="fas fa-paper-plane",
-                            full_width=True
-                        ) }}
-                    </div>
-                </form>
-                
-                <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); font-size: 0.9rem; color: var(--color-gray-500);">
-                    <p style="margin-bottom: 0.5rem;">
-                        Already verified? <a href="/login" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign In</a>
-                    </p>
-                    <p>
-                        Need a new account? <a href="/register" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign Up</a>
-                    </p>
-                </div>
-            {% endcall %}
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <div class="flex gap-2">
+      <a href="/login" class="btn btn-ghost">Sign In</a>
+      <a href="/register" class="btn btn-primary">Sign Up</a>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Resend Card -->
+    <div class="klyne-card">
+      <div class="card-body">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-envelope text-2xl text-primary"></i>
+          </div>
+          <h1 class="text-3xl font-bold mb-2">Resend Verification</h1>
+          <p class="text-base-content/70">Enter your email address to receive a new verification link</p>
         </div>
-    </main>
+
+        <!-- Form -->
+        <form method="post" action="/resend-verification" class="space-y-6">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">
+                <i class="fas fa-envelope mr-2 text-primary"></i>Email Address
+              </span>
+            </label>
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="your@email.com"
+              class="klyne-input"
+              required
+              value="{{ email }}"
+            >
+          </div>
+
+          <button type="submit" class="klyne-btn-primary w-full">
+            <i class="fas fa-paper-plane mr-2"></i>
+            Send Verification Email
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="divider mt-8"></div>
+        <div class="text-center space-y-2">
+          <p class="text-sm text-base-content/70">
+            Already verified? 
+            <a href="/login" class="link link-primary font-semibold">Sign In</a>
+          </p>
+          <p class="text-sm text-base-content/70">
+            Need a new account? 
+            <a href="/register" class="link link-primary font-semibold">Sign Up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

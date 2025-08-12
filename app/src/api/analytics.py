@@ -15,7 +15,30 @@ router = APIRouter(prefix="/api", tags=["analytics"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/analytics", response_model=dict)
+@router.post("/analytics", 
+    response_model=dict,
+    summary="Submit Analytics Event",
+    description="Submit a single analytics event for Python package usage tracking.",
+    responses={
+        200: {
+            "description": "Analytics event recorded successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": True,
+                        "event_id": "123e4567-e89b-12d3-a456-426614174000",
+                        "received_at": "2024-01-15T10:30:00Z",
+                        "message": "Analytics event recorded successfully"
+                    }
+                }
+            }
+        },
+        401: {"description": "Invalid API key"},
+        400: {"description": "Invalid event data"},
+        429: {"description": "Rate limit exceeded"},
+        500: {"description": "Server error"}
+    }
+)
 async def create_analytics_event(
     request: Request,
     response: Response,
@@ -24,10 +47,83 @@ async def create_analytics_event(
     api_key: APIKey = Depends(authenticate_analytics_request),
 ):
     """
-    Create a single analytics event.
-
-    Requires API key authentication via Authorization header:
-    Authorization: Bearer klyne_your_api_key_here
+    Submit a single analytics event for package usage tracking.
+    
+    This endpoint is used by the Klyne Python SDK to automatically send usage analytics
+    when your package is imported. API keys are public-facing tracking identifiers,
+    similar to Google Analytics tracking IDs.
+    
+    ## Authentication
+    Requires your public API key via Authorization header:
+    ```
+    Authorization: Bearer klyne_your_public_api_key_here
+    ```
+    
+    **Note**: API keys are public identifiers and are safe to include in client-side code,
+    similar to Google Analytics tracking IDs. They only allow submitting analytics data
+    for your specific package.
+    
+    ## Rate Limits
+    - 1000 events per hour per API key
+    - Rate limit information is returned in response headers
+    
+    ## Example Usage
+    
+    ### Python SDK (Recommended)
+    ```python
+    import klyne
+    
+    # Initialize in your package's __init__.py
+    klyne.init(
+        api_key='klyne_your_public_api_key_here',
+        project='your-package-name'
+    )
+    ```
+    
+    ### Direct API Call
+    ```python
+    import requests
+    import uuid
+    from datetime import datetime
+    
+    headers = {"Authorization": "Bearer klyne_your_public_api_key_here"}
+    data = {
+        "session_id": str(uuid.uuid4()),
+        "package_name": "your-package-name",
+        "package_version": "1.0.0",
+        "python_version": "3.9.7",
+        "python_implementation": "CPython",
+        "os_type": "Linux",
+        "os_version": "Ubuntu 20.04",
+        "architecture": "x86_64",
+        "event_timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+    
+    response = requests.post("https://api.klyne.com/api/analytics", 
+                           headers=headers, json=data)
+    print(response.json())
+    ```
+    
+    ### JavaScript/Node.js
+    ```javascript
+    const data = {
+        session_id: crypto.randomUUID(),
+        package_name: "your-package-name",
+        package_version: "1.0.0",
+        python_version: "3.9.7",
+        os_type: "Linux",
+        event_timestamp: new Date().toISOString()
+    };
+    
+    fetch('https://api.klyne.com/api/analytics', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer klyne_your_public_api_key_here',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    ```
     """
     try:
         # Rate limiting
@@ -96,7 +192,7 @@ async def create_analytics_event(
         raise HTTPException(status_code=500, detail="Failed to record analytics event")
 
 
-@router.post("/analytics/batch", response_model=dict)
+@router.post("/analytics/batch", response_model=dict, include_in_schema=False)
 async def create_analytics_events_batch(
     request: Request,
     response: Response,
@@ -223,7 +319,7 @@ async def create_analytics_events_batch(
         raise HTTPException(status_code=500, detail="Failed to process analytics batch")
 
 
-@router.get("/analytics/health", response_model=dict)
+@router.get("/analytics/health", response_model=dict, include_in_schema=False)
 async def analytics_health_check():
     """
     Health check endpoint for analytics API.

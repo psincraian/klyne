@@ -42,10 +42,23 @@ jobs:
       with:
         python-version: "3.11"
 
-    - name: Install dependencies
+    - name: Install Python dependencies
       working-directory: ./app
       run: |
         uv sync --dev
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: ./app/package-lock.json
+    
+    - name: Install frontend dependencies and build CSS
+      working-directory: ./app
+      run: |
+        npm ci
+        npm run build
 
     - name: Run tests and linting in parallel
       working-directory: ./app

@@ -83,7 +83,36 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Klyne application...")
 
 
-app = FastAPI(title="Klyne", lifespan=lifespan)
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    from fastapi.openapi.utils import get_openapi
+    
+    # Generate full OpenAPI schema
+    openapi_schema = get_openapi(
+        title="Klyne Analytics API",
+        version="1.0.0",
+        description="Analytics API for Python package usage tracking",
+        routes=app.routes,
+    )
+    
+    # Filter to only include the single analytics endpoint
+    filtered_paths = {}
+    if "/api/analytics" in openapi_schema["paths"]:
+        # Only include the POST method for /api/analytics
+        if "post" in openapi_schema["paths"]["/api/analytics"]:
+            filtered_paths["/api/analytics"] = {
+                "post": openapi_schema["paths"]["/api/analytics"]["post"]
+            }
+    
+    openapi_schema["paths"] = filtered_paths
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app = FastAPI(title="Klyne Analytics API", lifespan=lifespan)
+app.openapi = custom_openapi
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
@@ -91,11 +120,11 @@ templates = Jinja2Templates(directory="src/templates")
 
 # Include API routers
 app.include_router(analytics_router)
-app.include_router(dashboard_router)
-app.include_router(backoffice_router)
+app.include_router(dashboard_router, include_in_schema=False)
+app.include_router(backoffice_router, include_in_schema=False)
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def landing_page(request: Request):
     user_authenticated = is_authenticated(request)
     user_email = get_current_user_email(request) if user_authenticated else None
@@ -109,7 +138,7 @@ async def landing_page(request: Request):
     )
 
 
-@app.post("/signup")
+@app.post("/signup", include_in_schema=False)
 async def signup(
     request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)
 ):
@@ -133,14 +162,14 @@ async def signup(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/register", response_class=HTMLResponse)
+@app.get("/register", response_class=HTMLResponse, include_in_schema=False)
 async def register_page(request: Request):
     if is_authenticated(request):
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/analytics", status_code=302)
     return templates.TemplateResponse("register.html", {"request": request})
 
 
-@app.post("/register")
+@app.post("/register", include_in_schema=False)
 async def register_user(
     request: Request,
     email: str = Form(...),
@@ -208,7 +237,7 @@ async def register_user(
     )
 
 
-@app.get("/verify")
+@app.get("/verify", include_in_schema=False)
 async def verify_email(
     request: Request, token: str, db: AsyncSession = Depends(get_db)
 ):
@@ -267,7 +296,7 @@ async def verify_email(
         )
 
 
-@app.get("/resend-verification", response_class=HTMLResponse)
+@app.get("/resend-verification", response_class=HTMLResponse, include_in_schema=False)
 async def resend_verification_page(request: Request):
     email = request.query_params.get("email", "")
     return templates.TemplateResponse(
@@ -275,7 +304,7 @@ async def resend_verification_page(request: Request):
     )
 
 
-@app.post("/resend-verification")
+@app.post("/resend-verification", include_in_schema=False)
 async def resend_verification(
     request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)
 ):
@@ -324,14 +353,14 @@ async def resend_verification(
         )
 
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/login", response_class=HTMLResponse, include_in_schema=False)
 async def login_page(request: Request):
     if is_authenticated(request):
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/analytics", status_code=302)
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@app.post("/login")
+@app.post("/login", include_in_schema=False)
 async def login_user(
     request: Request,
     email: str = Form(...),
@@ -357,7 +386,7 @@ async def login_user(
             show_resend = False
         else:
             create_session(request, user.id, user.email)
-            return RedirectResponse(url="/dashboard", status_code=302)
+            return RedirectResponse(url="/analytics", status_code=302)
 
     except Exception:
         error_message = "Login failed. Please try again."
@@ -376,14 +405,15 @@ async def login_user(
     )
 
 
-@app.post("/logout")
+@app.post("/logout", include_in_schema=False)
 async def logout(request: Request):
     logout_user(request)
     return RedirectResponse(url="/", status_code=302)
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
+@app.get("/analytics", response_class=HTMLResponse, include_in_schema=False)
+async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
+    """Analytics dashboard with charts and metrics."""
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
 
@@ -405,9 +435,9 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     )
 
 
-@app.get("/settings", response_class=HTMLResponse)
-async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
-    """API key management and account settings."""
+@app.get("/dashboard", response_class=HTMLResponse, include_in_schema=False)
+async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
+    """Account settings and API key management."""
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
 
@@ -428,7 +458,42 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
     )
 
 
-@app.post("/api/api-keys")
+@app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
+async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
+    """Account settings and preferences."""
+    if not is_authenticated(request):
+        return RedirectResponse(url="/login", status_code=302)
+
+    user_id = get_current_user_id(request)
+    user = await db.execute(select(User).filter(User.id == user_id))
+    user = user.scalar_one_or_none()
+
+    if not user:
+        logout_user(request)
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Get user's API keys for usage statistics
+    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
+    api_keys = api_keys_result.scalars().all()
+
+    return templates.TemplateResponse(
+        "settings.html", {"request": request, "user": user, "api_keys": api_keys}
+    )
+
+
+@app.get("/pricing", response_class=HTMLResponse, include_in_schema=False)
+async def pricing_page(request: Request):
+    """Pricing information."""
+    return templates.TemplateResponse("pricing.html", {"request": request})
+
+
+@app.get("/documentation", response_class=HTMLResponse, include_in_schema=False)
+async def documentation_page(request: Request):
+    """Documentation."""
+    return templates.TemplateResponse("docs.html", {"request": request})
+
+
+@app.post("/api/api-keys", include_in_schema=False)
 async def create_api_key(
     request: Request, package_name: str = Form(...), db: AsyncSession = Depends(get_db)
 ):
@@ -460,7 +525,7 @@ async def create_api_key(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
-@app.delete("/api/api-keys/{api_key_id}")
+@app.delete("/api/api-keys/{api_key_id}", include_in_schema=False)
 async def delete_api_key(
     request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
 ):
@@ -484,7 +549,7 @@ async def delete_api_key(
     return {"success": True}
 
 
-@app.post("/api-keys/{api_key_id}/delete")
+@app.post("/api-keys/{api_key_id}/delete", include_in_schema=False)
 async def delete_api_key_form(
     request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
 ):
@@ -506,11 +571,11 @@ async def delete_api_key_form(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 async def health_check():
     return {"status": "healthy"}
 
 
-@app.get("/healthz")
+@app.get("/healthz", include_in_schema=False)
 async def healthz():
     return {"status": "ok"}

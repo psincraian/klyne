@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% from "components/dashboard_nav.html" import dashboard_nav %}
+
+{% block title %}Account Settings - Klyne{% endblock %}
+
+{% block content %}
+{{ dashboard_nav(user, active_page="settings") }}
+
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 pt-20">
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">Account Settings</h1>
+            <p class="text-lg text-base-content/80">Manage your account information and preferences</p>
+        </div>
+
+        <!-- Account Information Card -->
+        <div class="klyne-card mb-8">
+            <div class="card-body">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user text-primary"></i>
+                    </div>
+                    <h2 class="card-title text-2xl">Account Information</h2>
+                </div>
+                
+                <div class="grid gap-6">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold flex items-center gap-2">
+                                <i class="fas fa-envelope text-primary"></i>
+                                Email Address
+                            </span>
+                        </label>
+                        <input type="email" value="{{ user.email }}" class="klyne-input" disabled>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">Email address cannot be changed</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-primary"></i>
+                                Account Status
+                            </span>
+                        </label>
+                        <div class="mt-2">
+                            {% if user.is_verified %}
+                                <div class="badge badge-success gap-2">
+                                    <i class="fas fa-check"></i>
+                                    Verified Account
+                                </div>
+                                <p class="text-sm text-base-content/70 mt-2">
+                                    Your email address has been verified and your account is active.
+                                </p>
+                            {% else %}
+                                <div class="badge badge-warning gap-2">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Unverified Account
+                                </div>
+                                <p class="text-sm text-base-content/70 mt-2">
+                                    Please check your email and click the verification link to activate your account.
+                                </p>
+                                <button class="btn btn-sm btn-warning mt-3">
+                                    <i class="fas fa-envelope mr-2"></i>
+                                    Resend Verification Email
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold flex items-center gap-2">
+                                <i class="fas fa-calendar text-primary"></i>
+                                Member Since
+                            </span>
+                        </label>
+                        <input type="text" value="{{ user.created_at.strftime('%B %d, %Y at %I:%M %p') }}" class="klyne-input" readonly>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">Account creation date</span>
+                        </label>
+                    </div>
+
+                    {% if user.is_admin %}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold flex items-center gap-2">
+                                <i class="fas fa-crown text-warning"></i>
+                                Admin Status
+                            </span>
+                        </label>
+                        <div class="badge badge-warning gap-2">
+                            <i class="fas fa-crown"></i>
+                            Administrator
+                        </div>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">You have administrative privileges</span>
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Usage Statistics Card -->
+        <div class="klyne-card">
+            <div class="card-body">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-accent"></i>
+                    </div>
+                    <h2 class="card-title text-2xl">Usage Overview</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="klyne-stat-card">
+                        <div class="stat-title">API Keys</div>
+                        <div class="stat-value text-primary">{{ api_keys|length }}</div>
+                        <div class="stat-desc">Active API keys</div>
+                    </div>
+                    
+                    <div class="klyne-stat-card">
+                        <div class="stat-title">Packages</div>
+                        <div class="stat-value text-secondary">{{ api_keys|map(attribute='package_name')|unique|list|length }}</div>
+                        <div class="stat-desc">Tracked packages</div>
+                    </div>
+                    
+                    <div class="klyne-stat-card">
+                        <div class="stat-title">Last Activity</div>
+                        <div class="stat-value text-accent text-lg">
+                            {% if api_keys %}
+                                {{ api_keys|map(attribute='created_at')|max|strftime('%m/%d') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="stat-desc">Most recent API key</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mt-6">
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-key mr-2"></i>
+                        Manage API Keys
+                    </a>
+                    <a href="/analytics" class="btn btn-outline">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        View Analytics
+                    </a>
+                    <form action="/logout" method="POST" class="inline">
+                        <button type="submit" class="btn btn-outline btn-error">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,49 +1,80 @@
 {% extends "base.html" %}
-{% from "components/header.html" import header %}
-{% from "components/card.html" import card, info_box %}
-{% from "components/form.html" import link_button %}
 
 {% block title %}Success - Klyne{% endblock %}
 
 {% block content %}
-<div class="app">
-    {{ header() }}
-    
-    <main class="main main--centered">
-        <div style="width: 100%; max-width: 500px;">
-            {% call card(
-                icon={"class": "fas fa-check", "xl": True},
-                title={"text": "Welcome to Klyne!", "large": True},
-                centered=True
-            ) %}
-                <!-- Confetti Animation -->
-                <div class="confetti">🎉</div>
-                <div class="confetti">🎊</div>
-                <div class="confetti">✨</div>
-                <div class="confetti">🎉</div>
-                <div class="confetti">🎊</div>
-                <div class="confetti">✨</div>
-                <div class="confetti">🎉</div>
-                <div class="confetti">🎊</div>
-                <div class="confetti">✨</div>
-                
-                <p style="color: var(--color-gray-500); font-size: var(--font-size-lg); margin-bottom: 2.5rem; line-height: 1.6;">
-                    Thank you for registering! Check your email at <span style="color: var(--color-primary); font-weight: 600;">{{ email }}</span> to complete your account setup.
-                </p>
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-                    {{ link_button("Back to Home", "/", icon="fas fa-arrow-left", variant="secondary") }}
-                </div>
-                
-                {% call info_box("What's Next?", type="info", icon="fas fa-lightbulb") %}
-                    You'll receive an email with instructions to verify your account and get started with Klyne. Start tracking your Python packages in minutes!
-                {% endcall %}
-            {% endcall %}
-        </div>
-    </main>
-    
-    <footer style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.2); padding: 2rem; text-align: center; color: rgba(255, 255, 255, 0.8);">
-        <p>&copy; 2025 Klyne. Built for the Python community.</p>
-    </footer>
+<!-- Navigation -->
+<div class="navbar bg-base-100/95 backdrop-blur-sm">
+  <div class="navbar-start">
+    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
+  </div>
+  <div class="navbar-end">
+    <a href="/login" class="btn btn-primary">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
 </div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <!-- Success Card -->
+    <div class="klyne-card text-center relative overflow-hidden">
+      <div class="card-body">
+        <!-- Confetti Animation -->
+        <div class="absolute inset-0 pointer-events-none">
+          <div class="animate-bounce delay-100 absolute top-4 left-8 text-2xl">🎉</div>
+          <div class="animate-bounce delay-200 absolute top-8 right-12 text-2xl">🎊</div>
+          <div class="animate-bounce delay-300 absolute top-12 left-16 text-2xl">✨</div>
+          <div class="animate-bounce delay-150 absolute top-16 right-8 text-2xl">🎉</div>
+          <div class="animate-bounce delay-250 absolute top-20 left-4 text-2xl">🎊</div>
+          <div class="animate-bounce delay-350 absolute top-6 right-20 text-2xl">✨</div>
+        </div>
+
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div class="w-12 h-12 bg-success rounded-full flex items-center justify-center">
+            <i class="fas fa-check text-2xl text-success-content"></i>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold mb-4">Welcome to Klyne!</h1>
+        <p class="text-lg text-base-content/80 mb-8">
+          Thank you for registering! Check your email at 
+          <span class="text-primary font-semibold">{{ email }}</span> 
+          to complete your account setup.
+        </p>
+
+        <!-- Actions -->
+        <div class="space-y-4 mb-8">
+          <a href="/" class="btn btn-outline btn-lg w-full">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Home
+          </a>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="alert alert-info text-left">
+          <i class="fas fa-lightbulb"></i>
+          <div>
+            <div class="font-semibold">What's Next?</div>
+            <div class="text-sm">
+              You'll receive an email with instructions to verify your account and get started with Klyne. 
+              Start tracking your Python packages in minutes!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer footer-center p-8 bg-base-200/50 backdrop-blur-sm border-t border-base-300">
+  <div>
+    <p class="text-base-content/70">&copy; 2025 Klyne. Built for the Python community.</p>
+  </div>
+</footer>
 {% endblock %}

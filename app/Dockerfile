@@ -1,4 +1,23 @@
-# Use Python 3.11 slim image for smaller size
+# Frontend build stage
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source files needed for build
+COPY tailwind.config.js ./
+COPY src/static/css/input.css ./src/static/css/input.css
+COPY src/templates/ ./src/templates/
+
+# Build CSS
+RUN npm run build
+
+# Production stage
 FROM python:3.11-slim
 
 # Set environment variables
@@ -34,6 +53,9 @@ RUN uv sync --frozen --no-dev
 
 # Copy application code (this will be the layer that changes most often)
 COPY . .
+
+# Copy built CSS from frontend stage
+COPY --from=frontend-builder /app/src/static/css/output.css ./src/static/css/output.css
 
 # Create cache directory and change ownership in single layer
 RUN mkdir -p /home/appuser/.cache && \
