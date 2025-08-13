@@ -28,8 +28,8 @@ classifiers = [
 [project.urls]
 Homepage = "https://klyne.dev"
 Documentation = "https://docs.klyne.dev"
-Repository = "https://github.com/klyne/klyne-python"
-Issues = "https://github.com/klyne/klyne-python/issues"
+Repository = "https://github.com/psincraian/klyne"
+Issues = "https://github.com/psincraian/klyne/issues"
 
 [build-system]
 requires = ["hatchling"]

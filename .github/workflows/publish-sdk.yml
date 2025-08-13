@@ -1,0 +1,99 @@
+name: Publish SDK to PyPI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'sdk/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Generate version and update pyproject.toml
+      id: version
+      working-directory: ./sdk
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          # Auto-generate version based on current version + commit count
+          CURRENT_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          COMMIT_COUNT=$(git rev-list --count HEAD -- .)
+          # Extract major.minor from current version and append commit count as patch
+          MAJOR_MINOR=$(echo $CURRENT_VERSION | cut -d. -f1-2)
+          VERSION="${MAJOR_MINOR}.${COMMIT_COUNT}"
+        fi
+        
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Publishing version: $VERSION"
+        
+        # Update version in pyproject.toml
+        sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        echo "Updated version to $VERSION"
+        grep "version =" pyproject.toml
+
+    - name: Build package
+      working-directory: ./sdk
+      run: |
+        uv build
+
+    - name: Check package contents
+      working-directory: ./sdk
+      run: |
+        uv run python -m tarfile -l dist/*.tar.gz
+        ls -la dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: sdk/dist/
+        # Use trusted publishing (no API token needed)
+        # Make sure to configure trusted publishing in PyPI project settings
+        
+  test-install:
+    needs: publish
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Wait for package availability
+      run: |
+        # Wait a bit for the package to be available on PyPI
+        sleep 30
+
+    - name: Test installation
+      run: |
+        pip install klyne
+        python -c "import klyne; print('Klyne SDK installed successfully')"
