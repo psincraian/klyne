@@ -1,44 +1,10 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
 
 {% block title %}Pricing - Klyne{% endblock %}
 
 {% block content %}
-<!-- Navigation -->
-<div class="navbar bg-base-100/95 backdrop-blur-sm fixed top-0 z-50 border-b border-base-300">
-  <div class="navbar-start">
-    <div class="dropdown">
-      <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
-        </svg>
-      </div>
-      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a href="/">Home</a></li>
-        <li><a href="/pricing" class="active">Pricing</a></li>
-        <li><a href="/documentation">Docs</a></li>
-        <li class="divider"></li>
-        <li><a href="/login">Login</a></li>
-        <li><a href="/register">Sign Up</a></li>
-      </ul>
-    </div>
-    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
-  </div>
-  
-  <div class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pricing" class="active font-semibold">Pricing</a></li>
-      <li><a href="/documentation">Docs</a></li>
-    </ul>
-  </div>
-  
-  <div class="navbar-end">
-    <div class="hidden lg:flex">
-      <a href="/login" class="btn btn-ghost mr-2">Login</a>
-      <a href="/register" class="btn btn-primary">Start Free Trial</a>
-    </div>
-  </div>
-</div>
+{{ header(user=user) }}
 
 <!-- Pricing Hero Section -->
 <section class="pt-24 pb-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">

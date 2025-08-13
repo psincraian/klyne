@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% from "components/dashboard_nav.html" import dashboard_nav %}
+{% from "components/header.html" import header %}
 
 {% block title %}API Keys - Klyne{% endblock %}
 
 {% block content %}
-{{ dashboard_nav(user, active_page="dashboard") }}
+{{ header(page_title="API Keys", user=user, show_nav_tabs=true, active_tab="dashboard") }}
 
 <div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 pt-20">
     <div class="max-w-6xl mx-auto p-6">

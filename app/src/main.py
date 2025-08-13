@@ -11,6 +11,7 @@ import logging
 
 from src.core.database import engine, get_db
 from src.core.config import settings
+from src.utils.jinja_debug import setup_debug_environment
 from src.core.auth import (
     get_password_hash,
     verify_password,
@@ -28,10 +29,25 @@ from src.models.user import User
 from src.models.api_key import APIKey
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
+
+
 from src.services.email import EmailService
 from src.api.analytics import router as analytics_router
 from src.api.dashboard import router as dashboard_router
 from src.api.backoffice import router as backoffice_router
+
+
+async def get_current_user_if_authenticated(request: Request, db: AsyncSession) -> User | None:
+    """Helper function to get the current user if authenticated, None otherwise."""
+    if not is_authenticated(request):
+        return None
+    
+    user_id = get_current_user_id(request)
+    if not user_id:
+        return None
+    
+    result = await db.execute(select(User).filter(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
 # Configure logging
@@ -118,6 +134,9 @@ app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 templates = Jinja2Templates(directory="src/templates")
 
+# Setup debug utilities for development
+setup_debug_environment(templates)
+
 # Include API routers
 app.include_router(analytics_router)
 app.include_router(dashboard_router, include_in_schema=False)
@@ -125,17 +144,9 @@ app.include_router(backoffice_router, include_in_schema=False)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def landing_page(request: Request):
-    user_authenticated = is_authenticated(request)
-    user_email = get_current_user_email(request) if user_authenticated else None
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "user_authenticated": user_authenticated,
-            "user_email": user_email,
-        },
-    )
+async def landing_page(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user_if_authenticated(request, db)
+    return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
 
 @app.post("/signup", include_in_schema=False)
@@ -482,15 +493,17 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @app.get("/pricing", response_class=HTMLResponse, include_in_schema=False)
-async def pricing_page(request: Request):
+async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
     """Pricing information."""
-    return templates.TemplateResponse("pricing.html", {"request": request})
+    user = await get_current_user_if_authenticated(request, db)
+    return templates.TemplateResponse("pricing.html", {"request": request, "user": user})
 
 
 @app.get("/documentation", response_class=HTMLResponse, include_in_schema=False)
-async def documentation_page(request: Request):
+async def documentation_page(request: Request, db: AsyncSession = Depends(get_db)):
     """Documentation."""
-    return templates.TemplateResponse("docs.html", {"request": request})
+    user = await get_current_user_if_authenticated(request, db)
+    return templates.TemplateResponse("docs.html", {"request": request, "user": user})
 
 
 @app.post("/api/api-keys", include_in_schema=False)

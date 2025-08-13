@@ -1,20 +1,10 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
 
 {% block title %}Resend Verification - Klyne{% endblock %}
 
 {% block content %}
-<!-- Navigation -->
-<div class="navbar bg-base-100/95 backdrop-blur-sm">
-  <div class="navbar-start">
-    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
-  </div>
-  <div class="navbar-end">
-    <div class="flex gap-2">
-      <a href="/login" class="btn btn-ghost">Sign In</a>
-      <a href="/register" class="btn btn-primary">Sign Up</a>
-    </div>
-  </div>
-</div>
+{{ header() }}
 
 <!-- Main Content -->
 <div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4">

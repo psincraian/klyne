@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "components/dashboard_nav.html" import dashboard_nav %}
+{% from "components/header.html" import header %}
 
 {% block title %}Analytics Dashboard - Klyne{% endblock %}
 
@@ -418,7 +418,7 @@
 
 {% block content %}
 <div class="analytics-body">
-    {{ dashboard_nav(user, active_page="analytics") }}
+    {{ header(page_title="Analytics Dashboard", user=user, show_nav_tabs=true, active_tab="analytics") }}
     
     <div class="analytics-container">
         <div class="analytics-title-section">

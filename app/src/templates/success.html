@@ -1,20 +1,10 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
 
 {% block title %}Success - Klyne{% endblock %}
 
 {% block content %}
-<!-- Navigation -->
-<div class="navbar bg-base-100/95 backdrop-blur-sm">
-  <div class="navbar-start">
-    <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
-  </div>
-  <div class="navbar-end">
-    <a href="/login" class="btn btn-primary">
-      <i class="fas fa-sign-in-alt mr-2"></i>
-      Sign In
-    </a>
-  </div>
-</div>
+{{ header(page_type="success") }}
 
 <!-- Main Content -->
 <div class="min-h-screen bg-gradient-to-br from-success/5 via-primary/3 to-accent/5 flex items-center justify-center p-4">

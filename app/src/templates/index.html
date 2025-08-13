@@ -1,49 +1,11 @@
 {% extends "base.html" %}
+{% from "components/header.html" import header %}
 
 {% block title %}Klyne - Package Analytics for Python{% endblock %}
 
 {% block content %}
-<!-- Modern Navigation -->
-<div class="navbar bg-base-100/95 backdrop-blur-sm fixed top-0 z-50 border-b border-base-300">
-  <div class="navbar-start">
-    <div class="dropdown">
-      <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
-        </svg>
-      </div>
-      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a href="/pricing" class="flex items-center gap-2"><i class="fas fa-dollar-sign"></i>Pricing</a></li>
-        <li><a href="/documentation" class="flex items-center gap-2"><i class="fas fa-book"></i>Docs</a></li>
-        {% if not user_authenticated %}
-        <li class="divider"></li>
-        <li><a href="/login" class="flex items-center gap-2"><i class="fas fa-sign-in-alt"></i>Login</a></li>
-        <li><a href="/register" class="flex items-center gap-2"><i class="fas fa-user-plus"></i>Sign Up</a></li>
-        {% endif %}
-      </ul>
-    </div>
-    <a class="btn btn-ghost text-xl font-bold klyne-gradient-text">Klyne</a>
-  </div>
-  
-  <div class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1">
-      <li><a href="/pricing">Pricing</a></li>
-      <li><a href="/documentation">Docs</a></li>
-    </ul>
-  </div>
-  
-  <div class="navbar-end">
-    <div class="hidden lg:flex">
-      {% if not user_authenticated %}
-      <a href="/login" class="btn btn-ghost mr-2">Login</a>
-      <a href="/register" class="btn btn-primary">Sign Up</a>
-      {% else %}
-      <span class="text-sm mr-4">{{ user_email }}</span>
-      <a href="/analytics" class="btn btn-primary">Dashboard</a>
-      {% endif %}
-    </div>
-  </div>
-</div>
+<!-- Navigation Header -->
+{{ header(user=user) }}
 
 <!-- Hero Section -->
 <div class="klyne-hero pt-20">
