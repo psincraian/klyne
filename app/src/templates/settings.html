@@ -132,7 +132,8 @@
                         <div class="stat-title">Last Activity</div>
                         <div class="stat-value text-accent text-lg">
                             {% if api_keys %}
-                                {{ api_keys|map(attribute='created_at')|max|strftime('%m/%d') }}
+                                {% set latest_date = api_keys|map(attribute='created_at')|max %}
+                                {{ latest_date.strftime('%m/%d') }}
                             {% else %}
                                 N/A
                             {% endif %}
