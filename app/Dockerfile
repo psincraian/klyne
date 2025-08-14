@@ -25,7 +25,6 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    SECRET_KEY=production-secret-key-change-in-deployment \
     ENVIRONMENT=production
 
 # Create app user for security

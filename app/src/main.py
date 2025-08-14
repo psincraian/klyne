@@ -2,7 +2,10 @@ from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import Response
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,7 +24,6 @@ from src.core.auth import (
     generate_verification_token,
     get_verification_token_expiry,
     get_current_user_id,
-    get_current_user_email,
 )
 from src.models import Base
 from src.models.email_signup import EmailSignup
@@ -130,9 +132,29 @@ def custom_openapi():
 app = FastAPI(title="Klyne Analytics API", lifespan=lifespan)
 app.openapi = custom_openapi
 
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+# Security middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    return response
+
+# Only add HTTPS redirect in production
+if settings.ENVIRONMENT == "production":
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+# Add trusted host middleware for production
+if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[settings.APP_DOMAIN])
+
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY, max_age=3600, same_site="strict", https_only=(settings.ENVIRONMENT == "production"))
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
-templates = Jinja2Templates(directory="src/templates")
+templates = Jinja2Templates(directory="src/templates", autoescape=True)
 
 # Setup debug utilities for development
 setup_debug_environment(templates)
