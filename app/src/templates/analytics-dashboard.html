@@ -413,6 +413,118 @@
 }
 
 /* Analytics specific responsive styles */
+
+/* Event Tracking Widget Styles */
+.event-type-card {
+    transition: all 0.2s ease;
+}
+
+.event-type-card:hover > div {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    background: rgba(99, 102, 241, 0.02) !important;
+}
+
+.event-type-card.event-selected > div {
+    background: rgba(99, 102, 241, 0.05) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Rocket animation */
+.fa-rocket {
+    animation: rocket-bounce 3s ease-in-out infinite;
+}
+
+@keyframes rocket-bounce {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-3px) rotate(2deg);
+    }
+}
+
+/* Coming Soon badge pulse */
+.chart-header span {
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Enhanced hover effects for buttons */
+a[href*="github"]:hover {
+    background: #6366f1 !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Mobile responsiveness for event tracking widget */
+@media (max-width: 768px) {
+    .event-type-card > div {
+        padding: 0.75rem !important;
+    }
+    
+    .chart-header .flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+    
+    div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    div[style*="display: flex; gap: 0.75rem;"] {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    div[style*="display: flex; gap: 1rem; flex-wrap: wrap;"] {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+}
+
+/* Subtle animations for better UX */
+.chart-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Code block improvements */
+pre code {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace !important;
+    font-size: 0.8rem !important;
+    line-height: 1.6 !important;
+}
+
+/* Enhanced focus states for accessibility */
+input:focus,
+button:focus {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
 </style>
 {% endblock %}
 
@@ -460,6 +572,163 @@
         
         <div id="overview-stats" class="stats-grid">
             <!-- Overview stats will be populated here -->
+        </div>
+
+        <!-- Custom Event Tracking Widget (Coming Soon) -->
+        <div class="chart-container" style="margin-bottom: 2rem;">
+            <div class="chart-header">
+                <div class="flex items-center gap-3">
+                    <div style="width: 2.5rem; height: 2.5rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-rocket" style="color: #f59e0b; font-size: 1rem;"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="chart-title" style="margin-bottom: 0.25rem;">Custom Event Tracking</h3>
+                        <span style="background: #f59e0b; color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; text-transform: uppercase;">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6;">
+                Track custom events in your applications beyond basic package imports. Monitor user interactions, feature usage, and application-specific metrics.
+            </p>
+            
+            <!-- Event Selection Grid -->
+            <div style="background: #f9fafb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i class="fas fa-tag" style="color: #6366f1;"></i>
+                    <h4 style="font-weight: 600; color: #111827; margin: 0;">Event Types to Track</h4>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
+                    <div class="event-type-card event-selected">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled checked>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">user_login</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">User authentication events</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-type-card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">feature_usage</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Track feature adoption</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-type-card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">api_endpoint</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">API endpoint usage</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-type-card event-selected">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled checked>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">error_occurred</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Error and exception tracking</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-type-card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">data_processed</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Data processing metrics</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-type-card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease; opacity: 0.7;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">custom_event</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Define your own events</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Custom Event Input -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                    <i class="fas fa-plus" style="color: #6366f1; margin-right: 0.5rem;"></i>
+                    Add Custom Event Name
+                </label>
+                <div style="display: flex; gap: 0.75rem;">
+                    <input type="text" placeholder="e.g., model_training_started, file_uploaded" style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; opacity: 0.6;" disabled>
+                    <button style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; border: none; border-radius: 8px; font-weight: 600; opacity: 0.6; cursor: not-allowed;" disabled>
+                        <i class="fas fa-plus" style="margin-right: 0.5rem;"></i>
+                        Add
+                    </button>
+                </div>
+                <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Use descriptive names like 'user_signup' or 'payment_processed'</p>
+            </div>
+            
+            <!-- Usage Preview -->
+            <div style="background: #1f2937; color: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i class="fas fa-code" style="color: #8b5cf6;"></i>
+                    <span style="font-weight: 600; font-size: 0.875rem;">Usage Preview</span>
+                </div>
+                <pre style="margin: 0; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.8rem; line-height: 1.5;"><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
+
+<span style="color: #9ca3af;"># Track custom events</span>
+<span style="color: #f9fafb;">klyne</span><span style="color: #34d399;">.</span><span style="color: #fbbf24;">track</span><span style="color: #d1d5db;">(</span><span style="color: #10b981;">'user_login'</span><span style="color: #d1d5db;">, {</span>
+    <span style="color: #f87171;">'user_id'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'12345'</span><span style="color: #d1d5db;">,</span>
+    <span style="color: #f87171;">'login_method'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'google'</span>
+<span style="color: #d1d5db;">})</span></code></pre>
+            </div>
+            
+            <!-- Info Alert -->
+            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1)); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-top: 0.125rem;"></i>
+                    <div>
+                        <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Coming Soon!</div>
+                        <div style="font-size: 0.875rem; color: #1e40af; line-height: 1.5;">
+                            Custom event tracking is in development. This feature will allow you to track specific user actions and application events beyond basic package usage analytics.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; opacity: 0.6; cursor: not-allowed;" disabled>
+                    <i class="fas fa-bell"></i>
+                    Notify Me When Ready
+                </button>
+                <a href="https://github.com/petru/klyne/issues" target="_blank" style="background: transparent; color: #6366f1; padding: 0.75rem 1.5rem; border: 1px solid #6366f1; border-radius: 8px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
+                    <i class="fas fa-comment"></i>
+                    Suggest Event Types
+                </a>
+            </div>
         </div>
 
         <div class="charts-section">
