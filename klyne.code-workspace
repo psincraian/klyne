@@ -1,0 +1,251 @@
+{
+  "folders": [
+    {
+      "name": "Klyne (Root)",
+      "path": "."
+    },
+    {
+      "name": "App (FastAPI)",
+      "path": "./app"
+    },
+    {
+      "name": "SDK (Python)",
+      "path": "./sdk"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "./app/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.extraPaths": [
+      "./app/src",
+      "./sdk"
+    ],
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.formatting.provider": "none",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/.venv": true,
+      "**/uv.lock": false,
+      "**/package-lock.json": false
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.venv": true,
+      "**/uv.lock": true,
+      "**/package-lock.json": true
+    },
+    "files.associations": {
+      "*.html": "html",
+      "pyproject.toml": "toml",
+      "docker-compose*.yml": "yaml",
+      "*.md": "markdown"
+    },
+    "emmet.includeLanguages": {
+      "jinja-html": "html"
+    },
+    "html.format.templating": true,
+    "css.validate": true,
+    "tailwindCSS.includeLanguages": {
+      "html": "html",
+      "jinja-html": "html"
+    },
+    "tailwindCSS.classAttributes": [
+      "class",
+      "className",
+      "ngClass"
+    ],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
+      }
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[toml]": {
+      "editor.defaultFormatter": "tamasfe.even-better-toml"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "charliermarsh.ruff",
+      "ms-python.vscode-pylance",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "redhat.vscode-yaml",
+      "tamasfe.even-better-toml",
+      "ms-vscode.vscode-json",
+      "formulahendry.auto-rename-tag",
+      "ms-vscode-remote.remote-containers",
+      "ms-vscode.makefile-tools"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "App: Install Dependencies",
+        "type": "shell",
+        "command": "cd app && uv sync && npm install",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "App: Start Dev Server",
+        "type": "shell",
+        "command": "cd app && npm run dev:server",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "App: Run Tests",
+        "type": "shell",
+        "command": "cd app && uv run pytest",
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "App: Lint",
+        "type": "shell",
+        "command": "cd app && uv run ruff check .",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "App: Lint Fix",
+        "type": "shell",
+        "command": "cd app && uv run ruff check --fix .",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "SDK: Install Dependencies",
+        "type": "shell",
+        "command": "cd sdk && uv sync",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Docker: Start Database",
+        "type": "shell",
+        "command": "docker-compose up -d postgres",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Docker: Stop All",
+        "type": "shell",
+        "command": "docker-compose down",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "FastAPI App",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder}/app/.venv/bin/uvicorn",
+        "args": ["src.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+        "cwd": "${workspaceFolder}/app",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/app/src"
+        },
+        "console": "integratedTerminal",
+        "justMyCode": false
+      },
+      {
+        "name": "SDK Tests",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": ["-v"],
+        "cwd": "${workspaceFolder}/sdk",
+        "console": "integratedTerminal",
+        "justMyCode": false
+      },
+      {
+        "name": "App Tests",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": ["-v"],
+        "cwd": "${workspaceFolder}/app",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/app/src"
+        },
+        "console": "integratedTerminal",
+        "justMyCode": false
+      }
+    ]
+  }
+}
