@@ -1,55 +1,82 @@
-from fastapi import FastAPI, Request, Form, HTTPException, Depends
+import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import Response
-from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, timezone
-import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.sessions import SessionMiddleware
 
-from src.core.database import engine, get_db
-from src.core.config import settings
-from src.utils.jinja_debug import setup_debug_environment
+from src.api.analytics import router as analytics_router
+from src.api.backoffice import router as backoffice_router
+from src.api.dashboard import router as dashboard_router
 from src.core.auth import (
-    get_password_hash,
-    verify_password,
     create_session,
-    logout_user,
-    is_authenticated,
     generate_verification_token,
-    get_verification_token_expiry,
     get_current_user_id,
+    get_password_hash,
+    get_verification_token_expiry,
+    is_authenticated,
+    logout_user,
+    verify_password,
 )
+from src.core.config import settings
+from src.core.database import engine, get_db
 from src.models import Base
+from src.models.api_key import APIKey
 from src.models.email_signup import EmailSignup
 from src.models.user import User
-from src.models.api_key import APIKey
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
-
-
 from src.services.email import EmailService
-from src.api.analytics import router as analytics_router
-from src.api.dashboard import router as dashboard_router
-from src.api.backoffice import router as backoffice_router
+from src.services.polar import polar_service
+from src.utils.jinja_debug import setup_debug_environment
 
 
-async def get_current_user_if_authenticated(request: Request, db: AsyncSession) -> User | None:
+async def get_current_user_if_authenticated(
+    request: Request, db: AsyncSession
+) -> User | None:
     """Helper function to get the current user if authenticated, None otherwise."""
     if not is_authenticated(request):
         return None
-    
+
     user_id = get_current_user_id(request)
     if not user_id:
         return None
-    
+
     result = await db.execute(select(User).filter(User.id == user_id))
     return result.scalar_one_or_none()
+
+
+def has_active_subscription(user: User) -> bool:
+    """Check if user has an active subscription."""
+    return user.subscription_status == "active"
+
+
+async def require_active_subscription(request: Request, db: AsyncSession) -> User:
+    """Require user to be authenticated and have an active subscription."""
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if not has_active_subscription(user):
+        raise HTTPException(status_code=403, detail="Active subscription required")
+
+    return user
 
 
 # Configure logging
@@ -77,9 +104,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Starting up Klyne application...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
-    logger.info(f"Database URL: {settings.DATABASE_URL.split('@')[-1] if '@' in settings.DATABASE_URL else 'local'}")
+    logger.info(
+        f"Database URL: {settings.DATABASE_URL.split('@')[-1] if '@' in settings.DATABASE_URL else 'local'}"
+    )
     logger.info(f"App Domain: {settings.APP_DOMAIN}")
-    
+
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -87,16 +116,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
         raise
-    
+
     # Test bcrypt functionality on startup
     try:
         from src.core.auth import get_password_hash, verify_password
+
         test_hash = get_password_hash("test")
         test_verify = verify_password("test", test_hash)
         logger.info(f"Bcrypt functionality verified: {test_verify}")
     except Exception as e:
         logger.error(f"Bcrypt test failed: {str(e)}")
-    
+
     yield
     logger.info("Shutting down Klyne application...")
 
@@ -104,9 +134,9 @@ async def lifespan(app: FastAPI):
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     from fastapi.openapi.utils import get_openapi
-    
+
     # Generate full OpenAPI schema
     openapi_schema = get_openapi(
         title="Klyne Analytics API",
@@ -114,7 +144,7 @@ def custom_openapi():
         description="Analytics API for Python package usage tracking",
         routes=app.routes,
     )
-    
+
     # Filter to only include the single analytics endpoint
     filtered_paths = {}
     if "/api/analytics" in openapi_schema["paths"]:
@@ -123,36 +153,53 @@ def custom_openapi():
             filtered_paths["/api/analytics"] = {
                 "post": openapi_schema["paths"]["/api/analytics"]["post"]
             }
-    
+
     openapi_schema["paths"] = filtered_paths
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app = FastAPI(title="Klyne Analytics API", lifespan=lifespan)
 app.openapi = custom_openapi
+
 
 # Security middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    )
     return response
+
 
 # Only add HTTPS redirect in production
 if settings.ENVIRONMENT == "production":
     app.add_middleware(HTTPSRedirectMiddleware)
 
 # Add trusted host middleware for production
-if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
+if (
+    settings.ENVIRONMENT == "production"
+    and hasattr(settings, "APP_DOMAIN")
+    and settings.APP_DOMAIN
+):
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=[settings.APP_DOMAIN])
 
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY, max_age=3600, same_site="strict", https_only=(settings.ENVIRONMENT == "production"))
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    max_age=3600,
+    same_site="strict",
+    https_only=(settings.ENVIRONMENT == "production"),
+)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 templates = Jinja2Templates(directory="src/templates", autoescape=True)
 
@@ -241,6 +288,19 @@ async def register_user(
                 db.add(db_user)
                 await db.commit()
                 await db.refresh(db_user)
+
+                # Create customer in Polar with user ID as external customer ID
+                polar_customer_id = await polar_service.create_customer(
+                    email=user_data.email, external_customer_id=str(db_user.id)
+                )
+                if polar_customer_id:
+                    logger.info(
+                        f"Created Polar customer {polar_customer_id} for user {db_user.id}"
+                    )
+                else:
+                    logger.warning(
+                        f"Failed to create Polar customer for user {db_user.id}"
+                    )
 
                 await EmailService.send_verification_email(
                     user_data.email, verification_token
@@ -458,6 +518,10 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
 
+    # Check if user has active subscription for analytics access
+    if not has_active_subscription(user):
+        return RedirectResponse(url="/pricing", status_code=302)
+
     # Get user's API keys
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
@@ -481,6 +545,10 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     if not user:
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
+
+    # Check if user has active subscription for dashboard access
+    if not has_active_subscription(user):
+        return RedirectResponse(url="/pricing", status_code=302)
 
     # Get user's API keys
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
@@ -518,7 +586,128 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
 async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
     """Pricing information."""
     user = await get_current_user_if_authenticated(request, db)
-    return templates.TemplateResponse("pricing.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "pricing.html", {"request": request, "user": user}
+    )
+
+
+@app.post("/api/checkout/starter", include_in_schema=False)
+async def checkout_starter(request: Request, db: AsyncSession = Depends(get_db)):
+    """Create checkout session for Starter plan."""
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if not settings.POLAR_STARTER_PRODUCT_ID:
+        raise HTTPException(status_code=500, detail="Starter plan not configured")
+
+    try:
+        checkout_url = await polar_service.create_checkout_session(
+            product_id=settings.POLAR_STARTER_PRODUCT_ID,
+            external_customer_id=str(user_id),
+            success_url=f"{settings.APP_DOMAIN}/checkout/confirmation?plan=starter&user_id={user_id}",
+        )
+
+        if not checkout_url:
+            raise HTTPException(
+                status_code=500, detail="Failed to create checkout session"
+            )
+
+        return RedirectResponse(url=checkout_url, status_code=302)
+
+    except Exception as e:
+        logger.error(f"Failed to create starter checkout for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+
+@app.post("/api/checkout/pro", include_in_schema=False)
+async def checkout_pro(request: Request, db: AsyncSession = Depends(get_db)):
+    """Create checkout session for Pro plan."""
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if not settings.POLAR_PRO_PRODUCT_ID:
+        raise HTTPException(status_code=500, detail="Pro plan not configured")
+
+    try:
+        checkout_url = await polar_service.create_checkout_session(
+            product_id=settings.POLAR_PRO_PRODUCT_ID,
+            external_customer_id=str(user_id),
+            success_url=f"{settings.APP_DOMAIN}/checkout/confirmation?plan=pro&user_id={user_id}",
+        )
+
+        if not checkout_url:
+            raise HTTPException(
+                status_code=500, detail="Failed to create checkout session"
+            )
+
+        return RedirectResponse(url=checkout_url, status_code=302)
+
+    except Exception as e:
+        logger.error(f"Failed to create pro checkout for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+
+@app.get("/checkout/confirmation", response_class=HTMLResponse, include_in_schema=False)
+async def checkout_confirmation(
+    request: Request, plan: str = "starter", db: AsyncSession = Depends(get_db)
+):
+    """Checkout confirmation page that waits for subscription activation."""
+
+    # First try to get user from session
+    user = None
+    if is_authenticated(request):
+        user = await get_current_user_if_authenticated(request, db)
+
+    # If still no user, redirect to login
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Validate plan parameter
+    if plan not in ["starter", "pro"]:
+        plan = "starter"
+
+    plan_name = plan.title()
+
+    return templates.TemplateResponse(
+        "checkout_confirmation.html",
+        {"request": request, "user": user, "plan_name": plan_name},
+    )
+
+
+@app.get("/api/subscription-status", include_in_schema=False)
+async def get_subscription_status(request: Request, db: AsyncSession = Depends(get_db)):
+    """API endpoint to check current user's subscription status."""
+
+    # Get user_id from session or parameter
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Get user from database
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "status": user.subscription_status,
+        "tier": user.subscription_tier,
+        "updated_at": user.subscription_updated_at.isoformat()
+        if user.subscription_updated_at
+        else None,
+    }
 
 
 @app.get("/documentation", response_class=HTMLResponse, include_in_schema=False)
@@ -604,6 +793,99 @@ async def delete_api_key_form(
         await db.commit()
 
     return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@app.post("/webhooks/polar", include_in_schema=False)
+async def polar_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    """Handle Polar webhook events."""
+    try:
+        # Get the webhook payload
+        body = await request.body()
+
+        # TODO: Verify webhook signature using POLAR_WEBHOOK_SECRET
+        # For now, we'll proceed without signature verification
+
+        # Parse JSON payload
+        import json
+
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError:
+            logger.error("Failed to parse webhook payload as JSON")
+            return {"error": "Invalid JSON"}, 400
+
+        event_type = payload.get("type")
+        event_data = payload.get("data", {})
+
+        # Only handle subscription events we care about
+        if event_type not in ["subscription.active", "subscription.canceled"]:
+            logger.info(f"Ignoring webhook event type: {event_type}")
+            return {"status": "ignored"}
+
+        # Get external customer ID from the subscription
+        external_customer_id = event_data.get("customer", {}).get("external_id")
+        if not external_customer_id:
+            logger.error("No external_customer_id found in webhook payload")
+            return {"error": "Missing external_customer_id"}, 400
+
+        # Find the user by external customer ID (user.id)
+        try:
+            user_id = int(external_customer_id)
+        except (ValueError, TypeError):
+            logger.error(f"Invalid external_customer_id: {external_customer_id}")
+            return {"error": "Invalid external_customer_id"}, 400
+
+        result = await db.execute(select(User).filter(User.id == user_id))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            logger.error(
+                f"User not found for external_customer_id: {external_customer_id}"
+            )
+            return {"error": "User not found"}, 404
+
+        # Update user subscription status based on event type
+        if event_type == "subscription.active":
+            user.subscription_status = "active"
+            # Extract subscription tier from product name or ID
+            product = event_data.get("product", {})
+            product_name = product.get("name", "").lower()
+            if "starter" in product_name:
+                user.subscription_tier = "starter"
+            elif "pro" in product_name:
+                user.subscription_tier = "pro"
+            else:
+                # Fallback to extracting from product ID configuration
+                product_id = product.get("id")
+                if product_id == settings.POLAR_STARTER_PRODUCT_ID:
+                    user.subscription_tier = "starter"
+                elif product_id == settings.POLAR_PRO_PRODUCT_ID:
+                    user.subscription_tier = "pro"
+                else:
+                    user.subscription_tier = "unknown"
+
+            logger.info(
+                f"Activated {user.subscription_tier} subscription for user {user_id}"
+            )
+
+        elif event_type == "subscription.canceled":
+            user.subscription_status = "canceled"
+            # Keep the tier for historical purposes, just change status
+            logger.info(f"Canceled subscription for user {user_id}")
+
+        # Update the timestamp
+        from datetime import datetime, timezone
+
+        user.subscription_updated_at = datetime.now(timezone.utc)
+
+        await db.commit()
+
+        return {"status": "success"}
+
+    except Exception as e:
+        logger.error(f"Error processing Polar webhook: {e}", exc_info=True)
+        await db.rollback()
+        return {"error": "Internal server error"}, 500
 
 
 @app.get("/health", include_in_schema=False)

@@ -15,6 +15,12 @@ class User(Base):
     verification_token_expires = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    
+    # Subscription fields
+    subscription_tier = Column(String, nullable=True)  # 'starter', 'pro', or null
+    subscription_status = Column(String, nullable=True)  # 'active', 'canceled', or null
+    subscription_updated_at = Column(DateTime(timezone=True), nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

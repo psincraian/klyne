@@ -128,9 +128,17 @@
             </li>
           </ul>
           
-          <a href="/register" class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors">
-            Start Free Trial
-          </a>
+          {% if user %}
+            <form method="post" action="/api/checkout/starter">
+              <button type="submit" class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors">
+                Subscribe to Starter
+              </button>
+            </form>
+          {% else %}
+            <a href="/register" class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors">
+              Start Free Trial
+            </a>
+          {% endif %}
         </div>
       </div>
       
@@ -194,9 +202,17 @@
             </li>
           </ul>
           
-          <a href="/register" class="klyne-btn-primary w-full">
-            Start Free Trial
-          </a>
+          {% if user %}
+            <form method="post" action="/api/checkout/pro">
+              <button type="submit" class="klyne-btn-primary w-full">
+                Subscribe to Pro
+              </button>
+            </form>
+          {% else %}
+            <a href="/register" class="klyne-btn-primary w-full">
+              Start Free Trial
+            </a>
+          {% endif %}
         </div>
       </div>
       
