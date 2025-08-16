@@ -54,6 +54,10 @@ RUN uv sync --frozen --no-dev
 # Copy application code (this will be the layer that changes most often)
 COPY . .
 
+# Copy and set up entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Copy built assets from frontend stage
 COPY --from=frontend-builder /app/src/static/dist/ ./src/static/dist/
 
@@ -71,5 +75,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/healthz || exit 1
 
-# Run the application
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application with entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
