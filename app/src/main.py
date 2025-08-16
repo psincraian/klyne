@@ -53,10 +53,6 @@ async def get_current_user_if_authenticated(
     return result.scalar_one_or_none()
 
 
-def has_active_subscription(user: User) -> bool:
-    """Check if user has an active subscription."""
-    return user.subscription_status == "active"
-
 
 async def require_active_subscription(request: Request, db: AsyncSession) -> User:
     """Require user to be authenticated and have an active subscription."""
@@ -73,7 +69,7 @@ async def require_active_subscription(request: Request, db: AsyncSession) -> Use
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    if not has_active_subscription(user):
+    if user.subscription_status != "active":
         raise HTTPException(status_code=403, detail="Active subscription required")
 
     return user
@@ -518,10 +514,6 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
 
-    # Check if user has active subscription for analytics access
-    if not has_active_subscription(user):
-        return RedirectResponse(url="/pricing", status_code=302)
-
     # Get user's API keys
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
@@ -545,10 +537,6 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     if not user:
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
-
-    # Check if user has active subscription for dashboard access
-    if not has_active_subscription(user):
-        return RedirectResponse(url="/pricing", status_code=302)
 
     # Get user's API keys
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
