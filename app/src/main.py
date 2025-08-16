@@ -181,9 +181,10 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-# Only add HTTPS redirect in production
-if settings.ENVIRONMENT == "production":
-    app.add_middleware(HTTPSRedirectMiddleware)
+# HTTPS redirect handled at proxy/load balancer level
+# Commented out to prevent redirect loops in containerized environments
+# if settings.ENVIRONMENT == "production":
+#     app.add_middleware(HTTPSRedirectMiddleware)
 
 # Add trusted host middleware for production
 if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
