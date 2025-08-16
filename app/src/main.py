@@ -187,7 +187,12 @@ if settings.ENVIRONMENT == "production":
 
 # Add trusted host middleware for production
 if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[settings.APP_DOMAIN])
+    from urllib.parse import urlparse
+    parsed_domain = urlparse(settings.APP_DOMAIN)
+    allowed_host = parsed_domain.netloc if parsed_domain.netloc else settings.APP_DOMAIN
+    # Also allow localhost for health checks in containerized environments
+    allowed_hosts = [allowed_host, "localhost", "localhost:8000"]
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 app.add_middleware(
     SessionMiddleware,
