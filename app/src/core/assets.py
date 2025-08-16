@@ -72,7 +72,7 @@ def get_asset_url(entry_name: str) -> Optional[str]:
         return None
         
     entry = manifest[input_path]
-    return f"/static/dist/{entry['file']}"
+    return f"/static/{entry['file']}"
 
 
 def get_css_url(entry_name: str) -> Optional[str]:
@@ -109,11 +109,11 @@ def get_css_url(entry_name: str) -> Optional[str]:
     
     # For CSS entries, the file itself is the CSS
     if entry_name == 'styles':
-        return f"/static/dist/{entry['file']}"
+        return f"/static/{entry['file']}"
     
     # For JS entries, look for associated CSS
     if 'css' in entry and entry['css']:
-        return f"/static/dist/{entry['css'][0]}"
+        return f"/static/{entry['css'][0]}"
         
     return None
 
