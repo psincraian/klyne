@@ -21,6 +21,7 @@ export default defineConfig({
         dashboard: resolve(__dirname, 'src/js/dashboard.js'),
         styles: resolve(__dirname, 'src/static/css/input.css')
       },
+      external: [],
       output: {
         entryFileNames: 'js/[name]-[hash].js',
         chunkFileNames: 'js/[name]-[hash].js',

@@ -10,9 +10,10 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source files needed for build
-COPY tailwind.config.js ./
+COPY tailwind.config.js vite.config.js ./
 COPY src/static/css/input.css ./src/static/css/input.css
 COPY src/templates/ ./src/templates/
+COPY src/js/ ./src/js/
 
 # Build CSS
 RUN npm run build
@@ -53,8 +54,8 @@ RUN uv sync --frozen --no-dev
 # Copy application code (this will be the layer that changes most often)
 COPY . .
 
-# Copy built CSS from frontend stage
-COPY --from=frontend-builder /app/src/static/css/output.css ./src/static/css/output.css
+# Copy built assets from frontend stage
+COPY --from=frontend-builder /app/src/static/dist/ ./src/static/dist/
 
 # Create cache directory and change ownership in single layer
 RUN mkdir -p /home/appuser/.cache && \
