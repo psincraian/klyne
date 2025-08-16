@@ -14,6 +14,7 @@ export default defineConfig({
     outDir: 'src/static/dist',
     emptyOutDir: true,
     manifest: true,
+    ssr: false,
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'src/js/main.js'),
