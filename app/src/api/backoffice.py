@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -8,12 +7,12 @@ from datetime import datetime, timedelta, timezone
 
 from src.core.database import get_db
 from src.core.auth import require_admin
+from src.core.templates import templates
 from src.models.user import User
 from src.models.api_key import APIKey
 from src.models.analytics_event import AnalyticsEvent
 
 router = APIRouter(prefix="/backoffice", tags=["backoffice"])
-templates = Jinja2Templates(directory="src/templates")
 
 
 @router.get("/", response_class=HTMLResponse)

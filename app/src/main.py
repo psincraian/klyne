@@ -11,10 +11,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import Response
 
-from src.api.analytics import router as analytics_router
-from src.api.backoffice import router as backoffice_router
-from src.api.dashboard import router as dashboard_router
 from src.core.auth import (
     create_session,
     generate_verification_token,
@@ -36,6 +34,9 @@ from src.schemas.user import UserCreate, UserLogin
 from src.services.email import EmailService
 from src.services.polar import polar_service
 from src.utils.jinja_debug import setup_debug_environment
+from src.api.analytics import router as analytics_router
+from src.api.dashboard import router as dashboard_router
+from src.api.backoffice import router as backoffice_router
 
 
 async def get_current_user_if_authenticated(
@@ -170,9 +171,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
-    )
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
     return response
 
 
@@ -181,11 +180,7 @@ if settings.ENVIRONMENT == "production":
     app.add_middleware(HTTPSRedirectMiddleware)
 
 # Add trusted host middleware for production
-if (
-    settings.ENVIRONMENT == "production"
-    and hasattr(settings, "APP_DOMAIN")
-    and settings.APP_DOMAIN
-):
+if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=[settings.APP_DOMAIN])
 
 app.add_middleware(
@@ -196,10 +191,9 @@ app.add_middleware(
     https_only=(settings.ENVIRONMENT == "production"),
 )
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
-templates = Jinja2Templates(directory="src/templates", autoescape=True)
 
-# Setup debug utilities for development
-setup_debug_environment(templates)
+# Use shared templates instance with asset management functions
+from src.core.templates import templates
 
 # Include API routers
 app.include_router(analytics_router)
