@@ -129,6 +129,34 @@ class PolarService:
             logger.error(f"Unexpected error getting customer subscriptions: {e}")
             return {"active": False, "subscriptions": []}
 
+    async def get_customer_portal_url(self, external_customer_id: str) -> Optional[str]:
+        """
+        Get the customer portal URL for managing subscriptions.
+
+        Args:
+            external_customer_id: External customer ID (Klyne user ID)
+
+        Returns:
+            Customer portal URL if successful, None if failed
+        """
+        try:
+            # Create customer portal session
+            portal_session = self.client.customer_sessions.create(
+                request={"external_customer_id": external_customer_id}
+            )
+
+            logger.info(
+                f"Created customer portal session for external customer {external_customer_id}"
+            )
+            return portal_session.customer_portal_url
+
+        except models.PolarError as e:
+            logger.error(f"Failed to create customer portal session: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error creating customer portal session: {e}")
+            return None
+
 
 # Global instance
 polar_service = PolarService()

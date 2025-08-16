@@ -53,7 +53,6 @@ async def get_current_user_if_authenticated(
     return result.scalar_one_or_none()
 
 
-
 async def require_active_subscription(request: Request, db: AsyncSession) -> User:
     """Require user to be authenticated and have an active subscription."""
     if not is_authenticated(request):
@@ -574,8 +573,15 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
 async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
     """Pricing information."""
     user = await get_current_user_if_authenticated(request, db)
+
+    subscription_info = {
+        "active": user.subscription_status == "active" if user else False,
+        "subscriptions": [user.subscription_tier] if user else [],
+    }
+
     return templates.TemplateResponse(
-        "pricing.html", {"request": request, "user": user}
+        "pricing.html",
+        {"request": request, "user": user, "subscription_info": subscription_info},
     )
 
 
@@ -641,6 +647,33 @@ async def checkout_pro(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"Failed to create pro checkout for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+
+@app.post("/api/customer-portal", include_in_schema=False)
+async def customer_portal_redirect(
+    request: Request, db: AsyncSession = Depends(get_db)
+):
+    """Redirect authenticated users to the Polar customer portal."""
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    try:
+        portal_url = await polar_service.get_customer_portal_url(str(user_id))
+
+        if not portal_url:
+            raise HTTPException(
+                status_code=500, detail="Failed to create customer portal session"
+            )
+
+        return RedirectResponse(url=portal_url, status_code=302)
+
+    except Exception as e:
+        logger.error(f"Failed to redirect to customer portal for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to access customer portal")
 
 
 @app.get("/checkout/confirmation", response_class=HTMLResponse, include_in_schema=False)

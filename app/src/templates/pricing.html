@@ -10,10 +10,17 @@
 <section class="pt-24 pb-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
   <div class="container mx-auto px-4 text-center">
     <div class="max-w-4xl mx-auto">
-      <div class="badge badge-primary badge-lg mb-6">
-        <i class="fas fa-rocket mr-2"></i>
-        14-Day Free Trial
-      </div>
+      {% if user and subscription_info and subscription_info.active %}
+        <div class="badge badge-success badge-lg mb-6">
+          <i class="fas fa-check-circle mr-2"></i>
+          Active Subscriber
+        </div>
+      {% else %}
+        <div class="badge badge-primary badge-lg mb-6">
+          <i class="fas fa-rocket mr-2"></i>
+          14-Day Free Trial
+        </div>
+      {% endif %}
       
       <h1 class="text-5xl md:text-6xl font-bold mb-6">
         Pricing that <span class="klyne-gradient-text">scales with you</span>
@@ -25,14 +32,27 @@
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-        <a href="/register" class="klyne-btn-primary">
-          <i class="fas fa-play mr-2"></i>
-          Start Free Trial
-        </a>
-        <a href="/documentation" class="btn btn-outline btn-lg">
-          <i class="fas fa-book mr-2"></i>
-          View Documentation
-        </a>
+        {% if user and subscription_info and subscription_info.active %}
+          <form method="post" action="/api/customer-portal" class="inline">
+            <button type="submit" class="btn btn-success btn-lg">
+              <i class="fas fa-cog mr-2"></i>
+              Manage Subscription
+            </button>
+          </form>
+          <a href="/dashboard" class="btn btn-outline btn-lg">
+            <i class="fas fa-chart-line mr-2"></i>
+            View Dashboard
+          </a>
+        {% else %}
+          <a href="/register" class="klyne-btn-primary">
+            <i class="fas fa-play mr-2"></i>
+            Start Free Trial
+          </a>
+          <a href="/documentation" class="btn btn-outline btn-lg">
+            <i class="fas fa-book mr-2"></i>
+            View Documentation
+          </a>
+        {% endif %}
       </div>
       
       <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-base-content/60">
@@ -76,8 +96,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
       
       <!-- Starter Plan -->
-      <div class="klyne-card transform hover:scale-105 transition-all duration-300">
-        <div class="card-body">
+      <div class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full">
+        <div class="card-body flex flex-col flex-grow">
           <div class="text-center mb-6">
             <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-box text-primary text-2xl"></i>
@@ -97,7 +117,7 @@
             <p class="text-sm text-base-content/60 mt-2">Billed monthly • Cancel anytime</p>
           </div>
           
-          <ul class="space-y-3 mb-8">
+          <ul class="space-y-3 mb-8 flex-grow">
             <li class="flex items-start gap-3">
               <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
               <span><strong>1 Python package</strong> with unlimited tracking</span>
@@ -128,7 +148,15 @@
             </li>
           </ul>
           
-          {% if user %}
+          <div class="mt-auto">
+          {% if user and subscription_info and subscription_info.active %}
+            <form method="post" action="/api/customer-portal">
+              <button type="submit" class="btn btn-success btn-lg w-full">
+                <i class="fas fa-cog mr-2"></i>
+                Manage Plan
+              </button>
+            </form>
+          {% elif user %}
             <form method="post" action="/api/checkout/starter">
               <button type="submit" class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors">
                 Subscribe to Starter
@@ -139,11 +167,12 @@
               Start Free Trial
             </a>
           {% endif %}
+          </div>
         </div>
       </div>
       
       <!-- Pro Plan -->
-      <div class="klyne-card border-2 border-primary transform hover:scale-105 transition-all duration-300 relative">
+      <div class="klyne-card border-2 border-primary transform hover:scale-105 transition-all duration-300 relative flex flex-col h-full">
         <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
           <div class="badge badge-primary badge-lg px-6">
             <i class="fas fa-crown mr-2"></i>
@@ -151,7 +180,7 @@
           </div>
         </div>
         
-        <div class="card-body">
+        <div class="card-body flex flex-col flex-grow">
           <div class="text-center mb-6">
             <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-boxes text-primary text-2xl"></i>
@@ -171,7 +200,7 @@
             </div>
           </div>
           
-          <ul class="space-y-3 mb-8">
+          <ul class="space-y-3 mb-8 flex-grow">
             <li class="flex items-start gap-3">
               <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
               <span><strong>Multiple packages</strong> with bulk pricing</span>
@@ -202,7 +231,15 @@
             </li>
           </ul>
           
-          {% if user %}
+          <div class="mt-auto">
+          {% if user and subscription_info and subscription_info.active %}
+            <form method="post" action="/api/customer-portal">
+              <button type="submit" class="btn btn-success btn-lg w-full">
+                <i class="fas fa-cog mr-2"></i>
+                Manage Plan
+              </button>
+            </form>
+          {% elif user %}
             <form method="post" action="/api/checkout/pro">
               <button type="submit" class="klyne-btn-primary w-full">
                 Subscribe to Pro
@@ -213,12 +250,13 @@
               Start Free Trial
             </a>
           {% endif %}
+          </div>
         </div>
       </div>
       
       <!-- Enterprise Plan -->
-      <div class="klyne-card transform hover:scale-105 transition-all duration-300">
-        <div class="card-body">
+      <div class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full">
+        <div class="card-body flex flex-col flex-grow">
           <div class="text-center mb-6">
             <div class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-building text-accent text-2xl"></i>
@@ -232,7 +270,7 @@
             <p class="text-sm text-base-content/60">Pricing based on your needs</p>
           </div>
           
-          <ul class="space-y-3 mb-8">
+          <ul class="space-y-3 mb-8 flex-grow">
             <li class="flex items-start gap-3">
               <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
               <span><strong>Unlimited packages</strong> & team members</span>
@@ -263,9 +301,11 @@
             </li>
           </ul>
           
-          <a href="mailto:enterprise@klyne.com" class="btn btn-outline btn-lg w-full">
-            Contact Sales
-          </a>
+          <div class="mt-auto">
+            <a href="mailto:enterprise@klyne.com" class="btn btn-outline btn-lg w-full">
+              Contact Sales
+            </a>
+          </div>
         </div>
       </div>
       

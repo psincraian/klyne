@@ -1,4 +1,3 @@
-from app.src.main import require_active_subscription
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
@@ -126,7 +125,7 @@ async def create_analytics_event(
     });
     ```
     """
-
+    from src.main import require_active_subscription
     await require_active_subscription(request, db)
     try:
         # Rate limiting
@@ -209,6 +208,7 @@ async def create_analytics_events_batch(
     Accepts up to 100 events per batch.
     Requires API key authentication via Authorization header.
     """
+    from src.main import require_active_subscription
     await require_active_subscription(request, db)
     try:
         # Rate limiting - count each event in the batch
