@@ -202,7 +202,7 @@ app.add_middleware(
     same_site="strict",
     https_only=(settings.ENVIRONMENT == "production"),
 )
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
+app.mount("/static", StaticFiles(directory="src/static/dist"), name="static")
 
 # Use shared templates instance with asset management functions
 from src.core.templates import templates
