@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     POLAR_WEBHOOK_SECRET: str = ""
     POLAR_STARTER_PRODUCT_ID: str = ""
     POLAR_PRO_PRODUCT_ID: str = ""
+    POLAR_ENVIRONMENT: str = ""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

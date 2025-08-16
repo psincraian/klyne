@@ -11,11 +11,10 @@ logger = logging.getLogger(__name__)
 class PolarService:
     def __init__(self):
         access_token = settings.POLAR_ACCESS_TOKEN
-        self.client = Polar(access_token=access_token, server="sandbox")
-
-    def is_enabled(self) -> bool:
-        """Check if Polar integration is enabled."""
-        return self.client is not None
+        environment = settings.POLAR_ENVIRONMENT
+        if environment.strip() == "":
+            environment = "sandbox"
+        self.client = Polar(access_token=access_token, server=environment)
 
     async def create_customer(
         self, email: str, external_customer_id: str
@@ -30,10 +29,6 @@ class PolarService:
         Returns:
             Polar customer ID if successful, None if failed
         """
-        if not self.is_enabled():
-            logger.warning("Polar not enabled - skipping customer creation")
-            return None
-
         try:
             customer_data = models.CustomerCreate(
                 email=email, external_id=external_customer_id
@@ -70,10 +65,6 @@ class PolarService:
         Returns:
             Checkout URL if successful, None if failed
         """
-        if not self.is_enabled():
-            logger.warning("Polar not enabled - cannot create checkout session")
-            return None
-
         try:
             checkout_data = models.CheckoutCreate(
                 products=[product_id],
@@ -107,9 +98,6 @@ class PolarService:
         Returns:
             Dictionary containing subscription status and details
         """
-        if not self.is_enabled():
-            return {"active": False, "subscriptions": []}
-
         try:
             # Get customer by external ID first
             customer = self.client.customers.get_external(
