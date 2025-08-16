@@ -23,6 +23,7 @@ dependencies = [
     "resend>=2.11.0",
     "python-dotenv>=1.1.1",
     "bcrypt>=4.1.0,<5.0.0",
+    "polar-sdk>=0.22.6",
 ]
 
 [tool.hatch.build.targets.wheel]

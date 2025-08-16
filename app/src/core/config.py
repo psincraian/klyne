@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings
 import secrets
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -10,11 +11,20 @@ class Settings(BaseSettings):
     APP_DOMAIN: str = "http://localhost:8000"
     ENVIRONMENT: str = "development"
 
+    # Polar Settings
+    POLAR_ACCESS_TOKEN: str = ""
+    POLAR_WEBHOOK_SECRET: str = ""
+    POLAR_STARTER_PRODUCT_ID: str = ""
+    POLAR_PRO_PRODUCT_ID: str = ""
+    POLAR_ENVIRONMENT: str = ""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Generate a secure secret key if using the default in production
-        if (self.ENVIRONMENT == "production" and 
-            self.SECRET_KEY == "your-secret-key-change-in-production"):
+        if (
+            self.ENVIRONMENT == "production"
+            and self.SECRET_KEY == "your-secret-key-change-in-production"
+        ):
             self.SECRET_KEY = secrets.token_urlsafe(32)
 
     class Config:
