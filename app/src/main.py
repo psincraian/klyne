@@ -171,7 +171,13 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    
+    # Different CSP for development vs production
+    if settings.ENVIRONMENT == "production":
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    else:
+        # More permissive CSP for development (allows Vite HMR)
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* ws: wss:; style-src 'self' 'unsafe-inline' localhost:*; img-src 'self' data: localhost:*; font-src 'self' localhost:*; connect-src 'self' localhost:* ws: wss:"
     return response
 
 
