@@ -203,6 +203,8 @@ app.add_middleware(
     https_only=(settings.ENVIRONMENT == "production"),
 )
 app.mount("/static", StaticFiles(directory="src/static/dist"), name="static")
+# Additional mount for fonts referenced directly by CSS
+app.mount("/fonts", StaticFiles(directory="src/static/dist/fonts"), name="fonts")
 
 # Use shared templates instance with asset management functions
 from src.core.templates import templates
