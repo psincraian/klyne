@@ -26,13 +26,13 @@ from src.core.auth import (
 )
 from src.core.config import settings
 from src.core.database import engine, get_db
-from src.models import Base
+from src.models import Base, api_key
 from src.models.api_key import APIKey
 from src.models.email_signup import EmailSignup
 from src.models.user import User
+from src.schemas.checkout import SubscriptionInterval, SubscriptionTier
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
-from src.schemas.checkout import SubscriptionTier, SubscriptionInterval
 from src.services.email import EmailService
 from src.services.polar import polar_service
 
@@ -68,6 +68,22 @@ async def require_active_subscription(request: Request, db: AsyncSession) -> Use
         raise HTTPException(status_code=401, detail="User not found")
 
     if user.subscription_status != "active":
+        raise HTTPException(status_code=403, detail="Active subscription required")
+
+    return user
+
+
+async def requires_active_subscription_for_api_key(
+    key: APIKey, db: AsyncSession = Depends(get_db)
+) -> User:
+    """Require API key to be valid and associated with an active subscription."""
+    user = await db.execute(select(User).filter(User.id == api_key.user_id))
+    user = user.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if user.subscription_status is None or user.subscription_status != "active":
         raise HTTPException(status_code=403, detail="Active subscription required")
 
     return user
@@ -604,10 +620,10 @@ async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
 
 @app.post("/api/checkout", include_in_schema=False)
 async def checkout(
-    request: Request, 
+    request: Request,
     tier: str = Form(...),
     interval: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create checkout session for subscription plan."""
     if not is_authenticated(request):
@@ -626,17 +642,32 @@ async def checkout(
 
     # Get the appropriate product ID
     product_id = None
-    if subscription_tier == SubscriptionTier.STARTER and subscription_interval == SubscriptionInterval.MONTHLY:
+    if (
+        subscription_tier == SubscriptionTier.STARTER
+        and subscription_interval == SubscriptionInterval.MONTHLY
+    ):
         product_id = settings.POLAR_STARTER_MONTHLY_PRODUCT_ID
-    elif subscription_tier == SubscriptionTier.STARTER and subscription_interval == SubscriptionInterval.YEARLY:
+    elif (
+        subscription_tier == SubscriptionTier.STARTER
+        and subscription_interval == SubscriptionInterval.YEARLY
+    ):
         product_id = settings.POLAR_STARTER_YEARLY_PRODUCT_ID
-    elif subscription_tier == SubscriptionTier.PRO and subscription_interval == SubscriptionInterval.MONTHLY:
+    elif (
+        subscription_tier == SubscriptionTier.PRO
+        and subscription_interval == SubscriptionInterval.MONTHLY
+    ):
         product_id = settings.POLAR_PRO_MONTHLY_PRODUCT_ID
-    elif subscription_tier == SubscriptionTier.PRO and subscription_interval == SubscriptionInterval.YEARLY:
+    elif (
+        subscription_tier == SubscriptionTier.PRO
+        and subscription_interval == SubscriptionInterval.YEARLY
+    ):
         product_id = settings.POLAR_PRO_YEARLY_PRODUCT_ID
 
     if not product_id:
-        raise HTTPException(status_code=500, detail=f"{subscription_tier.value.title()} {subscription_interval.value} plan not configured")
+        raise HTTPException(
+            status_code=500,
+            detail=f"{subscription_tier.value.title()} {subscription_interval.value} plan not configured",
+        )
 
     try:
         checkout_url = await polar_service.create_checkout_session(
@@ -653,7 +684,9 @@ async def checkout(
         return RedirectResponse(url=checkout_url, status_code=302)
 
     except Exception as e:
-        logger.error(f"Failed to create {subscription_tier.value} {subscription_interval.value} checkout for user {user_id}: {e}")
+        logger.error(
+            f"Failed to create {subscription_tier.value} {subscription_interval.value} checkout for user {user_id}: {e}"
+        )
         raise HTTPException(status_code=500, detail="Failed to create checkout session")
 
 
@@ -686,10 +719,10 @@ async def customer_portal_redirect(
 
 @app.get("/checkout/confirmation", response_class=HTMLResponse, include_in_schema=False)
 async def checkout_confirmation(
-    request: Request, 
-    plan: str = "starter", 
+    request: Request,
+    plan: str = "starter",
     interval: str = "monthly",
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Checkout confirmation page that waits for subscription activation."""
 
@@ -705,7 +738,7 @@ async def checkout_confirmation(
     # Validate plan parameter
     if plan not in ["starter", "pro"]:
         plan = "starter"
-    
+
     # Validate interval parameter
     if interval not in ["monthly", "yearly"]:
         interval = "monthly"
@@ -893,9 +926,15 @@ async def polar_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             else:
                 # Fallback to extracting from product ID configuration
                 product_id = product.get("id")
-                if product_id in [settings.POLAR_STARTER_MONTHLY_PRODUCT_ID, settings.POLAR_STARTER_YEARLY_PRODUCT_ID]:
+                if product_id in [
+                    settings.POLAR_STARTER_MONTHLY_PRODUCT_ID,
+                    settings.POLAR_STARTER_YEARLY_PRODUCT_ID,
+                ]:
                     user.subscription_tier = "starter"
-                elif product_id in [settings.POLAR_PRO_MONTHLY_PRODUCT_ID, settings.POLAR_PRO_YEARLY_PRODUCT_ID]:
+                elif product_id in [
+                    settings.POLAR_PRO_MONTHLY_PRODUCT_ID,
+                    settings.POLAR_PRO_YEARLY_PRODUCT_ID,
+                ]:
                     user.subscription_tier = "pro"
                 else:
                     user.subscription_tier = "unknown"

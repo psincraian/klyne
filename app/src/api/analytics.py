@@ -1,21 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 from datetime import datetime, timezone
 from uuid import UUID
 
-from src.core.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.api_auth import authenticate_analytics_request, validate_package_match
+from src.core.database import get_db
 from src.core.rate_limiter import check_rate_limit
+from src.main import requires_active_subscription_for_api_key
 from src.models.analytics_event import AnalyticsEvent
 from src.models.api_key import APIKey
-from src.schemas.analytics import AnalyticsEventCreate, AnalyticsEventBatch
+from src.schemas.analytics import AnalyticsEventBatch, AnalyticsEventCreate
 
 router = APIRouter(prefix="/api", tags=["analytics"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/analytics", 
+@router.post(
+    "/analytics",
     response_model=dict,
     summary="Submit Analytics Event",
     description="Submit a single analytics event for Python package usage tracking.",
@@ -28,16 +31,16 @@ logger = logging.getLogger(__name__)
                         "success": True,
                         "event_id": "123e4567-e89b-12d3-a456-426614174000",
                         "received_at": "2024-01-15T10:30:00Z",
-                        "message": "Analytics event recorded successfully"
+                        "message": "Analytics event recorded successfully",
                     }
                 }
-            }
+            },
         },
         401: {"description": "Invalid API key"},
         400: {"description": "Invalid event data"},
         429: {"description": "Rate limit exceeded"},
-        500: {"description": "Server error"}
-    }
+        500: {"description": "Server error"},
+    },
 )
 async def create_analytics_event(
     request: Request,
@@ -48,44 +51,44 @@ async def create_analytics_event(
 ):
     """
     Submit a single analytics event for package usage tracking.
-    
+
     This endpoint is used by the Klyne Python SDK to automatically send usage analytics
     when your package is imported. API keys are public-facing tracking identifiers,
     similar to Google Analytics tracking IDs.
-    
+
     ## Authentication
     Requires your public API key via Authorization header:
     ```
     Authorization: Bearer klyne_your_public_api_key_here
     ```
-    
+
     **Note**: API keys are public identifiers and are safe to include in client-side code,
     similar to Google Analytics tracking IDs. They only allow submitting analytics data
     for your specific package.
-    
+
     ## Rate Limits
     - 1000 events per hour per API key
     - Rate limit information is returned in response headers
-    
+
     ## Example Usage
-    
+
     ### Python SDK (Recommended)
     ```python
     import klyne
-    
+
     # Initialize in your package's __init__.py
     klyne.init(
         api_key='klyne_your_public_api_key_here',
         project='your-package-name'
     )
     ```
-    
+
     ### Direct API Call
     ```python
     import requests
     import uuid
     from datetime import datetime
-    
+
     headers = {"Authorization": "Bearer klyne_your_public_api_key_here"}
     data = {
         "session_id": str(uuid.uuid4()),
@@ -98,12 +101,12 @@ async def create_analytics_event(
         "architecture": "x86_64",
         "event_timestamp": datetime.utcnow().isoformat() + "Z"
     }
-    
-    response = requests.post("https://api.klyne.com/api/analytics", 
+
+    response = requests.post("https://wwww.klyne.dev/api/analytics",
                            headers=headers, json=data)
     print(response.json())
     ```
-    
+
     ### JavaScript/Node.js
     ```javascript
     const data = {
@@ -114,8 +117,8 @@ async def create_analytics_event(
         os_type: "Linux",
         event_timestamp: new Date().toISOString()
     };
-    
-    fetch('https://api.klyne.com/api/analytics', {
+
+    fetch('https://www.klyne.dev/api/analytics', {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer klyne_your_public_api_key_here',
@@ -125,8 +128,8 @@ async def create_analytics_event(
     });
     ```
     """
-    from src.main import require_active_subscription
-    await require_active_subscription(request, db)
+
+    await requires_active_subscription_for_api_key(api_key, db)
     try:
         # Rate limiting
         await check_rate_limit(
@@ -208,8 +211,8 @@ async def create_analytics_events_batch(
     Accepts up to 100 events per batch.
     Requires API key authentication via Authorization header.
     """
-    from src.main import require_active_subscription
-    await require_active_subscription(request, db)
+
+    await requires_active_subscription_for_api_key(api_key, db)
     try:
         # Rate limiting - count each event in the batch
         await check_rate_limit(
