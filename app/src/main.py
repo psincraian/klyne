@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -143,12 +144,12 @@ async def add_security_headers(request: Request, call_next):
     # Different CSP for development vs production
     if settings.ENVIRONMENT == "production":
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+            "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://challenges.cloudflare.com; child-src https://challenges.cloudflare.com; worker-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com"
         )
     else:
         # More permissive CSP for development (allows Vite HMR)
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* ws: wss:; style-src 'self' 'unsafe-inline' localhost:*; img-src 'self' data: localhost:*; font-src 'self' localhost:*; connect-src 'self' localhost:* ws: wss:"
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* ws: wss: https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' localhost:*; img-src 'self' data: localhost:*; font-src 'self' localhost:*; frame-src https://challenges.cloudflare.com; child-src https://challenges.cloudflare.com; worker-src https://challenges.cloudflare.com; connect-src 'self' localhost:* ws: wss: https://challenges.cloudflare.com"
         )
     return response
 
@@ -226,7 +227,27 @@ async def signup(
 async def register_page(request: Request):
     if is_authenticated(request):
         return RedirectResponse(url="/analytics", status_code=302)
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(
+        "register.html",
+        {"request": request, "CF_TURNSTILE_SITE_KEY": settings.CF_TURNSTILE_SITE_KEY},
+    )
+
+
+def validate_turnstile(token, secret, remoteip=None) -> bool:
+    url = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+    data = {"secret": secret, "response": token}
+
+    if remoteip:
+        data["remoteip"] = remoteip
+
+    try:
+        response = requests.post(url, data=data, timeout=10)
+        response.raise_for_status()
+        return response.json().get("success", False)
+    except requests.RequestException as e:
+        print(f"Turnstile validation error: {e}")
+        return False
 
 
 @app.post("/register", include_in_schema=False)
@@ -235,15 +256,25 @@ async def register_user(
     email: str = Form(...),
     password: str = Form(...),
     password_confirm: str = Form(...),
+    cf_turnstile_response: str = Form(..., alias="cf-turnstile-response"),
     db: AsyncSession = Depends(get_db),
 ):
     error_message = None
+
+    token = cf_turnstile_response
+    remoteip = (
+        request.headers.get("CF-Connecting-IP")
+        or request.headers.get("X-Forwarded-For")
+        or request.client.host
+    )
 
     try:
         if password != password_confirm:
             error_message = "Passwords do not match"
         elif len(password) < 8:
             error_message = "Password must be at least 8 characters"
+        elif not validate_turnstile(token, settings.CF_TURNSTILE_SECRET, remoteip):
+            error_message = "Bot validation failed"
         else:
             user_data = UserCreate(email=email, password=password)
 

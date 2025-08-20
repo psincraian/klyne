@@ -1,24 +1,33 @@
-{% extends "base.html" %}
-{% from "components/header.html" import header %}
+{% extends "base.html" %} {% from "components/header.html" import header %} {%
+block extra_head %}
+<script
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+  async
+  defer
+></script>
 
-{% block title %}Register - Klyne{% endblock %}
-
-{% block content %}
-{{ header(page_type="register") }}
+{% endblock %} {% block title %}Register - Klyne{% endblock %} {% block content
+%} {{ header(page_type="register") }}
 
 <!-- Main Content -->
-<div class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4">
+<div
+  class="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/3 to-accent/5 flex items-center justify-center p-4"
+>
   <div class="w-full max-w-md">
     <!-- Registration Card -->
     <div class="klyne-card">
       <div class="card-body">
         <!-- Header -->
         <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div
+            class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4"
+          >
             <i class="fas fa-user-plus text-2xl text-primary"></i>
           </div>
           <h1 class="text-3xl font-bold mb-2">Create Account</h1>
-          <p class="text-base-content/70">Join Klyne to start tracking your Python package analytics</p>
+          <p class="text-base-content/70">
+            Join Klyne to start tracking your Python package analytics
+          </p>
         </div>
 
         <!-- Error Message -->
@@ -40,14 +49,14 @@
                 <i class="fas fa-envelope mr-2 text-primary"></i>Email Address
               </span>
             </label>
-            <input 
-              type="email" 
-              name="email" 
+            <input
+              type="email"
+              name="email"
               placeholder="you@example.com"
               class="klyne-input"
               required
               value="{{ email if email else '' }}"
-            >
+            />
           </div>
 
           <div class="form-control">
@@ -56,13 +65,13 @@
                 <i class="fas fa-lock mr-2 text-primary"></i>Password
               </span>
             </label>
-            <input 
-              type="password" 
-              name="password" 
+            <input
+              type="password"
+              name="password"
               placeholder="Create a secure password"
               class="klyne-input"
               required
-            >
+            />
             <div class="label">
               <span class="label-text-alt text-xs text-base-content/60">
                 <ul class="list-disc list-inside space-y-1">
@@ -76,17 +85,23 @@
           <div class="form-control">
             <label class="label">
               <span class="label-text font-medium">
-                <i class="fas fa-shield-alt mr-2 text-primary"></i>Confirm Password
+                <i class="fas fa-shield-alt mr-2 text-primary"></i>Confirm
+                Password
               </span>
             </label>
-            <input 
-              type="password" 
-              name="password_confirm" 
+            <input
+              type="password"
+              name="password_confirm"
               placeholder="Confirm your password"
               class="klyne-input"
               required
-            >
+            />
           </div>
+
+          <div
+            class="cf-turnstile"
+            data-sitekey="{{ CF_TURNSTILE_SITE_KEY }}"
+          ></div>
 
           <button type="submit" class="klyne-btn-primary w-full">
             <i class="fas fa-user-plus mr-2"></i>
@@ -98,8 +113,10 @@
         <div class="divider mt-8"></div>
         <div class="text-center">
           <p class="text-sm text-base-content/70">
-            Already have an account? 
-            <a href="/login" class="link link-primary font-semibold">Sign in here</a>
+            Already have an account?
+            <a href="/login" class="link link-primary font-semibold"
+              >Sign in here</a
+            >
           </p>
         </div>
       </div>

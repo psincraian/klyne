@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     POLAR_PRO_PRODUCT_ID: str = ""
     POLAR_ENVIRONMENT: str = ""
 
+    CF_TURNSTILE_SECRET: str = ""
+    CF_TURNSTILE_SITE_KEY: str = "1x00000000000000000000AA"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Generate a secure secret key if using the default in production
