@@ -4,11 +4,10 @@ Main Klyne SDK client implementation.
 
 import atexit
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from .collector import create_analytics_event, create_session_id
 from .transport import HTTPTransport
-
 
 # Global SDK state
 _client = None
@@ -17,19 +16,19 @@ _logger = logging.getLogger(__name__)
 
 class KlyneClient:
     """Main Klyne analytics client."""
-    
+
     def __init__(
         self,
         api_key: str,
         project: str,
         package_version: str = "unknown",
-        base_url: str = "https://api.klyne.dev",
+        base_url: str = "https://www.klyne.dev",
         enabled: bool = True,
-        debug: bool = False
+        debug: bool = False,
     ):
         """
         Initialize Klyne client.
-        
+
         Args:
             api_key: Klyne API key
             project: Package/project name
@@ -43,30 +42,27 @@ class KlyneClient:
         self.package_version = package_version
         self.enabled = enabled
         self.session_id = create_session_id()
-        
+
         # Set up logging
         if debug:
             logging.basicConfig(level=logging.DEBUG)
-        
+
         # Initialize transport
         self.transport = None
         if enabled:
             try:
-                self.transport = HTTPTransport(
-                    api_key=api_key,
-                    base_url=base_url
-                )
+                self.transport = HTTPTransport(api_key=api_key, base_url=base_url)
             except Exception as e:
                 _logger.warning(f"Failed to initialize Klyne transport: {e}")
                 self.enabled = False
-        
+
         # Register cleanup on exit
         atexit.register(self._cleanup)
-        
+
         # Send initial event
         if self.enabled:
             self._send_init_event()
-    
+
     def _send_init_event(self):
         """Send initial package initialization event."""
         try:
@@ -75,24 +71,24 @@ class KlyneClient:
                 package_name=self.project,
                 package_version=self.package_version,
                 session_id=self.session_id,
-                entry_point="init"
+                entry_point="init",
             )
-            
+
             if self.transport:
                 self.transport.send_event(event)
-                
+
         except Exception as e:
             _logger.warning(f"Failed to send Klyne init event: {e}")
-    
+
     def track_event(
         self,
         entry_point: Optional[str] = None,
         extra_data: Optional[Dict[str, Any]] = None,
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
     ):
         """
         Track a custom analytics event.
-        
+
         Args:
             entry_point: Function or entry point name
             extra_data: Additional custom data
@@ -100,38 +96,38 @@ class KlyneClient:
         """
         if not self.enabled or not self.transport:
             return
-        
+
         try:
             event = create_analytics_event(
                 api_key=self.api_key,
-                    package_name=self.project,
+                package_name=self.project,
                 package_version=self.package_version,
                 session_id=session_id or self.session_id,
                 entry_point=entry_point,
-                extra_data=extra_data
+                extra_data=extra_data,
             )
-            
+
             self.transport.send_event(event)
-            
+
         except Exception as e:
             _logger.warning(f"Failed to send Klyne event: {e}")
-    
+
     def flush(self, timeout: float = 10.0):
         """
         Flush all pending events.
-        
+
         Args:
             timeout: Maximum time to wait for flush
         """
         if self.transport:
             self.transport.flush(timeout)
-    
+
     def disable(self):
         """Disable analytics tracking."""
         self.enabled = False
         if self.transport:
             self.transport.disable()
-    
+
     def enable(self):
         """Enable analytics tracking."""
         self.enabled = True
@@ -143,11 +139,11 @@ class KlyneClient:
                 self.transport = HTTPTransport(api_key=self.api_key)
             except Exception as e:
                 _logger.warning(f"Failed to re-initialize Klyne transport: {e}")
-    
+
     def is_enabled(self) -> bool:
         """Check if analytics are enabled."""
         return self.enabled and self.transport and self.transport.is_enabled()
-    
+
     def _cleanup(self):
         """Cleanup on exit."""
         if self.transport:
@@ -161,11 +157,11 @@ def init(
     package_version: str = "unknown",
     base_url: str = "https://api.klyne.dev",
     enabled: bool = True,
-    debug: bool = False
+    debug: bool = False,
 ) -> None:
     """
     Initialize Klyne analytics for your package.
-    
+
     Args:
         api_key: Your Klyne API key (get from https://klyne.dev)
         project: Your package name (must match API key)
@@ -173,7 +169,7 @@ def init(
         base_url: Klyne API base URL (default: https://api.klyne.dev)
         enabled: Whether to enable analytics (default: True)
         debug: Enable debug logging (default: False)
-    
+
     Example:
         import klyne
         klyne.init(
@@ -183,11 +179,11 @@ def init(
         )
     """
     global _client
-    
+
     if _client is not None:
         _logger.warning("Klyne already initialized, skipping")
         return
-    
+
     try:
         _client = KlyneClient(
             api_key=api_key,
@@ -195,7 +191,7 @@ def init(
             package_version=package_version,
             base_url=base_url,
             enabled=enabled,
-            debug=debug
+            debug=debug,
         )
     except Exception as e:
         _logger.warning(f"Failed to initialize Klyne: {e}")
@@ -204,16 +200,16 @@ def init(
 def track_event(
     entry_point: Optional[str] = None,
     extra_data: Optional[Dict[str, Any]] = None,
-    session_id: Optional[str] = None
+    session_id: Optional[str] = None,
 ) -> None:
     """
     Track a custom analytics event.
-    
+
     Args:
         entry_point: Function or entry point name
-        extra_data: Additional custom data  
+        extra_data: Additional custom data
         session_id: Optional custom session ID
-    
+
     Example:
         import klyne
         klyne.track_event(
@@ -228,7 +224,7 @@ def track_event(
 def flush(timeout: float = 10.0) -> None:
     """
     Flush all pending analytics events.
-    
+
     Args:
         timeout: Maximum time to wait for flush completion
     """
@@ -251,7 +247,7 @@ def enable() -> None:
 def is_enabled() -> bool:
     """
     Check if Klyne analytics are enabled.
-    
+
     Returns:
         True if analytics are enabled and working
     """
@@ -265,10 +261,12 @@ def _detect_package_version(package_name: str) -> str:
         # Try importlib.metadata first (Python 3.8+)
         try:
             from importlib.metadata import version
+
             return version(package_name)
         except ImportError:
             # Fallback to pkg_resources
             import pkg_resources
+
             return pkg_resources.get_distribution(package_name).version
     except Exception:
         return "unknown"
