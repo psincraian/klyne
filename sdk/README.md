@@ -21,7 +21,7 @@ Lightweight Python package analytics SDK for [Klyne](https://klyne.dev). Track p
 pip install klyne
 ```
 
-## Quick Start
+## Quick Start 💨
 
 ```python
 import klyne
