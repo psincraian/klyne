@@ -174,12 +174,14 @@ header(user=user) }}
               </button>
             </form>
             {% elif user %}
-            <form method="post" action="/api/checkout/starter">
+            <form method="post" action="/api/checkout" class="starter-checkout-form">
+              <input type="hidden" name="tier" value="starter">
+              <input type="hidden" name="interval" value="monthly" class="billing-interval">
               <button
                 type="submit"
                 class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors"
               >
-                Subscribe to Starter
+                <span class="subscription-text">Subscribe to Starter Monthly</span>
               </button>
             </form>
             {% else %}
@@ -276,9 +278,11 @@ header(user=user) }}
               </button>
             </form>
             {% elif user %}
-            <form method="post" action="/api/checkout/pro">
+            <form method="post" action="/api/checkout" class="pro-checkout-form">
+              <input type="hidden" name="tier" value="pro">
+              <input type="hidden" name="interval" value="monthly" class="billing-interval">
               <button type="submit" class="klyne-btn-primary w-full">
-                Subscribe to Pro
+                <span class="subscription-text">Subscribe to Pro Monthly</span>
               </button>
             </form>
             {% else %}
@@ -774,9 +778,13 @@ header(user=user) }}
     // Annual/Monthly toggle
     const pricingToggle = document.getElementById("pricing-toggle");
     const pricingAmounts = document.querySelectorAll(".pricing-amount");
+    const billingIntervals = document.querySelectorAll(".billing-interval");
+    const subscriptionTexts = document.querySelectorAll(".subscription-text");
 
     pricingToggle.addEventListener("change", function () {
       const isAnnual = this.checked;
+      const interval = isAnnual ? "yearly" : "monthly";
+      const periodText = isAnnual ? "Yearly" : "Monthly";
 
       pricingAmounts.forEach((amount) => {
         const monthly = amount.dataset.monthly;
@@ -790,6 +798,20 @@ header(user=user) }}
           amount.querySelector("span").textContent = `$${monthly}`;
           document.getElementById("additional-cost").textContent = "+ $9";
           amount.querySelector(".price-frequency").textContent = "/month";
+        }
+      });
+
+      // Update form inputs
+      billingIntervals.forEach((input) => {
+        input.value = interval;
+      });
+
+      // Update button text
+      subscriptionTexts.forEach((text) => {
+        if (text.textContent.includes("Starter")) {
+          text.textContent = `Subscribe to Starter ${periodText}`;
+        } else if (text.textContent.includes("Pro")) {
+          text.textContent = `Subscribe to Pro ${periodText}`;
         }
       });
     });
