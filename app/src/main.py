@@ -73,20 +73,6 @@ async def require_active_subscription(request: Request, db: AsyncSession) -> Use
     return user
 
 
-async def requires_active_subscription_for_api_key(
-    key: APIKey, db: AsyncSession = Depends(get_db)
-) -> User:
-    """Require API key to be valid and associated with an active subscription."""
-    user = await db.execute(select(User).filter(User.id == api_key.user_id))
-    user = user.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    if user.subscription_status is None or user.subscription_status != "active":
-        raise HTTPException(status_code=403, detail="Active subscription required")
-
-    return user
 
 
 # Configure logging

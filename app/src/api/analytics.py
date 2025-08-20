@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.api_auth import authenticate_analytics_request, validate_package_match
 from src.core.database import get_db
 from src.core.rate_limiter import check_rate_limit
-from src.main import requires_active_subscription_for_api_key
+from src.core.dependencies import requires_active_subscription_for_api_key
 from src.models.analytics_event import AnalyticsEvent
 from src.models.api_key import APIKey
 from src.schemas.analytics import AnalyticsEventBatch, AnalyticsEventCreate
