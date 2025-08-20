@@ -1,76 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Klyne - Package Analytics for Python{% endblock %}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}Klyne - Package Analytics for Python{% endblock %}
+    </title>
     {% if get_vite_client_url() %}
     <!-- Vite development client -->
     <script type="module" src="{{ get_vite_client_url() }}"></script>
     {% endif %}
-    <link rel="stylesheet" href="{{ get_css_url('styles') }}">
+    <link rel="stylesheet" href="{{ get_css_url('styles') }}" />
     <script type="module" src="{{ get_asset_url('main') }}"></script>
     {% block extra_head %}{% endblock %}
-</head>
-<body data-theme="klyne">
+  </head>
+  <body data-theme="klyne">
     {% block content %}{% endblock %}
-    
-    <script>
-        // Unified navigation functionality (handled by DaisyUI)
-        
-        // Copy code functionality
-        function copyCode() {
-            const code = `pip install klyne
 
+    <script>
+      // Unified navigation functionality (handled by DaisyUI)
+
+      // Copy code functionality
+      function copyCode() {
+        const code = `
 import klyne
 
 klyne.init(
     api_key='your-api-key',
     project='pandas'
 )`;
-            
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(code).then(function() {
-                    // Show success feedback
-                    const button = event.target.closest('button');
-                    const icon = button.querySelector('i');
-                    const originalClass = icon.className;
-                    
-                    icon.className = 'fas fa-check';
-                    button.title = 'Copied!';
-                    
-                    setTimeout(() => {
-                        icon.className = originalClass;
-                        button.title = 'Copy code';
-                    }, 2000);
-                }).catch(function(err) {
-                    console.error('Failed to copy: ', err);
-                });
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = code;
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    const button = event.target.closest('button');
-                    const icon = button.querySelector('i');
-                    const originalClass = icon.className;
-                    
-                    icon.className = 'fas fa-check';
-                    button.title = 'Copied!';
-                    
-                    setTimeout(() => {
-                        icon.className = originalClass;
-                        button.title = 'Copy code';
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy: ', err);
-                }
-                document.body.removeChild(textArea);
-            }
+
+        if (navigator.clipboard) {
+          navigator.clipboard
+            .writeText(code)
+            .then(function () {
+              // Show success feedback
+              const button = event.target.closest("button");
+              const icon = button.querySelector("i");
+              const originalClass = icon.className;
+
+              icon.className = "fas fa-check";
+              button.title = "Copied!";
+
+              setTimeout(() => {
+                icon.className = originalClass;
+                button.title = "Copy code";
+              }, 2000);
+            })
+            .catch(function (err) {
+              console.error("Failed to copy: ", err);
+            });
+        } else {
+          // Fallback for older browsers
+          const textArea = document.createElement("textarea");
+          textArea.value = code;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand("copy");
+            const button = event.target.closest("button");
+            const icon = button.querySelector("i");
+            const originalClass = icon.className;
+
+            icon.className = "fas fa-check";
+            button.title = "Copied!";
+
+            setTimeout(() => {
+              icon.className = originalClass;
+              button.title = "Copy code";
+            }, 2000);
+          } catch (err) {
+            console.error("Failed to copy: ", err);
+          }
+          document.body.removeChild(textArea);
         }
+      }
     </script>
-</body>
+  </body>
 </html>

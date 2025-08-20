@@ -1,224 +1,254 @@
-{% macro header(
-    logo_text="Klyne", 
-    page_title=None,
-    user=None, 
-    show_nav_tabs=False, 
-    active_tab=None,
-    page_type="public"
-) %}
-
-{# Define navigation links based on page type and user state #}
-{% set public_links = [
-    {"url": "/", "text": "Home", "icon": "fas fa-home", "primary": false},
-    {"url": "/pricing", "text": "Pricing", "icon": "fas fa-dollar-sign", "primary": false},
-    {"url": "/documentation", "text": "Docs", "icon": "fas fa-book", "primary": false}
-] %}
-
-{% set auth_links = [
-    {"url": "/login", "text": "Login", "icon": "fas fa-sign-in-alt", "primary": false},
-    {"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": true}
-] %}
-
-{# Special case for registration/auth pages #}
-{% if page_type == "register" %}
-    {% set nav_links = [{"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": true}] %}
-{% elif page_type == "login" %}
-    {% set nav_links = [{"url": "/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": true}] %}
-{% elif page_type == "success" %}
-    {% set nav_links = [{"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary": true}] %}
-{% elif user %}
-    {% set nav_links = [] %}
-{% else %}
-    {% set nav_links = public_links + auth_links %}
+{% macro header( logo_text="Klyne", page_title=None, user=None,
+show_nav_tabs=False, active_tab=None, page_type="public" ) %} {# Define
+navigation links based on page type and user state #} {% set public_links = [
+{"url": "/", "text": "Home", "icon": "fas fa-home", "primary": false}, {"url":
+"/pricing", "text": "Pricing", "icon": "fas fa-dollar-sign", "primary": false},
+{"url": "/docs", "text": "Docs", "icon": "fas fa-book", "primary": false} ] %}
+{% set auth_links = [ {"url": "/login", "text": "Login", "icon": "fas
+fa-sign-in-alt", "primary": false}, {"url": "/register", "text": "Sign Up",
+"icon": "fas fa-user-plus", "primary": true} ] %} {# Special case for
+registration/auth pages #} {% if page_type == "register" %} {% set nav_links =
+[{"url": "/login", "text": "Sign In", "icon": "fas fa-sign-in-alt", "primary":
+true}] %} {% elif page_type == "login" %} {% set nav_links = [{"url":
+"/register", "text": "Sign Up", "icon": "fas fa-user-plus", "primary": true}] %}
+{% elif page_type == "success" %} {% set nav_links = [{"url": "/login", "text":
+"Sign In", "icon": "fas fa-sign-in-alt", "primary": true}] %} {% elif user %} {%
+set nav_links = [] %} {% else %} {% set nav_links = public_links + auth_links %}
 {% endif %}
 
-<header class="klyne-navbar fixed top-0 z-50 w-full bg-base-100/95 backdrop-blur-lg border-b border-base-300/50 shadow-sm">
-    <div class="container mx-auto px-4">
-        <nav class="navbar h-16">
-            <!-- Logo & Brand -->
-            <div class="navbar-start">
-                <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">
-                    {{ logo_text }}
-                </a>
-                {% if page_title %}
-                    <div class="hidden md:flex items-center ml-4">
-                        <span class="text-base-content/30 mx-3">|</span>
-                        <h1 class="text-lg font-semibold text-base-content/80">{{ page_title }}</h1>
-                    </div>
-                {% endif %}
+<header
+  class="klyne-navbar fixed top-0 z-50 w-full bg-base-100/95 backdrop-blur-lg border-b border-base-300/50 shadow-sm"
+>
+  <div class="container mx-auto px-4">
+    <nav class="navbar h-16">
+      <!-- Logo & Brand -->
+      <div class="navbar-start">
+        <a href="/" class="btn btn-ghost text-xl font-bold klyne-gradient-text">
+          {{ logo_text }}
+        </a>
+        {% if page_title %}
+        <div class="hidden md:flex items-center ml-4">
+          <span class="text-base-content/30 mx-3">|</span>
+          <h1 class="text-lg font-semibold text-base-content/80">
+            {{ page_title }}
+          </h1>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Center Navigation Tabs (for dashboard) -->
+      {% if show_nav_tabs %}
+      <div class="navbar-center hidden lg:flex">
+        <div class="tabs tabs-boxed bg-base-200">
+          <a
+            href="/analytics"
+            class="tab {{ 'tab-active' if active_tab == 'analytics' else '' }}"
+          >
+            <i class="fas fa-chart-line mr-2"></i>
+            Analytics
+          </a>
+          <a
+            href="/dashboard"
+            class="tab {{ 'tab-active' if active_tab == 'dashboard' else '' }}"
+          >
+            <i class="fas fa-key mr-2"></i>
+            API Keys
+          </a>
+          <a
+            href="/settings"
+            class="tab {{ 'tab-active' if active_tab == 'settings' else '' }}"
+          >
+            <i class="fas fa-user-cog mr-2"></i>
+            Settings
+          </a>
+          {% if user and user.is_admin %}
+          <a
+            href="/backoffice"
+            class="tab {{ 'tab-active' if active_tab == 'backoffice' else '' }}"
+          >
+            <i class="fas fa-tools mr-2"></i>
+            Admin
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Right Side Navigation -->
+      <div class="navbar-end">
+        {% if user %}
+        <!-- Quick Links (Desktop Only) -->
+        <div class="hidden lg:flex items-center gap-2">
+          {% if not show_nav_tabs %}
+          <a href="/analytics" class="btn btn-ghost btn-sm">
+            <i class="fas fa-chart-line"></i>
+            Dashboard
+          </a>
+          {% endif %}
+          <a href="/pricing" class="btn btn-ghost btn-sm">
+            <i class="fas fa-dollar-sign"></i>
+            Pricing
+          </a>
+          <a href="/docs" class="btn btn-ghost btn-sm">
+            <i class="fas fa-book"></i>
+            Docs
+          </a>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div class="dropdown dropdown-end">
+          <!-- User Avatar Button -->
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+            <div class="avatar placeholder">
+              <div class="bg-primary text-primary-content w-8 rounded-full">
+                <span class="text-sm">{{ user.email[0].upper() }}</span>
+              </div>
             </div>
-            
-            <!-- Center Navigation Tabs (for dashboard) -->
-            {% if show_nav_tabs %}
-            <div class="navbar-center hidden lg:flex">
-                <div class="tabs tabs-boxed bg-base-200">
-                    <a href="/analytics" class="tab {{ 'tab-active' if active_tab == 'analytics' else '' }}">
-                        <i class="fas fa-chart-line mr-2"></i>
-                        Analytics
-                    </a>
-                    <a href="/dashboard" class="tab {{ 'tab-active' if active_tab == 'dashboard' else '' }}">
-                        <i class="fas fa-key mr-2"></i>
-                        API Keys
-                    </a>
-                    <a href="/settings" class="tab {{ 'tab-active' if active_tab == 'settings' else '' }}">
-                        <i class="fas fa-user-cog mr-2"></i>
-                        Settings
-                    </a>
-                    {% if user and user.is_admin %}
-                    <a href="/backoffice" class="tab {{ 'tab-active' if active_tab == 'backoffice' else '' }}">
-                        <i class="fas fa-tools mr-2"></i>
-                        Admin
-                    </a>
-                    {% endif %}
+          </div>
+
+          <!-- Dropdown Menu -->
+          <ul
+            tabindex="0"
+            class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-64 p-3 shadow-xl border border-base-300"
+          >
+            <!-- User Info Header -->
+            <li
+              class="menu-title text-xs uppercase tracking-wide text-base-content/60 px-3 pb-2"
+            >
+              Account
+            </li>
+            <li class="px-3 pb-3 border-b border-base-300 mb-2">
+              <div class="flex items-center space-x-3">
+                <div class="avatar placeholder">
+                  <div
+                    class="bg-primary text-primary-content w-10 rounded-full"
+                  >
+                    <span class="text-sm">{{ user.email[0].upper() }}</span>
+                  </div>
                 </div>
-            </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-sm text-base-content truncate">
+                    {{ user.email }}
+                  </div>
+                  <div class="flex items-center text-xs text-base-content/60">
+                    {% if user.is_verified %}
+                    <i class="fas fa-check-circle text-success mr-1"></i
+                    >Verified {% else %}
+                    <i class="fas fa-exclamation-triangle text-warning mr-1"></i
+                    >Unverified {% endif %}
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <!-- Dashboard Navigation Links (always in dropdown) -->
+            <li>
+              <a href="/analytics" class="py-2">
+                <i class="fas fa-chart-line text-primary w-4"></i>
+                <span>Analytics Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/dashboard" class="py-2">
+                <i class="fas fa-key text-secondary w-4"></i>
+                <span>API Keys</span>
+              </a>
+            </li>
+            <li>
+              <a href="/settings" class="py-2">
+                <i class="fas fa-user-cog text-accent w-4"></i>
+                <span>Account Settings</span>
+              </a>
+            </li>
+
+            <!-- Additional Links (Mobile) -->
+            <li class="lg:hidden">
+              <a href="/pricing" class="py-2">
+                <i class="fas fa-dollar-sign text-info w-4"></i>
+                <span>Pricing</span>
+              </a>
+            </li>
+            <li class="lg:hidden">
+              <a href="/docs" class="py-2">
+                <i class="fas fa-book text-info w-4"></i>
+                <span>Documentation</span>
+              </a>
+            </li>
+
+            {% if user and user.is_admin %}
+            <li class="border-t border-base-300 mt-2 pt-2">
+              <a href="/backoffice" class="py-2">
+                <i class="fas fa-tools text-accent w-4"></i>
+                <span>Admin Panel</span>
+              </a>
+            </li>
             {% endif %}
-            
-            <!-- Right Side Navigation -->
-            <div class="navbar-end">
-                {% if user %}
-                    <!-- Quick Links (Desktop Only) -->
-                    <div class="hidden lg:flex items-center gap-2">
-                        {% if not show_nav_tabs %}
-                        <a href="/analytics" class="btn btn-ghost btn-sm">
-                            <i class="fas fa-chart-line"></i>
-                            Dashboard
-                        </a>
-                        {% endif %}
-                        <a href="/pricing" class="btn btn-ghost btn-sm">
-                            <i class="fas fa-dollar-sign"></i>
-                            Pricing
-                        </a>
-                        <a href="/documentation" class="btn btn-ghost btn-sm">
-                            <i class="fas fa-book"></i>
-                            Docs
-                        </a>
-                    </div>
-                    
-                    <!-- User Menu Dropdown -->
-                    <div class="dropdown dropdown-end">
-                        <!-- User Avatar Button -->
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-                            <div class="avatar placeholder">
-                                <div class="bg-primary text-primary-content w-8 rounded-full">
-                                    <span class="text-sm">{{ user.email[0].upper() }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Dropdown Menu -->
-                        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-64 p-3 shadow-xl border border-base-300">
-                            <!-- User Info Header -->
-                            <li class="menu-title text-xs uppercase tracking-wide text-base-content/60 px-3 pb-2">
-                                Account
-                            </li>
-                            <li class="px-3 pb-3 border-b border-base-300 mb-2">
-                                <div class="flex items-center space-x-3">
-                                    <div class="avatar placeholder">
-                                        <div class="bg-primary text-primary-content w-10 rounded-full">
-                                            <span class="text-sm">{{ user.email[0].upper() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="font-medium text-sm text-base-content truncate">{{ user.email }}</div>
-                                        <div class="flex items-center text-xs text-base-content/60">
-                                            {% if user.is_verified %}
-                                                <i class="fas fa-check-circle text-success mr-1"></i>Verified
-                                            {% else %}
-                                                <i class="fas fa-exclamation-triangle text-warning mr-1"></i>Unverified
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            
-                            <!-- Dashboard Navigation Links (always in dropdown) -->
-                            <li>
-                                <a href="/analytics" class="py-2">
-                                    <i class="fas fa-chart-line text-primary w-4"></i>
-                                    <span>Analytics Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/dashboard" class="py-2">
-                                    <i class="fas fa-key text-secondary w-4"></i>
-                                    <span>API Keys</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/settings" class="py-2">
-                                    <i class="fas fa-user-cog text-accent w-4"></i>
-                                    <span>Account Settings</span>
-                                </a>
-                            </li>
-                            
-                            <!-- Additional Links (Mobile) -->
-                            <li class="lg:hidden">
-                                <a href="/pricing" class="py-2">
-                                    <i class="fas fa-dollar-sign text-info w-4"></i>
-                                    <span>Pricing</span>
-                                </a>
-                            </li>
-                            <li class="lg:hidden">
-                                <a href="/documentation" class="py-2">
-                                    <i class="fas fa-book text-info w-4"></i>
-                                    <span>Documentation</span>
-                                </a>
-                            </li>
-                            
-                            {% if user and user.is_admin %}
-                            <li class="border-t border-base-300 mt-2 pt-2">
-                                <a href="/backoffice" class="py-2">
-                                    <i class="fas fa-tools text-accent w-4"></i>
-                                    <span>Admin Panel</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                            
-                            <!-- Sign Out -->
-                            <li class="border-t border-base-300 mt-2 pt-2">
-                                <form action="/logout" method="POST" class="w-full">
-                                    <button type="submit" class="w-full text-left py-2 hover:bg-error/10 rounded-lg transition-colors text-error flex items-center gap-3">
-                                        <i class="fas fa-sign-out-alt w-4"></i>
-                                        <span>Sign Out</span>
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                {% else %}
-                    <!-- Guest Navigation -->
-                    <div class="hidden lg:flex items-center gap-2">
-                        {% for link in nav_links %}
-                            <a href="{{ link.url }}" class="btn {{ 'btn-primary' if link.primary else 'btn-ghost' }} btn-sm">
-                                {% if link.icon %}<i class="{{ link.icon }} mr-2"></i>{% endif %}
-                                {{ link.text }}
-                            </a>
-                        {% endfor %}
-                    </div>
-                    
-                    <!-- Mobile Menu for Guests -->
-                    <div class="dropdown dropdown-end lg:hidden">
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-square">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
-                            </svg>
-                        </div>
-                        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl border border-base-300">
-                            {% for link in nav_links %}
-                            <li>
-                                <a href="{{ link.url }}" class="flex items-center gap-2 {{ 'text-primary font-semibold' if link.primary else '' }}">
-                                    {% if link.icon %}<i class="{{ link.icon }}"></i>{% endif %}
-                                    {{ link.text }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
-        </nav>
-        
-    </div>
+
+            <!-- Sign Out -->
+            <li class="border-t border-base-300 mt-2 pt-2">
+              <form action="/logout" method="POST" class="w-full">
+                <button
+                  type="submit"
+                  class="w-full text-left py-2 hover:bg-error/10 rounded-lg transition-colors text-error flex items-center gap-3"
+                >
+                  <i class="fas fa-sign-out-alt w-4"></i>
+                  <span>Sign Out</span>
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        {% else %}
+        <!-- Guest Navigation -->
+        <div class="hidden lg:flex items-center gap-2">
+          {% for link in nav_links %}
+          <a
+            href="{{ link.url }}"
+            class="btn {{ 'btn-primary' if link.primary else 'btn-ghost' }} btn-sm"
+          >
+            {% if link.icon %}<i class="{{ link.icon }} mr-2"></i>{% endif %} {{
+            link.text }}
+          </a>
+          {% endfor %}
+        </div>
+
+        <!-- Mobile Menu for Guests -->
+        <div class="dropdown dropdown-end lg:hidden">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-square">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h8m-8 6h16"
+              ></path>
+            </svg>
+          </div>
+          <ul
+            tabindex="0"
+            class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl border border-base-300"
+          >
+            {% for link in nav_links %}
+            <li>
+              <a
+                href="{{ link.url }}"
+                class="flex items-center gap-2 {{ 'text-primary font-semibold' if link.primary else '' }}"
+              >
+                {% if link.icon %}<i class="{{ link.icon }}"></i>{% endif %} {{
+                link.text }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
 </header>
 {% endmacro %}

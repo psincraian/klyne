@@ -26,8 +26,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://klyne.dev"
-Documentation = "https://docs.klyne.dev"
+Homepage = "https://www.klyne.dev"
+Documentation = "https://www.klyne.dev/docs"
 Repository = "https://github.com/psincraian/klyne"
 Issues = "https://github.com/psincraian/klyne/issues"
 

@@ -3,16 +3,16 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import Response
 
+from src.api.analytics import router as analytics_router
+from src.api.backoffice import router as backoffice_router
+from src.api.dashboard import router as dashboard_router
 from src.core.auth import (
     create_session,
     generate_verification_token,
@@ -33,10 +33,6 @@ from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
 from src.services.email import EmailService
 from src.services.polar import polar_service
-from src.utils.jinja_debug import setup_debug_environment
-from src.api.analytics import router as analytics_router
-from src.api.dashboard import router as dashboard_router
-from src.api.backoffice import router as backoffice_router
 
 
 async def get_current_user_if_authenticated(
@@ -127,37 +123,9 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Klyne application...")
 
 
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-
-    from fastapi.openapi.utils import get_openapi
-
-    # Generate full OpenAPI schema
-    openapi_schema = get_openapi(
-        title="Klyne Analytics API",
-        version="1.0.0",
-        description="Analytics API for Python package usage tracking",
-        routes=app.routes,
-    )
-
-    # Filter to only include the single analytics endpoint
-    filtered_paths = {}
-    if "/api/analytics" in openapi_schema["paths"]:
-        # Only include the POST method for /api/analytics
-        if "post" in openapi_schema["paths"]["/api/analytics"]:
-            filtered_paths["/api/analytics"] = {
-                "post": openapi_schema["paths"]["/api/analytics"]["post"]
-            }
-
-    openapi_schema["paths"] = filtered_paths
-
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app = FastAPI(title="Klyne Analytics API", lifespan=lifespan)
-app.openapi = custom_openapi
+app = FastAPI(
+    title="Klyne Analytics API", lifespan=lifespan, docs_url=None, redoc_url=None
+)
 
 
 # Security middleware
@@ -171,13 +139,17 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    
+
     # Different CSP for development vs production
     if settings.ENVIRONMENT == "production":
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+        )
     else:
         # More permissive CSP for development (allows Vite HMR)
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* ws: wss:; style-src 'self' 'unsafe-inline' localhost:*; img-src 'self' data: localhost:*; font-src 'self' localhost:*; connect-src 'self' localhost:* ws: wss:"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* ws: wss:; style-src 'self' 'unsafe-inline' localhost:*; img-src 'self' data: localhost:*; font-src 'self' localhost:*; connect-src 'self' localhost:* ws: wss:"
+        )
     return response
 
 
@@ -187,8 +159,13 @@ async def add_security_headers(request: Request, call_next):
 #     app.add_middleware(HTTPSRedirectMiddleware)
 
 # Add trusted host middleware for production
-if settings.ENVIRONMENT == "production" and hasattr(settings, 'APP_DOMAIN') and settings.APP_DOMAIN:
+if (
+    settings.ENVIRONMENT == "production"
+    and hasattr(settings, "APP_DOMAIN")
+    and settings.APP_DOMAIN
+):
     from urllib.parse import urlparse
+
     parsed_domain = urlparse(settings.APP_DOMAIN)
     allowed_host = parsed_domain.netloc if parsed_domain.netloc else settings.APP_DOMAIN
     # Also allow localhost for health checks in containerized environments
@@ -739,7 +716,7 @@ async def get_subscription_status(request: Request, db: AsyncSession = Depends(g
     }
 
 
-@app.get("/documentation", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
 async def documentation_page(request: Request, db: AsyncSession = Depends(get_db)):
     """Documentation."""
     user = await get_current_user_if_authenticated(request, db)
