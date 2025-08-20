@@ -185,12 +185,9 @@ async def backoffice_events(
 
     # Get event statistics
     total_events = await db.scalar(select(func.count(AnalyticsEvent.id)))
-    processed_events = await db.scalar(
-        select(func.count(AnalyticsEvent.id)).where(AnalyticsEvent.processed)
-    )
-    pending_events = await db.scalar(
-        select(func.count(AnalyticsEvent.id)).where(not AnalyticsEvent.processed)
-    )
+    # Analytics events don't have a processed state - they're raw event data
+    processed_events = 0
+    pending_events = 0
 
     # Get time-based statistics
     today = datetime.now(timezone.utc).replace(
