@@ -1,69 +1,66 @@
-{% extends "base.html" %}
-{% from "components/header.html" import header %}
-
-{% block title %}Analytics Dashboard - Klyne{% endblock %}
-
-{% block extra_head %}
+{% extends "base.html" %} {% from "components/header.html" import header %} {%
+block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
 <script type="module" src="{{ get_asset_url('dashboard') }}"></script>
 <style>
-/* Dashboard-specific styles that override base */
-.analytics-body {
+  /* Dashboard-specific styles that override base */
+  .analytics-body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     margin: 0;
     padding: 0;
     padding-top: 80px; /* Account for fixed header */
-}
+  }
 
-/* Analytics page specific styles */
+  /* Analytics page specific styles */
 
-.analytics-container {
+  .analytics-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
-}
+  }
 
-.analytics-title-section {
+  .analytics-title-section {
     margin-bottom: 2rem;
-}
+  }
 
-.analytics-title {
+  .analytics-title {
     font-size: 2.5rem;
     font-weight: 700;
     color: white;
     margin-bottom: 0.5rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  }
 
-.analytics-subtitle {
+  .analytics-subtitle {
     color: rgba(255, 255, 255, 0.8);
     font-size: 1.125rem;
     font-weight: 400;
-}
+  }
 
-.controls-card {
+  .controls-card {
     background: white;
     border-radius: 16px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
-}
+  }
 
-.controls-grid {
+  .controls-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     align-items: end;
-}
+  }
 
-.control-group {
+  .control-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
+  }
 
-.control-label {
+  .control-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
@@ -71,24 +68,24 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
+  }
 
-.control-input {
+  .control-input {
     padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 0.9rem;
     transition: all 0.2s ease;
     background: white;
-}
+  }
 
-.control-input:focus {
+  .control-input:focus {
     outline: none;
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
+  }
 
-.refresh-btn {
+  .refresh-btn {
     padding: 0.75rem 1.5rem;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
@@ -101,45 +98,47 @@
     align-items: center;
     gap: 0.5rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
+  }
 
-.refresh-btn:hover {
+  .refresh-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
+  }
 
-.refresh-btn:disabled {
+  .refresh-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-}
+  }
 
-.stats-grid {
+  .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
-}
+  }
 
-.stat-card {
+  .stat-card {
     background: white;
     border-radius: 16px;
     padding: 2rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
     transition: all 0.3s ease;
-}
+  }
 
-.stat-card:hover {
+  .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  }
 
-/* Removed accent line from stat cards */
+  /* Removed accent line from stat cards */
 
-.stat-icon {
+  .stat-icon {
     width: 3rem;
     height: 3rem;
     border-radius: 12px;
@@ -150,103 +149,104 @@
     margin-bottom: 1rem;
     background: #e0e7ff;
     color: #6366f1;
-}
+  }
 
-.stat-value {
+  .stat-value {
     font-size: 2.5rem;
     font-weight: 700;
     color: #111827;
     margin-bottom: 0.5rem;
     line-height: 1;
-}
+  }
 
-.stat-label {
+  .stat-label {
     color: #6b7280;
     font-weight: 500;
     margin-bottom: 0.75rem;
-}
+  }
 
-.stat-change {
+  .stat-change {
     display: flex;
     align-items: center;
     gap: 0.25rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: #9ca3af;
-}
+  }
 
-.stat-change.positive {
+  .stat-change.positive {
     color: #10b981;
-}
+  }
 
-.stat-change.negative {
+  .stat-change.negative {
     color: #ef4444;
-}
+  }
 
-.charts-section {
+  .charts-section {
     display: grid;
     gap: 2rem;
     margin-bottom: 2rem;
-}
+  }
 
-.chart-row {
+  .chart-row {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 2rem;
-}
+  }
 
-.chart-row.full-width {
+  .chart-row.full-width {
     grid-template-columns: 1fr;
-}
+  }
 
-.chart-container {
+  .chart-container {
     background: white;
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
     position: relative;
     overflow: hidden;
-}
+  }
 
-.chart-header {
+  .chart-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-}
+  }
 
-.chart-title {
+  .chart-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: #111827;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
+  }
 
-.chart-title i {
+  .chart-title i {
     color: #6366f1;
-}
+  }
 
-.chart-wrapper {
+  .chart-wrapper {
     position: relative;
     height: 350px;
-}
+  }
 
-.chart-wrapper.large {
+  .chart-wrapper.large {
     height: 450px;
-}
+  }
 
-.loading-spinner {
+  .loading-spinner {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 200px;
     color: #9ca3af;
-}
+  }
 
-.spinner {
+  .spinner {
     width: 2rem;
     height: 2rem;
     border: 2px solid #e5e7eb;
@@ -254,14 +254,18 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-right: 0.75rem;
-}
+  }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
-.error-message {
+  .error-message {
     background: linear-gradient(135deg, #fef2f2, #fee2e2);
     border: 1px solid #fca5a5;
     border-radius: 12px;
@@ -271,39 +275,40 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-}
+  }
 
-.no-data {
+  .no-data {
     text-align: center;
     padding: 3rem;
     color: #9ca3af;
-}
+  }
 
-.no-data-icon {
+  .no-data-icon {
     font-size: 3rem;
     color: #9ca3af;
     margin-bottom: 1rem;
     opacity: 0.5;
-}
+  }
 
-.no-data h3 {
+  .no-data h3 {
     font-size: 1.125rem;
     margin-bottom: 0.5rem;
     color: #6b7280;
-}
+  }
 
-.empty-state {
+  .empty-state {
     background: white;
     border-radius: 16px;
     padding: 4rem 2rem;
     text-align: center;
     margin: 2rem 0;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
     grid-column: 1 / -1;
-}
+  }
 
-.empty-state-icon {
+  .empty-state-icon {
     width: 4rem;
     height: 4rem;
     border-radius: 50%;
@@ -314,24 +319,24 @@
     justify-content: center;
     font-size: 1.5rem;
     margin: 0 auto 1.5rem;
-}
+  }
 
-.empty-state h3 {
+  .empty-state h3 {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: #111827;
-}
+  }
 
-.empty-state p {
+  .empty-state p {
     color: #6b7280;
     font-size: 1rem;
     line-height: 1.6;
     max-width: 24rem;
     margin: 0 auto 1.5rem;
-}
+  }
 
-.cta-button {
+  .cta-button {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
     padding: 0.75rem 2rem;
@@ -344,431 +349,449 @@
     gap: 0.5rem;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
+  }
 
-.cta-button:hover {
+  .cta-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     color: white;
-}
+  }
 
-.fade-in {
+  .fade-in {
     animation: fadeIn 0.5s ease-in;
-}
+  }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
     .analytics-container {
-        padding: 1rem;
+      padding: 1rem;
     }
-    
+
     .analytics-header nav {
-        padding: 0 1rem;
-        flex-direction: column;
-        gap: 1rem;
+      padding: 0 1rem;
+      flex-direction: column;
+      gap: 1rem;
     }
-    
+
     .analytics-nav-tabs {
-        margin: 0;
-        width: 100%;
-        justify-content: center;
+      margin: 0;
+      width: 100%;
+      justify-content: center;
     }
-    
+
     .analytics-title {
-        font-size: 2rem;
+      font-size: 2rem;
     }
-    
+
     .controls-grid {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
-    
+
     .stats-grid {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
-    
+
     .chart-row {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
-    
+
     .stat-card {
-        padding: 1.5rem;
+      padding: 1.5rem;
     }
-    
+
     .chart-container {
-        padding: 1.5rem;
+      padding: 1.5rem;
     }
-    
+
     .chart-wrapper {
-        height: 280px;
+      height: 280px;
     }
-}
+  }
 
-/* Analytics specific responsive styles */
+  /* Analytics specific responsive styles */
 
-/* Event Tracking Widget Styles */
-.event-type-card {
+  /* Event Tracking Widget Styles */
+  .event-type-card {
     transition: all 0.2s ease;
-}
+  }
 
-.event-type-card:hover > div {
+  .event-type-card:hover > div {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border-color: rgba(99, 102, 241, 0.3) !important;
     background: rgba(99, 102, 241, 0.02) !important;
-}
+  }
 
-.event-type-card.event-selected > div {
+  .event-type-card.event-selected > div {
     background: rgba(99, 102, 241, 0.05) !important;
     border-color: rgba(99, 102, 241, 0.2) !important;
-}
+  }
 
-/* Rocket animation */
-.fa-rocket {
+  /* Rocket animation */
+  .fa-rocket {
     animation: rocket-bounce 3s ease-in-out infinite;
-}
+  }
 
-@keyframes rocket-bounce {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg);
+  @keyframes rocket-bounce {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
     }
     50% {
-        transform: translateY(-3px) rotate(2deg);
+      transform: translateY(-3px) rotate(2deg);
     }
-}
+  }
 
-/* Coming Soon badge pulse */
-.chart-header span {
+  /* Coming Soon badge pulse */
+  .chart-header span {
     animation: pulse-badge 2s ease-in-out infinite;
-}
+  }
 
-@keyframes pulse-badge {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
+  @keyframes pulse-badge {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
     }
     50% {
-        transform: scale(1.05);
-        opacity: 0.9;
+      transform: scale(1.05);
+      opacity: 0.9;
     }
-}
+  }
 
-/* Enhanced hover effects for buttons */
-a[href*="github"]:hover {
+  /* Enhanced hover effects for buttons */
+  a[href*="github"]:hover {
     background: #6366f1 !important;
     color: white !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-}
+  }
 
-/* Mobile responsiveness for event tracking widget */
-@media (max-width: 768px) {
+  /* Mobile responsiveness for event tracking widget */
+  @media (max-width: 768px) {
     .event-type-card > div {
-        padding: 0.75rem !important;
+      padding: 0.75rem !important;
     }
-    
+
     .chart-header .flex {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 0.75rem !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
     }
-    
+
     div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"] {
-        grid-template-columns: 1fr !important;
+      grid-template-columns: 1fr !important;
     }
-    
+
     div[style*="display: flex; gap: 0.75rem;"] {
-        flex-direction: column !important;
-        gap: 0.5rem !important;
+      flex-direction: column !important;
+      gap: 0.5rem !important;
     }
-    
+
     div[style*="display: flex; gap: 1rem; flex-wrap: wrap;"] {
-        flex-direction: column !important;
-        gap: 0.75rem !important;
+      flex-direction: column !important;
+      gap: 0.75rem !important;
     }
-}
+  }
 
-/* Subtle animations for better UX */
-.chart-container {
+  /* Subtle animations for better UX */
+  .chart-container {
     animation: fadeInUp 0.6s ease-out;
-}
+  }
 
-@keyframes fadeInUp {
+  @keyframes fadeInUp {
     from {
-        opacity: 0;
-        transform: translateY(20px);
+      opacity: 0;
+      transform: translateY(20px);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0);
     }
-}
+  }
 
-/* Code block improvements */
-pre code {
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace !important;
+  /* Code block improvements */
+  pre code {
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas",
+      monospace !important;
     font-size: 0.8rem !important;
     line-height: 1.6 !important;
-}
+  }
 
-/* Enhanced focus states for accessibility */
-input:focus,
-button:focus {
+  /* Enhanced focus states for accessibility */
+  input:focus,
+  button:focus {
     outline: 2px solid #6366f1;
     outline-offset: 2px;
-}
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="analytics-body">
-    {{ header(page_title="Analytics Dashboard", user=user, show_nav_tabs=true, active_tab="analytics") }}
-    
-    <div class="analytics-container">
-        <div class="analytics-title-section">
-            <h1 class="analytics-title">Welcome to Klyne</h1>
-            <p class="analytics-subtitle">Monitor your package usage and performance metrics</p>
+  {{ header(page_title="Analytics Dashboard", user=user, show_nav_tabs=true,
+  active_tab="analytics") }}
+
+  <div class="analytics-container">
+    <div class="analytics-title-section">
+      <h1 class="analytics-title">Welcome to Klyne</h1>
+      <p class="analytics-subtitle">
+        Monitor your package usage and performance metrics
+      </p>
+    </div>
+
+    <div class="controls-card">
+      <div class="controls-grid">
+        <div class="control-group">
+          <label class="control-label">
+            <i class="fas fa-box"></i> Package
+          </label>
+          <select id="package-filter" class="control-input">
+            <option value="">All Packages</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <i class="fas fa-calendar-alt"></i> Start Date
+          </label>
+          <input type="date" id="start-date" class="control-input" />
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <i class="fas fa-calendar-alt"></i> End Date
+          </label>
+          <input type="date" id="end-date" class="control-input" />
+        </div>
+        <div class="control-group">
+          <button id="refresh-data" class="refresh-btn">
+            <i class="fas fa-sync-alt"></i> Refresh Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-container"></div>
+
+    <div id="overview-stats" class="stats-grid">
+      <!-- Overview stats will be populated here -->
+    </div>
+
+    <div class="charts-section">
+      <div class="chart-row full-width">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">
+              <i class="fas fa-chart-area"></i>
+              Usage Over Time
+            </h3>
+          </div>
+          <div class="chart-wrapper large">
+            <canvas id="timeseries-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-row">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">
+              <i class="fab fa-python"></i>
+              Python Versions
+            </h3>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="python-chart"></canvas>
+          </div>
         </div>
 
-        <div class="controls-card">
-            <div class="controls-grid">
-                <div class="control-group">
-                    <label class="control-label">
-                        <i class="fas fa-box"></i> Package
-                    </label>
-                    <select id="package-filter" class="control-input">
-                        <option value="">All Packages</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label class="control-label">
-                        <i class="fas fa-calendar-alt"></i> Start Date
-                    </label>
-                    <input type="date" id="start-date" class="control-input">
-                </div>
-                <div class="control-group">
-                    <label class="control-label">
-                        <i class="fas fa-calendar-alt"></i> End Date
-                    </label>
-                    <input type="date" id="end-date" class="control-input">
-                </div>
-                <div class="control-group">
-                    <button id="refresh-data" class="refresh-btn">
-                        <i class="fas fa-sync-alt"></i> Refresh Data
-                    </button>
-                </div>
-            </div>
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">
+              <i class="fas fa-desktop"></i>
+              Operating Systems
+            </h3>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="os-chart"></canvas>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <div id="error-container"></div>
-        
-        <div id="overview-stats" class="stats-grid">
-            <!-- Overview stats will be populated here -->
+    <!-- Custom Event Tracking Widget (Coming Soon) -->
+    <div class="chart-container" style="margin-bottom: 2rem">
+      <div class="chart-header">
+        <div class="flex items-center gap-3">
+          <div
+            style="
+              width: 2.5rem;
+              height: 2.5rem;
+              background: rgba(251, 191, 36, 0.1);
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <i
+              class="fas fa-rocket"
+              style="color: #f59e0b; font-size: 1rem"
+            ></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="chart-title" style="margin-bottom: 0.25rem">
+              Custom Event Tracking
+            </h3>
+            <span
+              style="
+                background: #f59e0b;
+                color: white;
+                font-size: 0.75rem;
+                font-weight: 600;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                text-transform: uppercase;
+              "
+              >Coming Soon</span
+            >
+          </div>
         </div>
+      </div>
 
-        <!-- Custom Event Tracking Widget (Coming Soon) -->
-        <div class="chart-container" style="margin-bottom: 2rem;">
-            <div class="chart-header">
-                <div class="flex items-center gap-3">
-                    <div style="width: 2.5rem; height: 2.5rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-rocket" style="color: #f59e0b; font-size: 1rem;"></i>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="chart-title" style="margin-bottom: 0.25rem;">Custom Event Tracking</h3>
-                        <span style="background: #f59e0b; color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; text-transform: uppercase;">Coming Soon</span>
-                    </div>
-                </div>
-            </div>
-            
-            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6;">
-                Track custom events in your applications beyond basic package imports. Monitor user interactions, feature usage, and application-specific metrics.
-            </p>
-            
-            <!-- Event Selection Grid -->
-            <div style="background: #f9fafb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <i class="fas fa-tag" style="color: #6366f1;"></i>
-                    <h4 style="font-weight: 600; color: #111827; margin: 0;">Event Types to Track</h4>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
-                    <div class="event-type-card event-selected">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled checked>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">user_login</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">User authentication events</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="event-type-card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">feature_usage</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Track feature adoption</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="event-type-card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">api_endpoint</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">API endpoint usage</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="event-type-card event-selected">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled checked>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">error_occurred</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Error and exception tracking</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="event-type-card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">data_processed</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Data processing metrics</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="event-type-card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s ease; opacity: 0.7;">
-                            <div style="display: flex; align-items: center;">
-                                <input type="checkbox" style="margin-right: 0.5rem; accent-color: #6366f1;" disabled>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: #111827; font-size: 0.875rem;">custom_event</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Define your own events</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Custom Event Input -->
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem; font-size: 0.875rem;">
-                    <i class="fas fa-plus" style="color: #6366f1; margin-right: 0.5rem;"></i>
-                    Add Custom Event Name
-                </label>
-                <div style="display: flex; gap: 0.75rem;">
-                    <input type="text" placeholder="e.g., model_training_started, file_uploaded" style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; opacity: 0.6;" disabled>
-                    <button style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; border: none; border-radius: 8px; font-weight: 600; opacity: 0.6; cursor: not-allowed;" disabled>
-                        <i class="fas fa-plus" style="margin-right: 0.5rem;"></i>
-                        Add
-                    </button>
-                </div>
-                <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Use descriptive names like 'user_signup' or 'payment_processed'</p>
-            </div>
-            
-            <!-- Usage Preview -->
-            <div style="background: #1f2937; color: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <i class="fas fa-code" style="color: #8b5cf6;"></i>
-                    <span style="font-weight: 600; font-size: 0.875rem;">Usage Preview</span>
-                </div>
-                <pre style="margin: 0; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.8rem; line-height: 1.5;"><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
+      <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6">
+        Track custom events in your applications beyond basic package imports.
+        Monitor user interactions, feature usage, and application-specific
+        metrics.
+      </p>
+
+      <!-- Event Selection Grid -->
+
+      <!-- Custom Event Input -->
+      <div style="margin-bottom: 1.5rem">
+        <label
+          style="
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+          "
+        >
+          <i
+            class="fas fa-plus"
+            style="color: #6366f1; margin-right: 0.5rem"
+          ></i>
+          Add Custom Event Name
+        </label>
+        <div style="display: flex; gap: 0.75rem">
+          <input
+            type="text"
+            placeholder="e.g., model_training_started, file_uploaded"
+            style="
+              flex: 1;
+              padding: 0.75rem;
+              border: 1px solid #d1d5db;
+              border-radius: 8px;
+              font-size: 0.875rem;
+              opacity: 0.6;
+            "
+            disabled
+          />
+          <button
+            style="
+              padding: 0.75rem 1.5rem;
+              background: linear-gradient(135deg, #8b5cf6, #a855f7);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-weight: 600;
+              opacity: 0.6;
+              cursor: not-allowed;
+            "
+            disabled
+          >
+            <i class="fas fa-plus" style="margin-right: 0.5rem"></i>
+            Add
+          </button>
+        </div>
+        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem">
+          Use descriptive names like 'user_signup' or 'payment_processed'
+        </p>
+      </div>
+
+      <!-- Usage Preview -->
+      <div
+        style="
+          background: #1f2937;
+          color: #f9fafb;
+          border-radius: 8px;
+          padding: 1.5rem;
+          margin-bottom: 1.5rem;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <i class="fas fa-code" style="color: #8b5cf6"></i>
+          <span style="font-weight: 600; font-size: 0.875rem"
+            >Usage Preview</span
+          >
+        </div>
+        <pre
+          style="
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+          "
+        ><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
 
 <span style="color: #9ca3af;"># Track custom events</span>
 <span style="color: #f9fafb;">klyne</span><span style="color: #34d399;">.</span><span style="color: #fbbf24;">track</span><span style="color: #d1d5db;">(</span><span style="color: #10b981;">'user_login'</span><span style="color: #d1d5db;">, {</span>
     <span style="color: #f87171;">'user_id'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'12345'</span><span style="color: #d1d5db;">,</span>
     <span style="color: #f87171;">'login_method'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'google'</span>
 <span style="color: #d1d5db;">})</span></code></pre>
-            </div>
-            
-            <!-- Info Alert -->
-            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1)); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-top: 0.125rem;"></i>
-                    <div>
-                        <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Coming Soon!</div>
-                        <div style="font-size: 0.875rem; color: #1e40af; line-height: 1.5;">
-                            Custom event tracking is in development. This feature will allow you to track specific user actions and application events beyond basic package usage analytics.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; opacity: 0.6; cursor: not-allowed;" disabled>
-                    <i class="fas fa-bell"></i>
-                    Notify Me When Ready
-                </button>
-                <a href="https://github.com/petru/klyne/issues" target="_blank" style="background: transparent; color: #6366f1; padding: 0.75rem 1.5rem; border: 1px solid #6366f1; border-radius: 8px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
-                    <i class="fas fa-comment"></i>
-                    Suggest Event Types
-                </a>
-            </div>
-        </div>
+      </div>
 
-        <div class="charts-section">
-            <div class="chart-row full-width">
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-area"></i>
-                            Usage Over Time
-                        </h3>
-                    </div>
-                    <div class="chart-wrapper large">
-                        <canvas id="timeseries-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-row">
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fab fa-python"></i>
-                            Python Versions
-                        </h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="python-chart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-desktop"></i>
-                            Operating Systems
-                        </h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="os-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+        <a
+          href="https://github.com/psincraian/klyne/issues"
+          target="_blank"
+          style="
+            background: transparent;
+            color: #6366f1;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #6366f1;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+          "
+        >
+          <i class="fas fa-comment"></i>
+          Suggest features
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
 {% endblock %}

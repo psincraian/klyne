@@ -50,7 +50,7 @@ The SDK automatically collects:
 
 ## Advanced Usage
 
-### Custom Event Tracking
+### Custom Event Tracking (coming soon)
 
 ```python
 import klyne
@@ -69,7 +69,7 @@ import klyne
 
 klyne.init(
     api_key="klyne_your_api_key_here",
-    project="your-package-name", 
+    project="your-package-name",
     package_version="1.0.0",
     base_url="https://api.klyne.dev",  # Default API URL
     enabled=True,                      # Enable/disable analytics
