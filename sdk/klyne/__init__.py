@@ -43,5 +43,6 @@ def _init_self_analytics():
         # This ensures the SDK still works even if analytics fail
         pass
 
-# Initialize self-analytics when the module is imported
-_init_self_analytics()
+# Initialize self-analytics when the module is imported (skip during testing)
+if not os.getenv("KLYNE_TESTING", "false").lower() == "true":
+    _init_self_analytics()

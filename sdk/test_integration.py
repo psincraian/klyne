@@ -3,7 +3,11 @@
 Integration test for Klyne SDK - verifies the complete flow works.
 """
 
+import os
 import sys
+
+# Set testing environment before importing klyne
+os.environ["KLYNE_TESTING"] = "true"
 
 # Add the SDK to path
 sys.path.insert(0, ".")
