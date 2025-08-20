@@ -32,6 +32,7 @@ from src.models.email_signup import EmailSignup
 from src.models.user import User
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
+from src.schemas.checkout import SubscriptionTier, SubscriptionInterval
 from src.services.email import EmailService
 from src.services.polar import polar_service
 
@@ -601,9 +602,14 @@ async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
     )
 
 
-@app.post("/api/checkout/starter", include_in_schema=False)
-async def checkout_starter(request: Request, db: AsyncSession = Depends(get_db)):
-    """Create checkout session for Starter plan."""
+@app.post("/api/checkout", include_in_schema=False)
+async def checkout(
+    request: Request, 
+    tier: str = Form(...),
+    interval: str = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Create checkout session for subscription plan."""
     if not is_authenticated(request):
         raise HTTPException(status_code=401, detail="Authentication required")
 
@@ -611,14 +617,32 @@ async def checkout_starter(request: Request, db: AsyncSession = Depends(get_db))
     if not user_id:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    if not settings.POLAR_STARTER_PRODUCT_ID:
-        raise HTTPException(status_code=500, detail="Starter plan not configured")
+    # Validate the parameters
+    try:
+        subscription_tier = SubscriptionTier(tier.lower())
+        subscription_interval = SubscriptionInterval(interval.lower())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid tier or interval")
+
+    # Get the appropriate product ID
+    product_id = None
+    if subscription_tier == SubscriptionTier.STARTER and subscription_interval == SubscriptionInterval.MONTHLY:
+        product_id = settings.POLAR_STARTER_MONTHLY_PRODUCT_ID
+    elif subscription_tier == SubscriptionTier.STARTER and subscription_interval == SubscriptionInterval.YEARLY:
+        product_id = settings.POLAR_STARTER_YEARLY_PRODUCT_ID
+    elif subscription_tier == SubscriptionTier.PRO and subscription_interval == SubscriptionInterval.MONTHLY:
+        product_id = settings.POLAR_PRO_MONTHLY_PRODUCT_ID
+    elif subscription_tier == SubscriptionTier.PRO and subscription_interval == SubscriptionInterval.YEARLY:
+        product_id = settings.POLAR_PRO_YEARLY_PRODUCT_ID
+
+    if not product_id:
+        raise HTTPException(status_code=500, detail=f"{subscription_tier.value.title()} {subscription_interval.value} plan not configured")
 
     try:
         checkout_url = await polar_service.create_checkout_session(
-            product_id=settings.POLAR_STARTER_PRODUCT_ID,
+            product_id=product_id,
             external_customer_id=str(user_id),
-            success_url=f"{settings.APP_DOMAIN}/checkout/confirmation?plan=starter&user_id={user_id}",
+            success_url=f"{settings.APP_DOMAIN}/checkout/confirmation?plan={subscription_tier.value}&interval={subscription_interval.value}&user_id={user_id}",
         )
 
         if not checkout_url:
@@ -629,39 +653,7 @@ async def checkout_starter(request: Request, db: AsyncSession = Depends(get_db))
         return RedirectResponse(url=checkout_url, status_code=302)
 
     except Exception as e:
-        logger.error(f"Failed to create starter checkout for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
-
-
-@app.post("/api/checkout/pro", include_in_schema=False)
-async def checkout_pro(request: Request, db: AsyncSession = Depends(get_db)):
-    """Create checkout session for Pro plan."""
-    if not is_authenticated(request):
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    user_id = get_current_user_id(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    if not settings.POLAR_PRO_PRODUCT_ID:
-        raise HTTPException(status_code=500, detail="Pro plan not configured")
-
-    try:
-        checkout_url = await polar_service.create_checkout_session(
-            product_id=settings.POLAR_PRO_PRODUCT_ID,
-            external_customer_id=str(user_id),
-            success_url=f"{settings.APP_DOMAIN}/checkout/confirmation?plan=pro&user_id={user_id}",
-        )
-
-        if not checkout_url:
-            raise HTTPException(
-                status_code=500, detail="Failed to create checkout session"
-            )
-
-        return RedirectResponse(url=checkout_url, status_code=302)
-
-    except Exception as e:
-        logger.error(f"Failed to create pro checkout for user {user_id}: {e}")
+        logger.error(f"Failed to create {subscription_tier.value} {subscription_interval.value} checkout for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to create checkout session")
 
 
@@ -694,7 +686,10 @@ async def customer_portal_redirect(
 
 @app.get("/checkout/confirmation", response_class=HTMLResponse, include_in_schema=False)
 async def checkout_confirmation(
-    request: Request, plan: str = "starter", db: AsyncSession = Depends(get_db)
+    request: Request, 
+    plan: str = "starter", 
+    interval: str = "monthly",
+    db: AsyncSession = Depends(get_db)
 ):
     """Checkout confirmation page that waits for subscription activation."""
 
@@ -710,8 +705,12 @@ async def checkout_confirmation(
     # Validate plan parameter
     if plan not in ["starter", "pro"]:
         plan = "starter"
+    
+    # Validate interval parameter
+    if interval not in ["monthly", "yearly"]:
+        interval = "monthly"
 
-    plan_name = plan.title()
+    plan_name = f"{plan.title()} ({interval.title()})"
 
     return templates.TemplateResponse(
         "checkout_confirmation.html",
@@ -894,9 +893,9 @@ async def polar_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             else:
                 # Fallback to extracting from product ID configuration
                 product_id = product.get("id")
-                if product_id == settings.POLAR_STARTER_PRODUCT_ID:
+                if product_id in [settings.POLAR_STARTER_MONTHLY_PRODUCT_ID, settings.POLAR_STARTER_YEARLY_PRODUCT_ID]:
                     user.subscription_tier = "starter"
-                elif product_id == settings.POLAR_PRO_PRODUCT_ID:
+                elif product_id in [settings.POLAR_PRO_MONTHLY_PRODUCT_ID, settings.POLAR_PRO_YEARLY_PRODUCT_ID]:
                     user.subscription_tier = "pro"
                 else:
                     user.subscription_tier = "unknown"

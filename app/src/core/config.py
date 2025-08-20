@@ -14,8 +14,10 @@ class Settings(BaseSettings):
     # Polar Settings
     POLAR_ACCESS_TOKEN: str = ""
     POLAR_WEBHOOK_SECRET: str = ""
-    POLAR_STARTER_PRODUCT_ID: str = ""
-    POLAR_PRO_PRODUCT_ID: str = ""
+    POLAR_STARTER_MONTHLY_PRODUCT_ID: str = ""
+    POLAR_STARTER_YEARLY_PRODUCT_ID: str = ""
+    POLAR_PRO_MONTHLY_PRODUCT_ID: str = ""
+    POLAR_PRO_YEARLY_PRODUCT_ID: str = ""
     POLAR_ENVIRONMENT: str = ""
 
     CF_TURNSTILE_SECRET: str = ""
