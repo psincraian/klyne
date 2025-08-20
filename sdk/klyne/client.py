@@ -155,7 +155,7 @@ def init(
     api_key: str,
     project: str,
     package_version: str = "unknown",
-    base_url: str = "https://api.klyne.dev",
+    base_url: str = "https://www.klyne.dev",
     enabled: bool = True,
     debug: bool = False,
 ) -> None:
@@ -163,10 +163,10 @@ def init(
     Initialize Klyne analytics for your package.
 
     Args:
-        api_key: Your Klyne API key (get from https://klyne.dev)
+        api_key: Your Klyne API key (get from https://www.klyne.dev)
         project: Your package name (must match API key)
         package_version: Version of your package
-        base_url: Klyne API base URL (default: https://api.klyne.dev)
+        base_url: Klyne API base URL (default: https://www.klyne.dev)
         enabled: Whether to enable analytics (default: True)
         debug: Enable debug logging (default: False)
 
