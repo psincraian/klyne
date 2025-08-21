@@ -41,8 +41,60 @@ active_tab="dashboard") }}
           to include directly in your code.
         </p>
 
+        <!-- Package Usage Info -->
+        <div class="bg-base-200 rounded-lg p-4 mb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chart-pie text-accent text-sm"></i>
+              </div>
+              <div>
+                <div class="font-semibold">Package Usage</div>
+                <div class="text-sm text-base-content/60">
+                  {% if package_usage.limit == -1 %}
+                    {{ package_usage.current }} packages (Unlimited)
+                  {% else %}
+                    {{ package_usage.current }}/{{ package_usage.limit }} packages used
+                  {% endif %}
+                  • {{ package_usage.tier.title() }} Plan
+                </div>
+              </div>
+            </div>
+            {% if package_usage.tier == "starter" and package_usage.current > 0 %}
+            <a href="/pricing" class="btn btn-outline btn-sm">
+              <i class="fas fa-arrow-up mr-1"></i>
+              Upgrade
+            </a>
+            {% endif %}
+          </div>
+          
+          {% if package_usage.limit != -1 %}
+          <div class="mt-3">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs text-base-content/60">Usage</span>
+              <span class="text-xs text-base-content/60">{{ package_usage.current }}/{{ package_usage.limit }}</span>
+            </div>
+            <progress 
+              class="progress progress-primary w-full" 
+              value="{{ package_usage.current }}" 
+              max="{{ package_usage.limit }}">
+            </progress>
+          </div>
+          {% endif %}
+        </div>
+
         <!-- Create new API key form -->
-        <form action="/api/api-keys" method="POST" class="mb-6" id="create-key">
+        {% if not package_usage.can_create %}
+        <div class="alert alert-warning mb-6">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <h3 class="font-semibold">Package Limit Reached</h3>
+            <div class="text-sm">{{ package_usage.error_message }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <form action="/api/api-keys" method="POST" class="mb-6" id="create-key" {% if not package_usage.can_create %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
           <div class="form-control mb-4">
             <label class="label">
               <span class="label-text font-semibold flex items-center gap-2">
@@ -63,9 +115,13 @@ active_tab="dashboard") }}
               >
             </label>
           </div>
-          <button type="submit" class="klyne-btn-primary">
+          <button type="submit" class="klyne-btn-primary" {% if not package_usage.can_create %}disabled{% endif %}>
             <i class="fas fa-plus mr-2"></i>
-            Create API Key
+            {% if package_usage.can_create %}
+              Create API Key
+            {% else %}
+              Limit Reached - Upgrade to Pro
+            {% endif %}
           </button>
         </form>
       </div>

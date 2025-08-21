@@ -536,9 +536,19 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
 
+    # Get package usage information
+    from src.core.subscription_utils import get_user_package_usage
+    current_count, limit = await get_user_package_usage(db, user_id)
+    
+    package_usage = {
+        "current": current_count,
+        "limit": limit,
+        "tier": user.subscription_tier or "starter"
+    }
+
     return templates.TemplateResponse(
         "analytics-dashboard.html",
-        {"request": request, "user": user, "api_keys": api_keys},
+        {"request": request, "user": user, "api_keys": api_keys, "package_usage": package_usage},
     )
 
 
@@ -560,8 +570,26 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
     api_keys = api_keys_result.scalars().all()
 
+    # Get package usage information
+    from src.core.subscription_utils import get_user_package_usage, can_user_create_package
+    current_count, limit = await get_user_package_usage(db, user_id)
+    can_create, error_message, _, _ = await can_user_create_package(db, user_id)
+    
+    package_usage = {
+        "current": current_count,
+        "limit": limit,
+        "can_create": can_create,
+        "error_message": error_message,
+        "tier": user.subscription_tier or "starter"
+    }
+
     return templates.TemplateResponse(
-        "dashboard.html", {"request": request, "user": user, "api_keys": api_keys}
+        "dashboard.html", {
+            "request": request, 
+            "user": user, 
+            "api_keys": api_keys,
+            "package_usage": package_usage
+        }
     )
 
 
@@ -780,6 +808,13 @@ async def create_api_key(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     user_id = get_current_user_id(request)
+
+    # Check subscription limits before creating API key
+    from src.core.subscription_utils import can_user_create_package
+    can_create, error_message, current_count, limit = await can_user_create_package(db, user_id)
+    
+    if not can_create:
+        raise HTTPException(status_code=403, detail=error_message)
 
     # Check if package name already exists for this user
     existing_key = await db.execute(

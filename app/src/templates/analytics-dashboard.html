@@ -543,10 +543,24 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
 
   <div class="analytics-container">
     <div class="analytics-title-section">
-      <h1 class="analytics-title">Welcome to Klyne</h1>
-      <p class="analytics-subtitle">
-        Monitor your package usage and performance metrics
-      </p>
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="analytics-title">Welcome to Klyne</h1>
+          <p class="analytics-subtitle">
+            Monitor your package usage and performance metrics
+          </p>
+        </div>
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+          <div class="text-sm font-medium">
+            {% if package_usage.limit == -1 %}
+              {{ package_usage.current }} packages
+            {% else %}
+              {{ package_usage.current }}/{{ package_usage.limit }} packages
+            {% endif %}
+          </div>
+          <div class="text-xs opacity-75">{{ package_usage.tier.title() }} Plan</div>
+        </div>
+      </div>
     </div>
 
     <div class="controls-card">
