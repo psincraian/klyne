@@ -179,7 +179,7 @@ if (
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
-    max_age=3600,
+    max_age=None,  # No expiration - session stays open indefinitely
     same_site="strict",
     https_only=(settings.ENVIRONMENT == "production"),
 )
