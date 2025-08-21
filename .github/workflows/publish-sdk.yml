@@ -78,12 +78,12 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          # Auto-generate unique version using current commit count for the entire repo
-          # This ensures each commit gets a unique, incrementing version number
+          # Auto-generate alpha version using commit count
+          # Format: {major}.{minor}.{fix}.a{commit_count}
           TOTAL_COMMITS=$(git rev-list --count HEAD)
           CURRENT_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          BASE_VERSION=$(echo $CURRENT_VERSION | cut -d. -f1-2)
-          VERSION="${BASE_VERSION}.${TOTAL_COMMITS}"
+          BASE_VERSION=$(echo $CURRENT_VERSION | cut -d'a' -f1)
+          VERSION="${BASE_VERSION}a${TOTAL_COMMITS}"
         fi
         
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
