@@ -33,7 +33,7 @@ def debug_filter(value: Any, label: str = "") -> str:
     elif isinstance(value, (dict, list)):
         try:
             debug_info = f"{label}{json.dumps(value, indent=2, default=str)}"
-        except:
+        except (TypeError, ValueError):
             debug_info = f"{label}{type(value).__name__} (non-serializable)"
     else:
         debug_info = f"{label}{repr(value)}"
