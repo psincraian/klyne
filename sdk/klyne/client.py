@@ -11,6 +11,7 @@ from .transport import HTTPTransport
 
 # Global SDK state
 _client = None
+_internal_client = None  # Separate client for internal analytics
 _logger = logging.getLogger(__name__)
 
 
@@ -158,6 +159,7 @@ def init(
     base_url: str = "https://www.klyne.dev",
     enabled: bool = True,
     debug: bool = False,
+    _internal: bool = False,
 ) -> None:
     """
     Initialize Klyne analytics for your package.
@@ -169,6 +171,7 @@ def init(
         base_url: Klyne API base URL (default: https://www.klyne.dev)
         enabled: Whether to enable analytics (default: True)
         debug: Enable debug logging (default: False)
+        _internal: Internal flag for SDK self-analytics (private)
 
     Example:
         import klyne
@@ -178,10 +181,28 @@ def init(
             package_version="1.0.0"
         )
     """
-    global _client
+    global _client, _internal_client
 
+    # Handle internal analytics separately
+    if _internal:
+        if _internal_client is not None:
+            return  # Internal client already initialized
+        try:
+            _internal_client = KlyneClient(
+                api_key=api_key,
+                project=project,
+                package_version=package_version,
+                base_url=base_url,
+                enabled=enabled,
+                debug=debug,
+            )
+        except Exception as e:
+            _logger.debug(f"Failed to initialize internal Klyne: {e}")
+        return
+
+    # Handle customer analytics
     if _client is not None:
-        _logger.warning("Klyne already initialized, skipping")
+        _logger.warning("Klyne already initialized for this project, skipping")
         return
 
     try:
@@ -252,6 +273,29 @@ def is_enabled() -> bool:
         True if analytics are enabled and working
     """
     return _client.is_enabled() if _client else False
+
+
+def _init_internal(
+    api_key: str,
+    project: str,
+    package_version: str = "unknown",
+    base_url: str = "https://www.klyne.dev",
+    enabled: bool = True,
+    debug: bool = False,
+) -> None:
+    """
+    Initialize internal Klyne analytics (for SDK self-tracking).
+    This is separate from customer analytics to avoid conflicts.
+    """
+    init(
+        api_key=api_key,
+        project=project,
+        package_version=package_version,
+        base_url=base_url,
+        enabled=enabled,
+        debug=debug,
+        _internal=True,
+    )
 
 
 # Helper for package version detection
