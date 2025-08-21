@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     POLAR_PRO_YEARLY_PRODUCT_ID: str = ""
     POLAR_ENVIRONMENT: str = ""
 
+    # Scheduler Settings
+    POLAR_SYNC_ENABLED: bool = True
+    POLAR_SYNC_HOUR: int = 2  # UTC hour (2 AM UTC by default)
+    POLAR_SYNC_MINUTE: int = 0  # Minute within the hour
+
     CF_TURNSTILE_SECRET: str = ""
     CF_TURNSTILE_SITE_KEY: str = "1x00000000000000000000AA"
 

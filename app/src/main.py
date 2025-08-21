@@ -123,8 +123,25 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Bcrypt test failed: {str(e)}")
 
+    # Initialize scheduler
+    try:
+        from src.core.scheduler import setup_scheduler
+        scheduler = await setup_scheduler()
+        logger.info("Scheduler initialized successfully")
+    except Exception as e:
+        logger.error(f"Scheduler initialization failed: {str(e)}")
+        # Don't raise - scheduler is not critical for basic app functionality
+
     yield
+    
     logger.info("Shutting down Klyne application...")
+    
+    # Shutdown scheduler
+    try:
+        from src.core.scheduler import shutdown_scheduler
+        await shutdown_scheduler()
+    except Exception as e:
+        logger.error(f"Scheduler shutdown failed: {str(e)}")
 
 
 app = FastAPI(
@@ -1034,3 +1051,24 @@ async def health_check():
 @app.get("/healthz", include_in_schema=False)
 async def healthz():
     return {"status": "ok"}
+
+
+@app.get("/scheduler/status", include_in_schema=False)
+async def scheduler_status():
+    """Get the current status of the scheduler and its jobs."""
+    try:
+        from src.core.scheduler import get_scheduler_status
+        return get_scheduler_status()
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/scheduler/trigger-sync", include_in_schema=False)
+async def trigger_sync():
+    """Manually trigger the Polar package sync."""
+    try:
+        from src.core.scheduler import trigger_polar_sync
+        results = await trigger_polar_sync()
+        return results
+    except Exception as e:
+        return {"error": str(e)}

@@ -24,6 +24,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "bcrypt>=4.1.0,<5.0.0",
     "polar-sdk>=0.22.6",
+    "apscheduler>=3.10.4",
 ]
 
 [tool.hatch.build.targets.wheel]
