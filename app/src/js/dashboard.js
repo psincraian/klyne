@@ -444,7 +444,7 @@ function renderOSChart(data) {
             return;
         }
         
-        operating_systems = data.map(item => item.operating_system || item.os);
+        operating_systems = data.map(item => item.os_type);
         counts = data.map(item => item.event_count);
     }
     
