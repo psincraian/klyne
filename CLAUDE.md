@@ -115,6 +115,43 @@ The app requires these key dependencies:
 - **Templates**: Extend base template in `src/templates/`
 - **Validation**: Create Pydantic schemas in `src/schemas/`
 
+### Code Style and Standards
+
+**Import Organization:**
+- Standard library imports first
+- Third-party library imports second  
+- Local/project imports last
+- Each group separated by a blank line
+- Sort imports alphabetically within each group
+- Example:
+```python
+from datetime import datetime, timezone
+from typing import Optional, List
+import logging
+
+from fastapi import HTTPException
+
+from src.models.user import User
+from src.repositories.unit_of_work import AbstractUnitOfWork
+```
+
+**Logging Standards:**
+- Use `logger.info()` for write operations (CREATE, UPDATE, DELETE, POST, PUT, PATCH operations)
+- Use `logger.debug()` for read operations (GET, SELECT, FETCH, LIST operations)
+- Use `logger.error()` for exceptions and error conditions
+- Use `logger.warning()` for recoverable issues or deprecated usage
+- Always use module-level loggers: `logger = logging.getLogger(__name__)`
+- Examples:
+```python
+# Write operations - use info
+logger.info(f"Creating new user with email {user_data.email}")
+logger.info(f"Updated API key {api_key.id} for user {user_id}")
+
+# Read operations - use debug  
+logger.debug(f"Fetching user by email {email}")
+logger.debug(f"Found {len(results)} analytics events")
+```
+
 ### Database Work
 - Models use SQLAlchemy 2.0 declarative base
 - All database operations are async
