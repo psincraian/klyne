@@ -157,6 +157,46 @@ class PolarService:
             logger.error(f"Unexpected error creating customer portal session: {e}")
             return None
 
+    async def ingest_event(
+        self, 
+        event_name: str, 
+        external_customer_id: str, 
+        metadata: Dict[str, Any]
+    ) -> bool:
+        """
+        Ingest an event to Polar for analytics/billing.
+
+        Args:
+            event_name: Name of the event (e.g., "packages")
+            external_customer_id: External customer ID (Klyne user ID)
+            metadata: Event metadata dictionary
+
+        Returns:
+            True if successful, False if failed
+        """
+        try:
+            event_data = models.EventsIngest(
+                events=[{
+                    "name": event_name,
+                    "external_customer_id": external_customer_id,
+                    "metadata": metadata
+                }]
+            )
+
+            self.client.events.ingest(request=event_data)
+
+            logger.info(
+                f"Ingested event '{event_name}' for external customer {external_customer_id}"
+            )
+            return True
+
+        except models.PolarError as e:
+            logger.error(f"Failed to ingest event '{event_name}': {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error ingesting event '{event_name}': {e}")
+            return False
+
 
 # Global instance
 polar_service = PolarService()

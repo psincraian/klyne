@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from src.core.static import CachedStaticFiles
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -835,6 +835,20 @@ async def create_api_key(
     db.add(api_key)
     await db.commit()
     await db.refresh(api_key)
+    
+    # Count total API keys for this user after creation
+    api_keys_count_result = await db.execute(
+        select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
+    )
+    packages_count = api_keys_count_result.scalar()
+    
+    # Ingest event to Polar
+    from src.services.polar import polar_service
+    await polar_service.ingest_event(
+        event_name="packages",
+        external_customer_id=str(user_id),
+        metadata={"packagesCount": packages_count}
+    )
 
     return RedirectResponse(url="/dashboard", status_code=302)
 
@@ -859,6 +873,20 @@ async def delete_api_key(
 
     await db.delete(api_key)
     await db.commit()
+    
+    # Count total API keys for this user after deletion
+    api_keys_count_result = await db.execute(
+        select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
+    )
+    packages_count = api_keys_count_result.scalar()
+    
+    # Ingest event to Polar
+    from src.services.polar import polar_service
+    await polar_service.ingest_event(
+        event_name="packages",
+        external_customer_id=str(user_id),
+        metadata={"packagesCount": packages_count}
+    )
 
     return {"success": True}
 
@@ -881,6 +909,20 @@ async def delete_api_key_form(
     if api_key:
         await db.delete(api_key)
         await db.commit()
+        
+        # Count total API keys for this user after deletion
+        api_keys_count_result = await db.execute(
+            select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
+        )
+        packages_count = api_keys_count_result.scalar()
+        
+        # Ingest event to Polar
+        from src.services.polar import polar_service
+        await polar_service.ingest_event(
+            event_name="packages",
+            external_customer_id=str(user_id),
+            metadata={"packagesCount": packages_count}
+        )
 
     return RedirectResponse(url="/dashboard", status_code=302)
 
