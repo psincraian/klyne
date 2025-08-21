@@ -6,7 +6,7 @@ import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
+from src.core.static import CachedStaticFiles
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
@@ -26,7 +26,7 @@ from src.core.auth import (
 )
 from src.core.config import settings
 from src.core.database import engine, get_db
-from src.models import Base, api_key
+from src.models import Base
 from src.models.api_key import APIKey
 from src.models.email_signup import EmailSignup
 from src.models.user import User
@@ -183,9 +183,9 @@ app.add_middleware(
     same_site="strict",
     https_only=(settings.ENVIRONMENT == "production"),
 )
-app.mount("/static", StaticFiles(directory="src/static/dist"), name="static")
+app.mount("/static", CachedStaticFiles(directory="src/static/dist"), name="static")
 # Additional mount for fonts referenced directly by CSS
-app.mount("/fonts", StaticFiles(directory="src/static/dist/fonts"), name="fonts")
+app.mount("/fonts", CachedStaticFiles(directory="src/static/dist/fonts"), name="fonts")
 
 # Use shared templates instance with asset management functions
 from src.core.templates import templates
