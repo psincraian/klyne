@@ -35,44 +35,9 @@ from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
 from src.services.email import EmailService
 from src.services.polar import polar_service
-
-
-async def get_current_user_if_authenticated(
-    request: Request, db: AsyncSession
-) -> User | None:
-    """Helper function to get the current user if authenticated, None otherwise."""
-    if not is_authenticated(request):
-        return None
-
-    user_id = get_current_user_id(request)
-    if not user_id:
-        return None
-
-    result = await db.execute(select(User).filter(User.id == user_id))
-    return result.scalar_one_or_none()
-
-
-async def require_active_subscription(request: Request, db: AsyncSession) -> User:
-    """Require user to be authenticated and have an active subscription."""
-    if not is_authenticated(request):
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    user_id = get_current_user_id(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    result = await db.execute(select(User).filter(User.id == user_id))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    if user.subscription_status != "active":
-        raise HTTPException(status_code=403, detail="Active subscription required")
-
-    return user
-
-
+from src.core.service_dependencies import get_auth_service
+from src.services.auth_service import AuthService
+from src.core.templates import templates
 
 
 # Configure logging
@@ -126,7 +91,7 @@ async def lifespan(app: FastAPI):
     # Initialize scheduler
     try:
         from src.core.scheduler import setup_scheduler
-        scheduler = await setup_scheduler()
+        await setup_scheduler()
         logger.info("Scheduler initialized successfully")
     except Exception as e:
         logger.error(f"Scheduler initialization failed: {str(e)}")
@@ -205,7 +170,6 @@ app.mount("/static", CachedStaticFiles(directory="src/static/dist"), name="stati
 app.mount("/fonts", CachedStaticFiles(directory="src/static/dist/fonts"), name="fonts")
 
 # Use shared templates instance with asset management functions
-from src.core.templates import templates
 
 # Include API routers
 app.include_router(analytics_router)
@@ -214,8 +178,8 @@ app.include_router(backoffice_router, include_in_schema=False)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def landing_page(request: Request, db: AsyncSession = Depends(get_db)):
-    user = await get_current_user_if_authenticated(request, db)
+async def landing_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
+    user = await auth_service.get_current_user_if_authenticated(request)
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
 
@@ -634,9 +598,9 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @app.get("/pricing", response_class=HTMLResponse, include_in_schema=False)
-async def pricing_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def pricing_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
     """Pricing information."""
-    user = await get_current_user_if_authenticated(request, db)
+    user = await auth_service.get_current_user_if_authenticated(request)
 
     subscription_info = {
         "active": user.subscription_status == "active" if user else False,
@@ -753,14 +717,14 @@ async def checkout_confirmation(
     request: Request,
     plan: str = "starter",
     interval: str = "monthly",
-    db: AsyncSession = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
     """Checkout confirmation page that waits for subscription activation."""
 
     # First try to get user from session
     user = None
     if is_authenticated(request):
-        user = await get_current_user_if_authenticated(request, db)
+        user = await auth_service.get_current_user_if_authenticated(request)
 
     # If still no user, redirect to login
     if not user:
@@ -811,9 +775,9 @@ async def get_subscription_status(request: Request, db: AsyncSession = Depends(g
 
 
 @app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
-async def documentation_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def documentation_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
     """Documentation."""
-    user = await get_current_user_if_authenticated(request, db)
+    user = await auth_service.get_current_user_if_authenticated(request)
     return templates.TemplateResponse("docs.html", {"request": request, "user": user})
 
 
