@@ -3,75 +3,77 @@
 {% block page_title %}Users{% endblock %}
 
 {% block backoffice_content %}
-<div class="page-header">
-    <h1>Users</h1>
-    <p>Manage user accounts and permissions</p>
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-base-content">Users</h1>
+    <p class="text-base-content/70 mt-2">Manage user accounts and permissions</p>
 </div>
 
-<div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Total Users</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ total_users }}</p>
+<div class="stats shadow mb-8">
+    <div class="stat">
+        <div class="stat-title">Total Users</div>
+        <div class="stat-value">{{ total_users }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Active Users</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ active_users }}</p>
+    <div class="stat">
+        <div class="stat-title">Active Users</div>
+        <div class="stat-value">{{ active_users }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Verified Users</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ verified_users }}</p>
+    <div class="stat">
+        <div class="stat-title">Verified Users</div>
+        <div class="stat-value">{{ verified_users }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Admin Users</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ admin_users }}</p>
+    <div class="stat">
+        <div class="stat-title">Admin Users</div>
+        <div class="stat-value">{{ admin_users }}</div>
     </div>
 </div>
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Role</th>
-            <th>API Keys</th>
-            <th>Created</th>
-            <th>Last Updated</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in users %}
-        <tr>
-            <td>#{{ user.id }}</td>
-            <td>{{ user.email }}</td>
-            <td>
-                {% if user.is_active and user.is_verified %}
-                    <span class="badge badge-success">Active</span>
-                {% elif user.is_active and not user.is_verified %}
-                    <span class="badge badge-warning">Unverified</span>
-                {% else %}
-                    <span class="badge badge-danger">Inactive</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if user.is_admin %}
-                    <span class="badge badge-info">Admin</span>
-                {% else %}
-                    <span class="badge" style="background: #f3f4f6; color: #374151;">User</span>
-                {% endif %}
-            </td>
-            <td>{{ user.api_key_count }}</td>
-            <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '-' }}</td>
-            <td>{{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else '-' }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="overflow-x-auto">
+    <table class="table table-zebra">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>API Keys</th>
+                <th>Created</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr class="hover">
+                <td class="font-mono">#{{ user.id }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.is_active and user.is_verified %}
+                        <span class="badge badge-success">Active</span>
+                    {% elif user.is_active and not user.is_verified %}
+                        <span class="badge badge-warning">Unverified</span>
+                    {% else %}
+                        <span class="badge badge-error">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_admin %}
+                        <span class="badge badge-info">Admin</span>
+                    {% else %}
+                        <span class="badge badge-ghost">User</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.api_key_count }}</td>
+                <td class="font-mono text-sm">{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '-' }}</td>
+                <td class="font-mono text-sm">{{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {% if not users %}
-<div style="text-align: center; padding: 3rem; color: #6b7280;">
-    <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-    <p style="margin: 0; font-size: 1.125rem;">No users found.</p>
+<div class="text-center py-12 text-base-content/60">
+    <i class="fas fa-users text-5xl mb-4 opacity-50"></i>
+    <p class="text-lg">No users found.</p>
 </div>
 {% endif %}
 {% endblock %}

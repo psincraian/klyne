@@ -3,70 +3,74 @@
 {% block page_title %}API Keys{% endblock %}
 
 {% block backoffice_content %}
-<div class="page-header">
-    <h1>API Keys</h1>
-    <p>Monitor API key usage and manage access</p>
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-base-content">API Keys</h1>
+    <p class="text-base-content/70 mt-2">Monitor API key usage and manage access</p>
 </div>
 
-<div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Total API Keys</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ total_keys }}</p>
+<div class="stats shadow mb-8">
+    <div class="stat">
+        <div class="stat-title">Total API Keys</div>
+        <div class="stat-value">{{ total_keys }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">Unique Packages</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ unique_packages }}</p>
+    <div class="stat">
+        <div class="stat-title">Unique Packages</div>
+        <div class="stat-value">{{ unique_packages }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">This Month</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ keys_this_month }}</p>
+    <div class="stat">
+        <div class="stat-title">This Month</div>
+        <div class="stat-value">{{ keys_this_month }}</div>
     </div>
-    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-        <h3 style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.875rem; font-weight: 500;">This Week</h3>
-        <p style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1f2937;">{{ keys_this_week }}</p>
+    <div class="stat">
+        <div class="stat-title">This Week</div>
+        <div class="stat-value">{{ keys_this_week }}</div>
     </div>
 </div>
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Package Name</th>
-            <th>Key</th>
-            <th>User</th>
-            <th>Created</th>
-            <th>Last Updated</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for api_key in api_keys %}
-        <tr>
-            <td>#{{ api_key.id }}</td>
-            <td>
-                <span class="badge" style="background: #ede9fe; color: #7c3aed;">{{ api_key.package_name }}</span>
-            </td>
-            <td>
-                <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem;">
-                    {{ api_key.key[:15] }}...
-                </code>
-            </td>
-            <td>
-                {{ api_key.user.email if api_key.user else 'Unknown' }}
-                {% if api_key.user and api_key.user.is_admin %}
-                    <span class="badge badge-info" style="margin-left: 0.5rem;">Admin</span>
-                {% endif %}
-            </td>
-            <td>{{ api_key.created_at.strftime('%Y-%m-%d %H:%M') if api_key.created_at else '-' }}</td>
-            <td>{{ api_key.updated_at.strftime('%Y-%m-%d %H:%M') if api_key.updated_at else '-' }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="overflow-x-auto">
+    <table class="table table-zebra">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Package Name</th>
+                <th>Key</th>
+                <th>User</th>
+                <th>Created</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for api_key in api_keys %}
+            <tr class="hover">
+                <td class="font-mono">#{{ api_key.id }}</td>
+                <td>
+                    <span class="badge badge-secondary">{{ api_key.package_name }}</span>
+                </td>
+                <td>
+                    <code class="bg-base-200 px-2 py-1 rounded text-sm font-mono">
+                        {{ api_key.key[:15] }}...
+                    </code>
+                </td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <span>{{ api_key.user.email if api_key.user else 'Unknown' }}</span>
+                        {% if api_key.user and api_key.user.is_admin %}
+                            <span class="badge badge-info badge-sm">Admin</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="font-mono text-sm">{{ api_key.created_at.strftime('%Y-%m-%d %H:%M') if api_key.created_at else '-' }}</td>
+                <td class="font-mono text-sm">{{ api_key.updated_at.strftime('%Y-%m-%d %H:%M') if api_key.updated_at else '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {% if not api_keys %}
-<div style="text-align: center; padding: 3rem; color: #6b7280;">
-    <i class="fas fa-key" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-    <p style="margin: 0; font-size: 1.125rem;">No API keys found.</p>
+<div class="text-center py-12 text-base-content/60">
+    <i class="fas fa-key text-5xl mb-4 opacity-50"></i>
+    <p class="text-lg">No API keys found.</p>
 </div>
 {% endif %}
 {% endblock %}
