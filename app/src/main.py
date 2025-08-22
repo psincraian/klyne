@@ -168,6 +168,8 @@ app.add_middleware(
 app.mount("/static", CachedStaticFiles(directory="src/static/dist"), name="static")
 # Additional mount for fonts referenced directly by CSS
 app.mount("/fonts", CachedStaticFiles(directory="src/static/dist/fonts"), name="fonts")
+# Mount public folder with 7-day caching (604800 seconds)
+app.mount("/public", CachedStaticFiles(directory="src/static/public", max_age=604800), name="public")
 
 # Use shared templates instance with asset management functions
 

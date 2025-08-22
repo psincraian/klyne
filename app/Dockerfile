@@ -61,6 +61,9 @@ RUN chmod +x /entrypoint.sh
 # Copy built assets from frontend stage
 COPY --from=frontend-builder /app/src/static/dist/ ./src/static/dist/
 
+# Copy public static files (favicon, etc.)
+COPY src/static/public/ ./src/static/public/
+
 # Create cache directory and change ownership in single layer
 RUN mkdir -p /home/appuser/.cache && \
     chown -R appuser:appuser /app /home/appuser/.cache
