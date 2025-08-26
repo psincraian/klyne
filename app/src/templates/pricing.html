@@ -4,7 +4,7 @@ header(user=user) }}
 
 <!-- Pricing Hero Section -->
 <section
-  class="pt-24 pb-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10"
+  class="py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10"
 >
   <div class="container mx-auto px-4 text-center">
     <div class="max-w-4xl mx-auto">
@@ -174,14 +174,25 @@ header(user=user) }}
               </button>
             </form>
             {% elif user %}
-            <form method="post" action="/api/checkout" class="starter-checkout-form">
-              <input type="hidden" name="tier" value="starter">
-              <input type="hidden" name="interval" value="monthly" class="billing-interval">
+            <form
+              method="post"
+              action="/api/checkout"
+              class="starter-checkout-form"
+            >
+              <input type="hidden" name="tier" value="starter" />
+              <input
+                type="hidden"
+                name="interval"
+                value="monthly"
+                class="billing-interval"
+              />
               <button
                 type="submit"
                 class="btn btn-outline btn-lg w-full hover:btn-primary transition-colors"
               >
-                <span class="subscription-text">Subscribe to Starter Monthly</span>
+                <span class="subscription-text"
+                  >Subscribe to Starter Monthly</span
+                >
               </button>
             </form>
             {% else %}
@@ -278,9 +289,18 @@ header(user=user) }}
               </button>
             </form>
             {% elif user %}
-            <form method="post" action="/api/checkout" class="pro-checkout-form">
-              <input type="hidden" name="tier" value="pro">
-              <input type="hidden" name="interval" value="monthly" class="billing-interval">
+            <form
+              method="post"
+              action="/api/checkout"
+              class="pro-checkout-form"
+            >
+              <input type="hidden" name="tier" value="pro" />
+              <input
+                type="hidden"
+                name="interval"
+                value="monthly"
+                class="billing-interval"
+              />
               <button type="submit" class="klyne-btn-primary w-full">
                 <span class="subscription-text">Subscribe to Pro Monthly</span>
               </button>

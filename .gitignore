@@ -7,3 +7,4 @@ __pycache__/
 !**/secrets.example.env
 **/node_modules
 app/src/static/dist
+**/.DS_Store

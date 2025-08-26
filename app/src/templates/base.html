@@ -6,7 +6,7 @@
     <title>
       {% block title %}Klyne - Package Analytics for Python{% endblock %}
     </title>
-    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon" />
     {% if get_vite_client_url() %}
     <!-- Vite development client -->
     <script type="module" src="{{ get_vite_client_url() }}"></script>
@@ -16,7 +16,11 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body data-theme="klyne">
-    {% block content %}{% endblock %}
+    <div
+      class="klyne-page-wrapper {% if not request.path.startswith('/backoffice') %} klyne-header-offset {% endif %}"
+    >
+      {% block content %}{% endblock %}
+    </div>
 
     <script>
       // Unified navigation functionality (handled by DaisyUI)
