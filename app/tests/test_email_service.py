@@ -88,3 +88,60 @@ class TestEmailService:
         log_calls = [call.args[0] for call in mock_logger.info.call_args_list]
         assert any(email in call for call in log_calls)
         assert any("Reset URL" in call for call in log_calls)
+
+    @pytest.mark.asyncio
+    async def test_send_welcome_email(self):
+        """Test sending welcome email."""
+        email = "test@example.com"
+        user_name = "test"
+
+        # Capture stdout to test console output
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+        result = await EmailService.send_welcome_email(email, user_name)
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+
+        assert result is True
+
+        output = captured_output.getvalue()
+        assert "WELCOME EMAIL" in output
+        assert email in output
+
+    @pytest.mark.asyncio
+    async def test_send_welcome_email_without_name(self):
+        """Test sending welcome email without user name."""
+        email = "test@example.com"
+
+        # Capture stdout to test console output
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+        result = await EmailService.send_welcome_email(email)
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+
+        assert result is True
+
+        output = captured_output.getvalue()
+        assert "WELCOME EMAIL" in output
+        assert email in output
+
+    @pytest.mark.asyncio
+    @patch("src.services.email.logger")
+    async def test_send_welcome_email_logging(self, mock_logger):
+        """Test that welcome email logs correctly."""
+        email = "test@example.com"
+        user_name = "test"
+
+        result = await EmailService.send_welcome_email(email, user_name)
+
+        assert result is True
+        assert mock_logger.info.call_count >= 1
+
+        # Check that email is logged
+        log_calls = [call.args[0] for call in mock_logger.info.call_args_list]
+        assert any(email in call for call in log_calls)

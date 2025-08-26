@@ -373,6 +373,15 @@ async def verify_email(
 
         await db.commit()
 
+        # Send welcome email to newly verified user
+        try:
+            # Extract name from email for personalization (optional)
+            user_name = user.email.split('@')[0] if user.email else None
+            await EmailService.send_welcome_email(user.email, user_name)
+        except Exception as e:
+            # Log error but don't fail the verification process
+            logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
+
         return templates.TemplateResponse(
             "verification_success.html", {"request": request}
         )
