@@ -41,13 +41,13 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def __init__(self, session: AsyncSession):
         self.session = session
-        
-    async def __aenter__(self):
         # Initialize repositories with the session
         self.users = UserRepository(self.session)
         self.api_keys = APIKeyRepository(self.session)
         self.analytics_events = AnalyticsEventRepository(self.session)
         self.email_signups = EmailSignupRepository(self.session)
+        
+    async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
