@@ -443,7 +443,7 @@ dependencies = [
     { name = "greenlet" },
     { name = "itsdangerous" },
     { name = "jinja2" },
-    { name = "logfire", extra = ["fastapi"] },
+    { name = "logfire", extra = ["asyncpg", "fastapi"] },
     { name = "opentelemetry-instrumentation-asyncpg" },
     { name = "passlib" },
     { name = "polar-sdk" },
@@ -478,7 +478,7 @@ requires-dist = [
     { name = "greenlet", specifier = ">=3.1.1" },
     { name = "itsdangerous", specifier = ">=2.2.0" },
     { name = "jinja2", specifier = ">=3.1.4" },
-    { name = "logfire", extras = ["fastapi"], specifier = ">=4.3.6" },
+    { name = "logfire", extras = ["asyncpg", "fastapi"], specifier = ">=4.3.6" },
     { name = "opentelemetry-instrumentation-asyncpg", specifier = ">=0.57b0" },
     { name = "passlib", specifier = ">=1.7.4" },
     { name = "polar-sdk", specifier = ">=0.22.6" },
@@ -521,6 +521,9 @@ wheels = [
 ]
 
 [package.optional-dependencies]
+asyncpg = [
+    { name = "opentelemetry-instrumentation-asyncpg" },
+]
 fastapi = [
     { name = "opentelemetry-instrumentation-fastapi" },
 ]
