@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import logfire
 import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -91,6 +92,7 @@ async def lifespan(app: FastAPI):
     # Initialize scheduler
     try:
         from src.core.scheduler import setup_scheduler
+
         await setup_scheduler()
         logger.info("Scheduler initialized successfully")
     except Exception as e:
@@ -98,12 +100,13 @@ async def lifespan(app: FastAPI):
         # Don't raise - scheduler is not critical for basic app functionality
 
     yield
-    
+
     logger.info("Shutting down Klyne application...")
-    
+
     # Shutdown scheduler
     try:
         from src.core.scheduler import shutdown_scheduler
+
         await shutdown_scheduler()
     except Exception as e:
         logger.error(f"Scheduler shutdown failed: {str(e)}")
@@ -112,6 +115,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Klyne Analytics API", lifespan=lifespan, docs_url=None, redoc_url=None
 )
+
+# configure logfire
+logfire.configure(token=settings.LOGFIRE_TOKEN)
+logfire.instrument_fastapi(app, capture_headers=True)
+logfire.instrument_asyncpg()
 
 
 # Security middleware
@@ -169,7 +177,11 @@ app.mount("/static", CachedStaticFiles(directory="src/static/dist"), name="stati
 # Additional mount for fonts referenced directly by CSS
 app.mount("/fonts", CachedStaticFiles(directory="src/static/dist/fonts"), name="fonts")
 # Mount public folder with 7-day caching (604800 seconds)
-app.mount("/public", CachedStaticFiles(directory="src/static/public", max_age=604800), name="public")
+app.mount(
+    "/public",
+    CachedStaticFiles(directory="src/static/public", max_age=604800),
+    name="public",
+)
 
 # Use shared templates instance with asset management functions
 
@@ -180,7 +192,9 @@ app.include_router(backoffice_router, include_in_schema=False)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def landing_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
+async def landing_page(
+    request: Request, auth_service: AuthService = Depends(get_auth_service)
+):
     user = await auth_service.get_current_user_if_authenticated(request)
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
@@ -376,7 +390,7 @@ async def verify_email(
         # Send welcome email to newly verified user
         try:
             # Extract name from email for personalization (optional)
-            user_name = user.email.split('@')[0] if user.email else None
+            user_name = user.email.split("@")[0] if user.email else None
             await EmailService.send_welcome_email(user.email, user_name)
         except Exception as e:
             # Log error but don't fail the verification process
@@ -530,17 +544,23 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
 
     # Get package usage information
     from src.core.subscription_utils import get_user_package_usage
+
     current_count, limit = await get_user_package_usage(db, user_id)
-    
+
     package_usage = {
         "current": current_count,
         "limit": limit,
-        "tier": user.subscription_tier or "starter"
+        "tier": user.subscription_tier or "starter",
     }
 
     return templates.TemplateResponse(
         "analytics-dashboard.html",
-        {"request": request, "user": user, "api_keys": api_keys, "package_usage": package_usage},
+        {
+            "request": request,
+            "user": user,
+            "api_keys": api_keys,
+            "package_usage": package_usage,
+        },
     )
 
 
@@ -563,25 +583,30 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     api_keys = api_keys_result.scalars().all()
 
     # Get package usage information
-    from src.core.subscription_utils import get_user_package_usage, can_user_create_package
+    from src.core.subscription_utils import (
+        get_user_package_usage,
+        can_user_create_package,
+    )
+
     current_count, limit = await get_user_package_usage(db, user_id)
     can_create, error_message, _, _ = await can_user_create_package(db, user_id)
-    
+
     package_usage = {
         "current": current_count,
         "limit": limit,
         "can_create": can_create,
         "error_message": error_message,
-        "tier": user.subscription_tier or "starter"
+        "tier": user.subscription_tier or "starter",
     }
 
     return templates.TemplateResponse(
-        "dashboard.html", {
-            "request": request, 
-            "user": user, 
+        "dashboard.html",
+        {
+            "request": request,
+            "user": user,
             "api_keys": api_keys,
-            "package_usage": package_usage
-        }
+            "package_usage": package_usage,
+        },
     )
 
 
@@ -609,7 +634,9 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @app.get("/pricing", response_class=HTMLResponse, include_in_schema=False)
-async def pricing_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
+async def pricing_page(
+    request: Request, auth_service: AuthService = Depends(get_auth_service)
+):
     """Pricing information."""
     user = await auth_service.get_current_user_if_authenticated(request)
 
@@ -786,7 +813,9 @@ async def get_subscription_status(request: Request, db: AsyncSession = Depends(g
 
 
 @app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
-async def documentation_page(request: Request, auth_service: AuthService = Depends(get_auth_service)):
+async def documentation_page(
+    request: Request, auth_service: AuthService = Depends(get_auth_service)
+):
     """Documentation."""
     user = await auth_service.get_current_user_if_authenticated(request)
     return templates.TemplateResponse("docs.html", {"request": request, "user": user})
@@ -803,8 +832,11 @@ async def create_api_key(
 
     # Check subscription limits before creating API key
     from src.core.subscription_utils import can_user_create_package
-    can_create, error_message, current_count, limit = await can_user_create_package(db, user_id)
-    
+
+    can_create, error_message, current_count, limit = await can_user_create_package(
+        db, user_id
+    )
+
     if not can_create:
         raise HTTPException(status_code=403, detail=error_message)
 
@@ -827,19 +859,20 @@ async def create_api_key(
     db.add(api_key)
     await db.commit()
     await db.refresh(api_key)
-    
+
     # Count total API keys for this user after creation
     api_keys_count_result = await db.execute(
         select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
     )
     packages_count = api_keys_count_result.scalar()
-    
+
     # Ingest event to Polar
     from src.services.polar import polar_service
+
     await polar_service.ingest_event(
         event_name="packages",
         external_customer_id=str(user_id),
-        metadata={"packagesCount": packages_count}
+        metadata={"packagesCount": packages_count},
     )
 
     return RedirectResponse(url="/dashboard", status_code=302)
@@ -865,19 +898,20 @@ async def delete_api_key(
 
     await db.delete(api_key)
     await db.commit()
-    
+
     # Count total API keys for this user after deletion
     api_keys_count_result = await db.execute(
         select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
     )
     packages_count = api_keys_count_result.scalar()
-    
+
     # Ingest event to Polar
     from src.services.polar import polar_service
+
     await polar_service.ingest_event(
         event_name="packages",
         external_customer_id=str(user_id),
-        metadata={"packagesCount": packages_count}
+        metadata={"packagesCount": packages_count},
     )
 
     return {"success": True}
@@ -901,19 +935,20 @@ async def delete_api_key_form(
     if api_key:
         await db.delete(api_key)
         await db.commit()
-        
+
         # Count total API keys for this user after deletion
         api_keys_count_result = await db.execute(
             select(func.count(APIKey.id)).filter(APIKey.user_id == user_id)
         )
         packages_count = api_keys_count_result.scalar()
-        
+
         # Ingest event to Polar
         from src.services.polar import polar_service
+
         await polar_service.ingest_event(
             event_name="packages",
             external_customer_id=str(user_id),
-            metadata={"packagesCount": packages_count}
+            metadata={"packagesCount": packages_count},
         )
 
     return RedirectResponse(url="/dashboard", status_code=302)
@@ -1033,6 +1068,7 @@ async def scheduler_status():
     """Get the current status of the scheduler and its jobs."""
     try:
         from src.core.scheduler import get_scheduler_status
+
         return get_scheduler_status()
     except Exception as e:
         return {"error": str(e)}
@@ -1043,6 +1079,7 @@ async def trigger_sync():
     """Manually trigger the Polar package sync."""
     try:
         from src.core.scheduler import trigger_polar_sync
+
         results = await trigger_polar_sync()
         return results
     except Exception as e:

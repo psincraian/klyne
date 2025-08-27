@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     CF_TURNSTILE_SECRET: str = ""
     CF_TURNSTILE_SITE_KEY: str = "1x00000000000000000000AA"
 
+    LOGFIRE_TOKEN: str = ""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Generate a secure secret key if using the default in production
