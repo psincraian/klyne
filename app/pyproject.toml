@@ -26,6 +26,7 @@ dependencies = [
     "polar-sdk>=0.22.6",
     "apscheduler>=3.10.4",
     "logfire[fastapi]>=4.3.6",
+    "opentelemetry-instrumentation-asyncpg>=0.57b0",
 ]
 
 [tool.hatch.build.targets.wheel]
