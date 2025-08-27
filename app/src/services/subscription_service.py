@@ -278,3 +278,56 @@ class SubscriptionService:
         except Exception as e:
             logger.error(f"Failed to create checkout session for user {user_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+    async def has_any_subscription(self, user_id: int) -> bool:
+        """Check if user has ever had any subscription (active or inactive)."""
+        user = await self.uow.users.get_by_id(user_id)
+        if not user:
+            return False
+            
+        return user.subscription_tier is not None
+
+    async def is_subscription_expired(self, user_id: int) -> bool:
+        """Check if user had a subscription that is now expired/canceled."""
+        user = await self.uow.users.get_by_id(user_id)
+        if not user:
+            return False
+            
+        return (user.subscription_tier is not None and 
+                user.subscription_status != "active")
+
+    async def get_subscription_message_for_user(self, user_id: int) -> Dict[str, Any]:
+        """Get appropriate subscription message and CTA for user based on their status."""
+        user = await self.uow.users.get_by_id(user_id)
+        if not user:
+            return {
+                "title": "Account Error",
+                "message": "User not found",
+                "cta_text": "Contact Support",
+                "cta_url": "/support"
+            }
+
+        has_any = await self.has_any_subscription(user_id)
+        is_active = await self.has_active_subscription(user_id)
+        
+        if is_active:
+            return {
+                "title": "Active Subscription",
+                "message": f"You have an active {user.subscription_tier.title()} subscription",
+                "cta_text": "Manage Subscription",
+                "cta_url": "/pricing"
+            }
+        elif has_any:
+            return {
+                "title": "Subscription Expired",
+                "message": "Your subscription has expired. Reactivate to continue using Klyne analytics.",
+                "cta_text": "Reactivate Subscription",
+                "cta_url": "/pricing"
+            }
+        else:
+            return {
+                "title": "Subscription Required",
+                "message": "Get started with package analytics by choosing a subscription plan that fits your needs.",
+                "cta_text": "View Pricing Plans",
+                "cta_url": "/pricing"
+            }

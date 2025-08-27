@@ -32,23 +32,41 @@ active_tab="dashboard") }}
           >
             <i class="fas fa-plus text-primary"></i>
           </div>
-          <h2 class="card-title text-2xl">Create New API Key</h2>
+          <h2 class="card-title text-2xl">
+            {% if package_usage.can_create %}
+              Create New API Key
+            {% else %}
+              Get Started with Klyne
+            {% endif %}
+          </h2>
         </div>
 
+        {% if package_usage.can_create %}
         <p class="text-base-content/70 mb-6">
           Each package needs its own unique API key for analytics tracking. API
           keys are public identifiers (like Google Analytics IDs) and are safe
           to include directly in your code.
         </p>
+        {% else %}
+        <p class="text-base-content/70 mb-6">
+          Start tracking your Python package usage with Klyne's powerful analytics platform.
+          Choose a subscription plan to create API keys and access detailed analytics.
+        </p>
+        {% endif %}
 
         <!-- Package Usage Info -->
         <div class="bg-base-200 rounded-lg p-4 mb-6">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chart-pie text-accent text-sm"></i>
+                {% if package_usage.can_create %}
+                  <i class="fas fa-chart-pie text-accent text-sm"></i>
+                {% else %}
+                  <i class="fas fa-lock text-warning text-sm"></i>
+                {% endif %}
               </div>
               <div>
+                {% if package_usage.can_create %}
                 <div class="font-semibold">Package Usage</div>
                 <div class="text-sm text-base-content/60">
                   {% if package_usage.limit == -1 %}
@@ -56,19 +74,30 @@ active_tab="dashboard") }}
                   {% else %}
                     {{ package_usage.current }}/{{ package_usage.limit }} packages used
                   {% endif %}
-                  • {{ package_usage.tier.title() }} Plan
+                  • {% if package_usage.tier == "none" %}No Plan{% else %}{{ package_usage.tier.title() }} Plan{% endif %}
                 </div>
+                {% else %}
+                <div class="font-semibold">Subscription Required</div>
+                <div class="text-sm text-base-content/60">
+                  Subscribe to create API keys and access analytics
+                </div>
+                {% endif %}
               </div>
             </div>
-            {% if package_usage.tier == "starter" and package_usage.current > 0 %}
+            {% if package_usage.can_create and package_usage.tier == "starter" and package_usage.current > 0 %}
             <a href="/pricing" class="btn btn-outline btn-sm">
               <i class="fas fa-arrow-up mr-1"></i>
               Upgrade
             </a>
+            {% elif not package_usage.can_create %}
+            <a href="/pricing" class="btn btn-primary btn-sm">
+              <i class="fas fa-rocket mr-1"></i>
+              Subscribe Now
+            </a>
             {% endif %}
           </div>
           
-          {% if package_usage.limit != -1 %}
+          {% if package_usage.can_create and package_usage.limit != -1 %}
           <div class="mt-3">
             <div class="flex justify-between items-center mb-1">
               <span class="text-xs text-base-content/60">Usage</span>
@@ -83,18 +112,9 @@ active_tab="dashboard") }}
           {% endif %}
         </div>
 
-        <!-- Create new API key form -->
-        {% if not package_usage.can_create %}
-        <div class="alert alert-warning mb-6">
-          <i class="fas fa-exclamation-triangle"></i>
-          <div>
-            <h3 class="font-semibold">Package Limit Reached</h3>
-            <div class="text-sm">{{ package_usage.error_message }}</div>
-          </div>
-        </div>
-        {% endif %}
-
-        <form action="/api/api-keys" method="POST" class="mb-6" id="create-key" {% if not package_usage.can_create %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+        <!-- Create new API key form or subscription CTA -->
+        {% if package_usage.can_create %}
+        <form action="/api/api-keys" method="POST" class="mb-6" id="create-key">
           <div class="form-control mb-4">
             <label class="label">
               <span class="label-text font-semibold flex items-center gap-2">
@@ -115,15 +135,114 @@ active_tab="dashboard") }}
               >
             </label>
           </div>
-          <button type="submit" class="klyne-btn-primary" {% if not package_usage.can_create %}disabled{% endif %}>
+          <button type="submit" class="klyne-btn-primary">
             <i class="fas fa-plus mr-2"></i>
-            {% if package_usage.can_create %}
-              Create API Key
-            {% else %}
-              Limit Reached - Upgrade to Pro
-            {% endif %}
+            Create API Key
           </button>
         </form>
+        {% else %}
+        <!-- Subscription Required Alert -->
+        <div class="alert alert-info mb-6">
+          <i class="fas fa-info-circle"></i>
+          <div>
+            <h3 class="font-semibold">{{ package_usage.error_message.split('.')[0] }}</h3>
+            <div class="text-sm">Choose from our flexible plans to start tracking your package analytics today.</div>
+          </div>
+        </div>
+
+        <!-- Subscription CTA -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="card bg-base-100 border border-primary/20 shadow-sm">
+            <div class="card-body p-4">
+              <div class="text-center mb-4">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fas fa-box text-primary"></i>
+                </div>
+                <h4 class="font-semibold text-lg">Starter</h4>
+                <p class="text-xs text-base-content/60 mb-2">Perfect for single package developers</p>
+                <div class="text-2xl font-bold text-primary">$19<span class="text-sm text-base-content/60 font-normal">/month</span></div>
+              </div>
+              <ul class="text-sm space-y-2 mb-4">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span><strong>1 Python package</strong> with unlimited tracking</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Real-time analytics dashboard</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>OS & Python version insights</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Usage trends & patterns</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>12 months of data history</span>
+                </li>
+              </ul>
+              <a href="/pricing" class="btn btn-outline btn-primary btn-sm btn-block">
+                Choose Starter
+              </a>
+            </div>
+          </div>
+
+          <div class="card bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary shadow-sm relative">
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <div class="badge badge-primary px-3 py-1">
+                <i class="fas fa-crown mr-1"></i>
+                Most Popular
+              </div>
+            </div>
+            <div class="card-body p-4 pt-6">
+              <div class="text-center mb-4">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fas fa-boxes text-primary"></i>
+                </div>
+                <h4 class="font-semibold text-lg">Pro</h4>
+                <p class="text-xs text-base-content/60 mb-2">For developers with multiple packages</p>
+                <div class="flex items-baseline justify-center gap-1 mb-1">
+                  <span class="text-xl font-bold text-primary">$25</span>
+                  <span class="text-base text-base-content/80">+ $9</span>
+                </div>
+                <div class="text-xs text-base-content/60">/month per additional package</div>
+              </div>
+              <ul class="text-sm space-y-2 mb-4">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span><strong>Multiple packages</strong> with bulk pricing</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span><strong>Everything in Starter</strong> plan</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Cross-package analytics & comparisons</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Advanced filtering & segmentation</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Data export (CSV, JSON, API)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-success text-xs mt-1 flex-shrink-0"></i>
+                  <span>Priority support & onboarding</span>
+                </li>
+              </ul>
+              <a href="/pricing" class="btn btn-primary btn-sm btn-block">
+                Choose Pro
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 

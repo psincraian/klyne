@@ -547,10 +547,15 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
         <div>
           <h1 class="analytics-title">Welcome to Klyne</h1>
           <p class="analytics-subtitle">
-            Monitor your package usage and performance metrics
+            {% if user.subscription_status == "active" %}
+              Monitor your package usage and performance metrics
+            {% else %}
+              Powerful analytics for your Python packages
+            {% endif %}
           </p>
         </div>
         <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+          {% if user.subscription_status == "active" %}
           <div class="text-sm font-medium">
             {% if package_usage.limit == -1 %}
               {{ package_usage.current }} packages
@@ -558,11 +563,19 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
               {{ package_usage.current }}/{{ package_usage.limit }} packages
             {% endif %}
           </div>
-          <div class="text-xs opacity-75">{{ package_usage.tier.title() }} Plan</div>
+          <div class="text-xs opacity-75">{% if package_usage.tier == "none" %}No Plan{% else %}{{ package_usage.tier.title() }} Plan{% endif %}</div>
+          {% else %}
+          <div class="text-sm font-medium flex items-center gap-2">
+            <i class="fas fa-lock"></i>
+            Subscription Required
+          </div>
+          <div class="text-xs opacity-75">Choose a plan below</div>
+          {% endif %}
         </div>
       </div>
     </div>
 
+    {% if user.subscription_status == "active" %}
     <div class="controls-card">
       <div class="controls-grid">
         <div class="control-group">
@@ -598,7 +611,159 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
     <div id="overview-stats" class="stats-grid">
       <!-- Overview stats will be populated here -->
     </div>
+    {% else %}
+    <!-- Subscription Required Section -->
+    <div class="subscription-wall">
+      <div style="background: white; border-radius: 16px; padding: 3rem; margin-bottom: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; text-align: center;">
+        <div style="margin-bottom: 2rem;">
+          <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 1.5rem;">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h2 style="font-size: 2rem; font-weight: bold; color: #1f2937; margin-bottom: 1rem;">Unlock Your Analytics</h2>
+          <p style="font-size: 1.125rem; color: #6b7280; margin-bottom: 2rem; max-width: 32rem; margin-left: auto; margin-right: auto;">
+            Get detailed insights into your Python package usage with real-time analytics, user demographics, and performance metrics.
+          </p>
+        </div>
 
+        <!-- Feature Preview Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+          <div style="background: #f9fafb; padding: 2rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+            <div style="width: 3rem; height: 3rem; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #3b82f6;">
+              <i class="fas fa-chart-area"></i>
+            </div>
+            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">Usage Tracking</h3>
+            <p style="color: #6b7280; font-size: 0.9rem;">Monitor how your package is being used over time with detailed analytics</p>
+          </div>
+
+          <div style="background: #f9fafb; padding: 2rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+            <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #16a34a;">
+              <i class="fab fa-python"></i>
+            </div>
+            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">Python Versions</h3>
+            <p style="color: #6b7280; font-size: 0.9rem;">See which Python versions your users are running</p>
+          </div>
+
+          <div style="background: #f9fafb; padding: 2rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+            <div style="width: 3rem; height: 3rem; background: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #d97706;">
+              <i class="fas fa-desktop"></i>
+            </div>
+            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">OS Distribution</h3>
+            <p style="color: #6b7280; font-size: 0.9rem;">Understand your users' operating system preferences</p>
+          </div>
+        </div>
+
+        <!-- Subscription Plans -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- Starter Plan -->
+          <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 2rem; position: relative;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+              <div style="width: 4rem; height: 4rem; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i class="fas fa-box" style="color: #3b82f6; font-size: 1.25rem;"></i>
+              </div>
+              <h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #1f2937;">Starter</h3>
+              <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">Perfect for single package developers</p>
+              <div style="font-size: 2rem; font-weight: bold; color: #6366f1; margin-bottom: 0.25rem;">$19</div>
+              <div style="color: #6b7280; font-size: 0.875rem;">/month</div>
+            </div>
+            <ul style="list-style: none; padding: 0; margin-bottom: 2rem; font-size: 0.875rem; color: #374151;">
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span><strong>1 Python package</strong> with unlimited tracking</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Real-time analytics dashboard</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>OS & Python version insights</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Usage trends & patterns</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>API access</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>12 months of data history</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Email support</span>
+              </li>
+            </ul>
+            <a href="/pricing" style="display: block; background: transparent; border: 1px solid #6366f1; color: #6366f1; text-align: center; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#6366f1'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#6366f1';">
+              Get Started with Starter
+            </a>
+          </div>
+
+          <!-- Pro Plan -->
+          <div style="background: white; border: 2px solid #6366f1; border-radius: 12px; padding: 2rem; position: relative;">
+            <div style="position: absolute; top: -0.75rem; left: 50%; transform: translateX(-50%); background: #6366f1; color: white; padding: 0.25rem 1rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
+              <i class="fas fa-crown"></i>
+              Most Popular
+            </div>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+              <div style="width: 4rem; height: 4rem; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i class="fas fa-boxes" style="color: #3b82f6; font-size: 1.25rem;"></i>
+              </div>
+              <h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #1f2937;">Pro</h3>
+              <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">For developers with multiple packages</p>
+              <div style="display: flex; align-items: baseline; justify-content: center; gap: 0.25rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 1.5rem; font-weight: bold; color: #6366f1;">$25</span>
+                <span style="font-size: 1.125rem; color: #6b7280;">+ $9</span>
+              </div>
+              <div style="color: #6b7280; font-size: 0.875rem;">/month</div>
+              <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">per additional package/month</div>
+            </div>
+            <ul style="list-style: none; padding: 0; margin-bottom: 2rem; font-size: 0.875rem; color: #374151;">
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span><strong>Multiple packages</strong> with bulk pricing</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span><strong>Everything in Starter</strong> plan</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Cross-package analytics & comparisons</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Advanced filtering & segmentation</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Data export (CSV, JSON, API)</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Custom dashboard & reports</span>
+              </li>
+              <li style="display: flex; align-items: flex-start; margin-bottom: 0.75rem;">
+                <i class="fas fa-check" style="margin-right: 0.75rem; color: #10b981; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                <span>Priority support & onboarding</span>
+              </li>
+            </ul>
+            <a href="/pricing" style="display: block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-align: center; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.4)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+              Subscribe to Pro
+            </a>
+          </div>
+        </div>
+
+        <p style="color: #6b7280; font-size: 0.9rem;">
+          Start your subscription today and get immediate access to all analytics features.
+          <a href="/pricing" style="color: #6366f1; text-decoration: underline;">View detailed pricing →</a>
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if user.subscription_status == "active" %}
     <div class="charts-section">
       <div class="chart-row full-width">
         <div class="chart-container">
@@ -805,6 +970,7 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
         </a>
       </div>
     </div>
+    {% endif %}
   </div>
 </div>
 

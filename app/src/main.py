@@ -550,7 +550,7 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
     package_usage = {
         "current": current_count,
         "limit": limit,
-        "tier": user.subscription_tier or "starter",
+        "tier": user.subscription_tier or "none",
     }
 
     return templates.TemplateResponse(
@@ -596,7 +596,7 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
         "limit": limit,
         "can_create": can_create,
         "error_message": error_message,
-        "tier": user.subscription_tier or "starter",
+        "tier": user.subscription_tier or "none",
     }
 
     return templates.TemplateResponse(
