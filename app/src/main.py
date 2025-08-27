@@ -137,7 +137,7 @@ async def add_security_headers(request: Request, call_next):
     # Different CSP for development vs production
     if settings.ENVIRONMENT == "production":
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://challenges.cloudflare.com; child-src https://challenges.cloudflare.com; worker-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com"
+            "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://challenges.cloudflare.com; child-src https://challenges.cloudflare.com; worker-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com https://*.posthog.com"
         )
     else:
         # More permissive CSP for development (allows Vite HMR)
