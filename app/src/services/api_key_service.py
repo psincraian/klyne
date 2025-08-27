@@ -31,6 +31,25 @@ class APIKeyService:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
+        # Check subscription requirements
+        if not user.subscription_tier or user.subscription_status != "active":
+            raise HTTPException(
+                status_code=403, 
+                detail="An active subscription is required to create API keys. Please subscribe to get started."
+            )
+
+        # Check if user can create more API keys based on subscription limits
+        from src.services.subscription_service import SubscriptionService
+        subscription_service = SubscriptionService(self.uow)
+        can_create = await subscription_service.can_create_api_key(user_id)
+        if not can_create:
+            limits = await subscription_service.get_subscription_limits(user_id)
+            max_keys = limits["limits"]["max_api_keys"]
+            raise HTTPException(
+                status_code=403, 
+                detail=f"You've reached the limit of {max_keys} API key{'s' if max_keys != 1 else ''} for your {user.subscription_tier.title()} plan. Please upgrade to Pro to create more API keys."
+            )
+
         # Check if user already has an API key for this package
         existing_key = await self.uow.api_keys.get_by_user_and_package(user_id, package_name)
         if existing_key:
@@ -215,9 +234,14 @@ class APIKeyService:
         if not user:
             return False
 
-        # Simple check - if user has active subscription, they can create keys
-        # You could integrate with SubscriptionService here for more complex logic
-        return user.subscription_status == "active"
+        # Check if user has active subscription and is within limits
+        if not user.subscription_tier or user.subscription_status != "active":
+            return False
+
+        # Check against package limits using subscription service
+        from src.services.subscription_service import SubscriptionService
+        subscription_service = SubscriptionService(self.uow)
+        return await subscription_service.can_create_api_key(user_id)
 
     async def get_api_key_by_user_and_package(self, user_id: int, package_name: str) -> Optional[APIKey]:
         """Get API key for a specific user and package combination."""
