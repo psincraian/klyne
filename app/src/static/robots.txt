@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://klyne.dev/sitemap.xml
+
+# Block access to sensitive paths
+Disallow: /backoffice/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.py$
+
+# Allow specific important pages
+Allow: /
+Allow: /register
+Allow: /success
+Allow: /public/
+
+# Crawl delay (optional - be respectful)
+Crawl-delay: 1

@@ -6,6 +6,30 @@
     <title>
       {% block title %}Klyne - Package Analytics for Python{% endblock %}
     </title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block description %}Track and understand how developers use your Python packages. Real-time insights on OS distribution, Python versions, and usage patterns with Klyne analytics.{% endblock %}" />
+    <meta name="keywords" content="{% block keywords %}python package analytics, package usage tracking, python development tools, package statistics, developer analytics, python metrics{% endblock %}" />
+    <meta name="author" content="Klyne" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="{% block canonical %}https://klyne.dev{{ request.url.path }}{% endblock %}" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}{{ self.description() }}{% endblock %}" />
+    <meta property="og:url" content="{% block og_url %}https://klyne.dev{{ request.url.path }}{% endblock %}" />
+    <meta property="og:site_name" content="Klyne" />
+    <meta property="og:image" content="{% block og_image %}https://klyne.dev/public/og-image.png{% endblock %}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="{% block twitter_title %}{{ self.title() }}{% endblock %}" />
+    <meta property="twitter:description" content="{% block twitter_description %}{{ self.description() }}{% endblock %}" />
+    <meta property="twitter:image" content="{% block twitter_image %}https://klyne.dev/public/og-image.png{% endblock %}" />
+    
     <link rel="icon" href="/public/favicon.ico" type="image/x-icon" />
     {% if get_vite_client_url() %}
     <!-- Vite development client -->
@@ -69,6 +93,38 @@
         person_profiles: "always", // or 'always' to create profiles for anonymous users as well
       });
     </script>
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Klyne",
+      "description": "Package analytics tool for Python packages. Track OS distribution, Python versions, and usage patterns with real-time insights.",
+      "url": "https://klyne.dev",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "programmingLanguage": "Python",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free package analytics for Python developers"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Klyne",
+        "url": "https://klyne.dev"
+      },
+      "featureList": [
+        "OS distribution tracking",
+        "Python version analytics",
+        "Real-time usage insights",
+        "Privacy-first approach",
+        "Simple integration"
+      ]
+    }
+    </script>
+    
     {% block extra_head %}{% endblock %}
   </head>
   <body data-theme="klyne">

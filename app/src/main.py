@@ -6,7 +6,7 @@ import logfire
 import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
@@ -1090,6 +1090,21 @@ async def health_check():
 @app.get("/healthz", include_in_schema=False)
 async def healthz():
     return {"status": "ok"}
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+async def robots_txt():
+    """Serve robots.txt for SEO."""
+    with open("src/static/robots.txt", "r") as f:
+        return f.read()
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    """Serve sitemap.xml for SEO."""
+    with open("src/static/sitemap.xml", "r") as f:
+        content = f.read()
+    return Response(content=content, media_type="application/xml")
 
 
 @app.get("/scheduler/status", include_in_schema=False)
