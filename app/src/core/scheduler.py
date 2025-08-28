@@ -12,6 +12,7 @@ from apscheduler.executors.asyncio import AsyncIOExecutor
 
 from src.core.config import settings
 from src.commands.sync_polar_packages import sync_all_users_packages
+from src.commands.cleanup_free_plan_data import cleanup_free_plan_analytics_data
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,22 @@ async def setup_scheduler() -> AsyncIOScheduler:
     else:
         logger.info("Polar sync is disabled, skipping job scheduling")
     
+    # Add data cleanup job for free plan users
+    logger.info(
+        f"Scheduling daily free plan data cleanup at {settings.DATA_CLEANUP_HOUR:02d}:"
+        f"{settings.DATA_CLEANUP_MINUTE:02d} UTC (retention: {settings.FREE_PLAN_DATA_RETENTION_DAYS} days)"
+    )
+    
+    scheduler.add_job(
+        cleanup_free_plan_analytics_data,
+        trigger='cron',
+        hour=settings.DATA_CLEANUP_HOUR,
+        minute=settings.DATA_CLEANUP_MINUTE,
+        id='free_plan_data_cleanup',
+        name='Free Plan Data Cleanup',
+        replace_existing=True
+    )
+    
     # Start the scheduler
     scheduler.start()
     logger.info("Scheduler started successfully")
@@ -124,6 +141,18 @@ async def trigger_polar_sync() -> dict:
     """
     logger.info("Manually triggering Polar sync job")
     return await sync_all_users_packages()
+
+
+async def trigger_free_plan_cleanup() -> dict:
+    """
+    Manually trigger the free plan data cleanup job.
+    Useful for testing or manual runs.
+    
+    Returns:
+        Cleanup results dictionary
+    """
+    logger.info("Manually triggering free plan data cleanup")
+    return await cleanup_free_plan_analytics_data()
 
 
 def get_scheduler_status() -> dict:

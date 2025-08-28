@@ -119,6 +119,30 @@ async def db_session(async_session):
 
 
 @pytest_asyncio.fixture 
+async def authenticated_free_user(auth_client: AsyncClient, async_session: AsyncSession):
+    """Create an authenticated free plan user."""
+    from src.models.user import User
+    from src.core.auth import get_password_hash
+    
+    # Create free user
+    user = User(
+        email="free@test.com",
+        hashed_password=get_password_hash("password123"),
+        is_verified=True,
+        subscription_tier="free",
+        subscription_status="active"
+    )
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
+    
+    # Set authentication for the client
+    auth_client._test_user_id = user.id
+    
+    return user
+
+
+@pytest_asyncio.fixture 
 async def authenticated_starter_user(auth_client: AsyncClient, async_session: AsyncSession):
     """Create an authenticated starter user."""
     from src.models.user import User
@@ -129,7 +153,8 @@ async def authenticated_starter_user(auth_client: AsyncClient, async_session: As
         email="starter@test.com",
         hashed_password=get_password_hash("password123"),
         is_verified=True,
-        subscription_tier="starter"
+        subscription_tier="starter",
+        subscription_status="active"
     )
     async_session.add(user)
     await async_session.commit()
@@ -153,7 +178,8 @@ async def authenticated_starter_user_with_api_key(auth_client: AsyncClient, asyn
         email="starter_with_key@test.com",
         hashed_password=get_password_hash("password123"),
         is_verified=True,
-        subscription_tier="starter"
+        subscription_tier="starter",
+        subscription_status="active"
     )
     async_session.add(user)
     await async_session.commit()
@@ -185,7 +211,8 @@ async def authenticated_pro_user(auth_client: AsyncClient, async_session: AsyncS
         email="pro@test.com",
         hashed_password=get_password_hash("password123"),
         is_verified=True,
-        subscription_tier="pro"
+        subscription_tier="pro",
+        subscription_status="active"
     )
     async_session.add(user)
     await async_session.commit()

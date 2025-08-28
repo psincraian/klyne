@@ -11,7 +11,9 @@ from src.models.api_key import APIKey
 
 async def get_package_limit_for_tier(subscription_tier: str, subscription_status: str = None) -> int:
     """Get the package limit for a given subscription tier."""
-    if subscription_tier == "starter" and subscription_status == "active":
+    if subscription_tier == "free" and subscription_status == "active":
+        return 1
+    elif subscription_tier == "starter" and subscription_status == "active":
         return 1
     elif subscription_tier in ["pro", "enterprise"] and subscription_status == "active":
         return -1  # Unlimited

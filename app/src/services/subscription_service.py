@@ -156,26 +156,37 @@ class SubscriptionService:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Define limits based on subscription tier
-        if user.subscription_tier == "starter":
+        if user.subscription_tier == "free":
+            limits = {
+                "max_api_keys": 1,
+                "max_events_per_month": 3000,  # ~100/hour * 24 * 30
+                "max_packages": 1,
+                "data_retention_days": 7,
+                "features": ["basic_analytics", "7_day_retention"]
+            }
+        elif user.subscription_tier == "starter":
             limits = {
                 "max_api_keys": 1,
                 "max_events_per_month": 10000,
                 "max_packages": 1,
-                "features": ["basic_analytics", "email_support"]
+                "data_retention_days": -1,  # Unlimited
+                "features": ["basic_analytics", "unlimited_retention", "email_support"]
             }
         elif user.subscription_tier == "pro":
             limits = {
                 "max_api_keys": 10,
                 "max_events_per_month": 100000,
                 "max_packages": 10,
-                "features": ["advanced_analytics", "priority_support", "custom_alerts"]
+                "data_retention_days": -1,  # Unlimited
+                "features": ["advanced_analytics", "unlimited_retention", "priority_support", "custom_alerts"]
             }
         else:
-            # Free tier or no subscription
+            # No subscription
             limits = {
                 "max_api_keys": 0,
                 "max_events_per_month": 0,
                 "max_packages": 0,
+                "data_retention_days": 0,
                 "features": []
             }
 

@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     POLAR_SYNC_ENABLED: bool = True
     POLAR_SYNC_HOUR: int = 2  # UTC hour (2 AM UTC by default)
     POLAR_SYNC_MINUTE: int = 0  # Minute within the hour
+    
+    # Free Plan Settings
+    FREE_PLAN_DATA_RETENTION_DAYS: int = 7
+    FREE_PLAN_RATE_LIMIT_PER_HOUR: int = 100
+    PAID_PLAN_RATE_LIMIT_PER_HOUR: int = 1000
+    DATA_CLEANUP_HOUR: int = 3  # UTC hour for daily cleanup (3 AM UTC)
+    DATA_CLEANUP_MINUTE: int = 0
 
     CF_TURNSTILE_SECRET: str = ""
     CF_TURNSTILE_SITE_KEY: str = "1x00000000000000000000AA"

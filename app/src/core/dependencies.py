@@ -10,14 +10,14 @@ from src.models.user import User
 async def requires_active_subscription_for_api_key(
     api_key: APIKey, db: AsyncSession = Depends(get_db)
 ) -> User:
-    """Require API key to be valid and associated with an active subscription."""
+    """Require API key to be valid and associated with an active subscription (including free plan)."""
     user = await db.execute(select(User).filter(User.id == api_key.user_id))
     user = user.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    if user.subscription_status is None or user.subscription_status != "active":
+    if not user.has_active_subscription:
         raise HTTPException(status_code=403, detail="Active subscription required")
 
     return user
@@ -37,7 +37,7 @@ async def requires_active_subscription(user_id: int, db: AsyncSession = Depends(
     if not user.is_verified:
         raise HTTPException(status_code=403, detail="Email verification required")
 
-    if not user.subscription_tier or user.subscription_status != "active":
+    if not user.has_active_subscription:
         raise HTTPException(
             status_code=403, 
             detail="An active subscription is required to access this feature. Please subscribe to get started."

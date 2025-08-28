@@ -18,17 +18,75 @@ class TestPackageLimits:
 
     async def test_get_package_limit_for_tier(self):
         """Test package limit calculation for different tiers."""
+        # Free tier should have limit of 1
+        assert await get_package_limit_for_tier("free", "active") == 1
+        
         # Starter tier should have limit of 1
-        assert await get_package_limit_for_tier("starter") == 1
+        assert await get_package_limit_for_tier("starter", "active") == 1
         
         # Pro tier should have unlimited packages (-1)
-        assert await get_package_limit_for_tier("pro") == -1
+        assert await get_package_limit_for_tier("pro", "active") == -1
         
         # Enterprise tier should have unlimited packages (-1)
-        assert await get_package_limit_for_tier("enterprise") == -1
+        assert await get_package_limit_for_tier("enterprise", "active") == -1
         
-        # Unknown tier should default to starter limit
-        assert await get_package_limit_for_tier("unknown") == 1
+        # Inactive subscriptions should have no access
+        assert await get_package_limit_for_tier("starter", "canceled") == 0
+        assert await get_package_limit_for_tier("free", "canceled") == 0
+        
+        # Unknown tier should default to no access
+        assert await get_package_limit_for_tier("unknown", "active") == 0
+
+    async def test_free_user_can_create_first_package(self, db_session: AsyncSession):
+        """Test that free users can create their first package."""
+        # Create a free user with no API keys
+        user = User(
+            email="free@test.com",
+            hashed_password="hashed",
+            is_verified=True,
+            subscription_tier="free",
+            subscription_status="active"
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Should be able to create first package
+        can_create, error_msg, current, limit = await can_user_create_package(db_session, user.id)
+        assert can_create is True
+        assert error_msg == ""
+        assert current == 0
+        assert limit == 1
+
+    async def test_free_user_cannot_create_second_package(self, db_session: AsyncSession):
+        """Test that free users cannot create a second package."""
+        # Create a free user
+        user = User(
+            email="free2@test.com",
+            hashed_password="hashed",
+            is_verified=True,
+            subscription_tier="free",
+            subscription_status="active"
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Create first API key
+        api_key = APIKey(
+            package_name="test-package",
+            key="test-key",
+            user_id=user.id
+        )
+        db_session.add(api_key)
+        await db_session.commit()
+
+        # Should NOT be able to create second package
+        can_create, error_msg, current, limit = await can_user_create_package(db_session, user.id)
+        assert can_create is False
+        assert "limit of 1 package" in error_msg
+        assert current == 1
+        assert limit == 1
 
     async def test_starter_user_can_create_first_package(self, db_session: AsyncSession):
         """Test that starter users can create their first package."""
@@ -37,7 +95,8 @@ class TestPackageLimits:
             email="starter@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier="starter"
+            subscription_tier="starter",
+            subscription_status="active"
         )
         db_session.add(user)
         await db_session.commit()
@@ -57,7 +116,8 @@ class TestPackageLimits:
             email="starter2@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier="starter"
+            subscription_tier="starter",
+            subscription_status="active"
         )
         db_session.add(user)
         await db_session.commit()
@@ -87,7 +147,8 @@ class TestPackageLimits:
             email="pro@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier="pro"
+            subscription_tier="pro",
+            subscription_status="active"
         )
         db_session.add(user)
         await db_session.commit()
@@ -117,7 +178,8 @@ class TestPackageLimits:
             email="enterprise@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier="enterprise"
+            subscription_tier="enterprise",
+            subscription_status="active"
         )
         db_session.add(user)
         await db_session.commit()
@@ -147,7 +209,8 @@ class TestPackageLimits:
             email="nosubscription@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier=None
+            subscription_tier=None,
+            subscription_status=None
         )
         db_session.add(user)
         await db_session.commit()
@@ -165,7 +228,8 @@ class TestPackageLimits:
             email="usage@test.com",
             hashed_password="hashed",
             is_verified=True,
-            subscription_tier="starter"
+            subscription_tier="starter",
+            subscription_status="active"
         )
         db_session.add(user)
         await db_session.commit()
@@ -233,6 +297,16 @@ class TestPackageLimitAPI:
             data={"package_name": "third-package"}
         )
         assert response.status_code == 302  # Should succeed
+
+    async def test_free_user_can_create_first_api_key(
+        self, auth_client: AsyncClient, authenticated_free_user
+    ):
+        """Test that free users can create their first API key."""
+        response = await auth_client.post(
+            "/api/api-keys",
+            data={"package_name": "first-package"}
+        )
+        assert response.status_code == 302  # Redirect to dashboard
 
     async def test_starter_user_can_create_first_api_key(
         self, auth_client: AsyncClient, authenticated_starter_user

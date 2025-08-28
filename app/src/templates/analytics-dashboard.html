@@ -575,6 +575,27 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
       </div>
     </div>
 
+    {% if user.subscription_tier == "free" and user.subscription_status == "active" %}
+    <!-- Free Plan Data Retention Notice -->
+    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
+      <div class="flex items-center">
+        <div class="ml-3">
+          <div class="flex items-center">
+            <i class="fas fa-clock text-amber-500 mr-2"></i>
+            <p class="text-sm font-medium text-amber-800">
+              Free Plan: Data is retained for 7 days only
+            </p>
+          </div>
+          <p class="mt-2 text-sm text-amber-700">
+            Analytics data older than 7 days is automatically removed. 
+            <a href="/pricing" class="font-medium underline hover:text-amber-800">
+              Upgrade to a paid plan</a> for unlimited data retention and higher rate limits.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     {% if user.subscription_status == "active" %}
     <div class="controls-card">
       <div class="controls-grid">

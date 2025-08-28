@@ -67,7 +67,8 @@ async def create_analytics_event(
     for your specific package.
 
     ## Rate Limits
-    - 1000 events per hour per API key
+    - Free plan: 100 events per hour per API key
+    - Paid plans: 1000 events per hour per API key
     - Rate limit information is returned in response headers
 
     ## Example Usage
@@ -129,13 +130,14 @@ async def create_analytics_event(
     ```
     """
 
-    await requires_active_subscription_for_api_key(api_key, db)
+    user = await requires_active_subscription_for_api_key(api_key, db)
     try:
-        # Rate limiting
+        # Plan-based rate limiting
+        rate_limit = user.get_rate_limit_per_hour()
         await check_rate_limit(
             request=request,
             api_key=api_key.key,
-            limit=1000,  # 1000 events per hour per API key
+            limit=rate_limit,  # Plan-based rate limit per hour
             window_seconds=3600,
         )
 
@@ -212,13 +214,14 @@ async def create_analytics_events_batch(
     Requires API key authentication via Authorization header.
     """
 
-    await requires_active_subscription_for_api_key(api_key, db)
+    user = await requires_active_subscription_for_api_key(api_key, db)
     try:
-        # Rate limiting - count each event in the batch
+        # Plan-based rate limiting - count each event in the batch
+        rate_limit = user.get_rate_limit_per_hour()
         await check_rate_limit(
             request=request,
             api_key=api_key.key,
-            limit=1000,  # 1000 events per hour per API key
+            limit=rate_limit,  # Plan-based rate limit per hour
             window_seconds=3600,
         )
 

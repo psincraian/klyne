@@ -111,3 +111,106 @@ class TestUserModel:
         assert user.is_active is True
         assert user.verification_token is None
         assert user.verification_token_expires is None
+
+    @pytest.mark.asyncio
+    async def test_free_plan_user_properties(self, async_session):
+        """Test free plan user properties."""
+        user = User(
+            email="free@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            subscription_tier="free",
+            subscription_status="active"
+        )
+
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Test free plan properties
+        assert user.subscription_tier == "free"
+        assert user.subscription_status == "active"
+        assert user.is_free_plan is True
+        assert user.has_active_subscription is True
+        assert user.get_rate_limit_per_hour() == 100  # Free plan rate limit
+
+    @pytest.mark.asyncio
+    async def test_starter_plan_user_properties(self, async_session):
+        """Test starter plan user properties."""
+        user = User(
+            email="starter@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            subscription_tier="starter",
+            subscription_status="active"
+        )
+
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Test starter plan properties
+        assert user.subscription_tier == "starter"
+        assert user.subscription_status == "active"
+        assert user.is_free_plan is False
+        assert user.has_active_subscription is True
+        assert user.get_rate_limit_per_hour() == 1000  # Paid plan rate limit
+
+    @pytest.mark.asyncio
+    async def test_pro_plan_user_properties(self, async_session):
+        """Test pro plan user properties."""
+        user = User(
+            email="pro@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            subscription_tier="pro",
+            subscription_status="active"
+        )
+
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Test pro plan properties
+        assert user.subscription_tier == "pro"
+        assert user.subscription_status == "active"
+        assert user.is_free_plan is False
+        assert user.has_active_subscription is True
+        assert user.get_rate_limit_per_hour() == 1000  # Paid plan rate limit
+
+    @pytest.mark.asyncio
+    async def test_inactive_subscription_user_properties(self, async_session):
+        """Test user with inactive subscription properties."""
+        user = User(
+            email="inactive@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            subscription_tier="starter",
+            subscription_status="canceled"
+        )
+
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Test inactive subscription properties
+        assert user.subscription_tier == "starter"
+        assert user.subscription_status == "canceled"
+        assert user.is_free_plan is False
+        assert user.has_active_subscription is False
+        assert user.get_rate_limit_per_hour() == 1000  # Still returns paid plan rate limit based on tier
+
+    @pytest.mark.asyncio
+    async def test_new_user_defaults_to_free_plan(self, async_session):
+        """Test that new users default to free plan due to database defaults."""
+        user = User(
+            email="newuser@example.com",
+            hashed_password=get_password_hash("testpassword123")
+        )
+
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Test that database defaults apply
+        assert user.subscription_tier == "free"  # Database default
+        assert user.subscription_status == "active"  # Database default
+        assert user.is_free_plan is True
+        assert user.has_active_subscription is True
+        assert user.get_rate_limit_per_hour() == 100  # Free plan rate limit

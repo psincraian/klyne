@@ -102,7 +102,74 @@ header(user=user) }}
 <!-- Pricing Cards -->
 <section class="pb-20 bg-base-100">
   <div class="container mx-auto px-4">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <!-- Free Plan -->
+      <div
+        class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full border-2 border-success/20"
+      >
+        <div class="card-body flex flex-col flex-grow">
+          <div class="text-center mb-6">
+            <div
+              class="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i class="fas fa-gift text-success text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Free</h3>
+            <p class="text-base-content/70">
+              Get started with basic analytics
+            </p>
+          </div>
+
+          <div class="text-center mb-8">
+            <div class="pricing-amount">
+              <span class="text-5xl font-bold text-success">$0</span>
+              <span class="text-base-content/60 ml-2">/forever</span>
+            </div>
+          </div>
+
+          <ul class="space-y-3 mb-8 flex-grow">
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>1 Python package</strong> tracking</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>Basic analytics dashboard</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>OS & Python version insights</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span>100 events per hour</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-clock text-warning mt-1 flex-shrink-0"></i>
+              <span><strong>7 days data retention</strong></span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-envelope text-info mt-1 flex-shrink-0"></i>
+              <span>Community support</span>
+            </li>
+          </ul>
+
+          <div class="mt-auto">
+            {% if user %}
+            <a href="/dashboard" class="btn btn-success btn-lg w-full">
+              <i class="fas fa-chart-line mr-2"></i>
+              Start Free
+            </a>
+            {% else %}
+            <a href="/register" class="btn btn-success btn-lg w-full">
+              <i class="fas fa-rocket mr-2"></i>
+              Sign Up Free
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
       <!-- Starter Plan -->
       <div
         class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full"
@@ -157,7 +224,11 @@ header(user=user) }}
             </li>
             <li class="flex items-start gap-3">
               <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span>12 months of data history</span>
+              <span>1000 events per hour</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
+              <span><strong>Unlimited data retention</strong></span>
             </li>
             <li class="flex items-start gap-3">
               <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
