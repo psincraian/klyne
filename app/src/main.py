@@ -879,6 +879,33 @@ async def create_api_key(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
+@app.post("/api/api-keys/{api_key_id}/regenerate", include_in_schema=False)
+async def regenerate_api_key(
+    request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
+):
+    if not is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = get_current_user_id(request)
+
+    # Get the API key and verify ownership
+    api_key = await db.execute(
+        select(APIKey).filter(APIKey.id == api_key_id, APIKey.user_id == user_id)
+    )
+    api_key = api_key.scalar_one_or_none()
+
+    if not api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+
+    # Generate new key using the same logic as the original creation
+    new_key = APIKey.generate_key()
+    api_key.key = new_key
+    await db.commit()
+    await db.refresh(api_key)
+
+    return {"success": True, "new_key": new_key}
+
+
 @app.delete("/api/api-keys/{api_key_id}", include_in_schema=False)
 async def delete_api_key(
     request: Request, api_key_id: int, db: AsyncSession = Depends(get_db)
