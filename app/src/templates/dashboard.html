@@ -144,154 +144,29 @@ active_tab="dashboard") }}
         </form>
         {% else %}
         <!-- Subscription Required Alert -->
-        <div class="alert alert-info mb-6">
-          <i class="fas fa-info-circle"></i>
-          <div>
-            <h3 class="font-semibold">
-              {{ package_usage.error_message.split('.')[0] }}
-            </h3>
-            <div class="text-sm">
-              Choose from our flexible plans to start tracking your package
-              analytics today.
+        <div class="bg-gradient-to-r from-info/10 to-primary/10 border border-info/30 rounded-xl p-6 mb-6 shadow-sm">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-info/20 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-info-circle text-info text-lg"></i>
             </div>
-          </div>
-        </div>
-
-        <!-- Subscription CTA -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div class="card bg-base-100 border border-primary/20 shadow-sm">
-            <div class="card-body p-4">
-              <div class="text-center mb-4">
-                <div
-                  class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2"
-                >
-                  <i class="fas fa-box text-primary"></i>
-                </div>
-                <h4 class="font-semibold text-lg">Starter</h4>
-                <p class="text-xs text-base-content/60 mb-2">
-                  Perfect for single package developers
-                </p>
-                <div class="text-2xl font-bold text-primary">
-                  $19<span class="text-sm text-base-content/60 font-normal"
-                    >/month</span
-                  >
-                </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold mb-2 text-base-content">
+                {{ package_usage.error_message.split('.')[0] }}
+              </h3>
+              <p class="text-base-content/70 mb-4 leading-relaxed">
+                Choose from our flexible plans to start tracking your package analytics today. 
+                Get detailed insights, real-time data, and powerful features to understand your users better.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <a href="/pricing" class="btn btn-primary btn-md">
+                  <i class="fas fa-eye mr-2"></i>
+                  View Pricing Plans
+                </a>
+                <a href="/docs" class="btn btn-outline btn-md">
+                  <i class="fas fa-book mr-2"></i>
+                  Learn More
+                </a>
               </div>
-              <ul class="text-sm space-y-2 mb-4">
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span
-                    ><strong>1 Python package</strong> with unlimited
-                    tracking</span
-                  >
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Real-time analytics dashboard</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>OS & Python version insights</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Usage trends & patterns</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>12 months of data history</span>
-                </li>
-              </ul>
-              <a
-                href="/pricing"
-                class="btn btn-outline btn-primary btn-sm btn-block"
-              >
-                Choose Starter
-              </a>
-            </div>
-          </div>
-
-          <div
-            class="card bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary shadow-sm relative"
-          >
-            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <div class="badge badge-primary px-3 py-1">
-                <i class="fas fa-crown mr-1"></i>
-                Most Popular
-              </div>
-            </div>
-            <div class="card-body p-4 pt-6">
-              <div class="text-center mb-4">
-                <div
-                  class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2"
-                >
-                  <i class="fas fa-boxes text-primary"></i>
-                </div>
-                <h4 class="font-semibold text-lg">Pro</h4>
-                <p class="text-xs text-base-content/60 mb-2">
-                  For developers with multiple packages
-                </p>
-                <div class="flex items-baseline justify-center gap-1 mb-1">
-                  <span class="text-xl font-bold text-primary">$25</span>
-                  <span class="text-base text-base-content/80">+ $9</span>
-                </div>
-                <div class="text-xs text-base-content/60">
-                  /month per additional package
-                </div>
-              </div>
-              <ul class="text-sm space-y-2 mb-4">
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span
-                    ><strong>Multiple packages</strong> with bulk pricing</span
-                  >
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span><strong>Everything in Starter</strong> plan</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Cross-package analytics & comparisons</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Advanced filtering & segmentation</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Data export (CSV, JSON, API)</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <i
-                    class="fas fa-check text-success text-xs mt-1 flex-shrink-0"
-                  ></i>
-                  <span>Priority support & onboarding</span>
-                </li>
-              </ul>
-              <a href="/pricing" class="btn btn-primary btn-sm btn-block">
-                Choose Pro
-              </a>
             </div>
           </div>
         </div>
