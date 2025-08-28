@@ -119,7 +119,8 @@ app = FastAPI(
 # configure logfire
 logfire.configure(token=settings.LOGFIRE_TOKEN)
 logfire.instrument_fastapi(app, capture_headers=True)
-logfire.instrument_asyncpg()
+# Instrument SQLAlchemy (async engine) so query spans are captured
+logfire.instrument_sqlalchemy(engine, capture_parameters=True)
 
 
 # Security middleware

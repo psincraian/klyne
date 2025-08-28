@@ -25,8 +25,9 @@ dependencies = [
     "bcrypt>=4.1.0,<5.0.0",
     "polar-sdk>=0.22.6",
     "apscheduler>=3.10.4",
-    "logfire[asyncpg,fastapi]>=4.3.6",
+    "logfire[asyncpg,fastapi,sqlalchemy]>=4.3.6",
     "opentelemetry-instrumentation-asyncpg>=0.57b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.57b0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -55,5 +56,4 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
-
 
