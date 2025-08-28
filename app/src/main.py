@@ -7,8 +7,7 @@ import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
-from src.core.static import CachedStaticFiles
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -27,6 +26,9 @@ from src.core.auth import (
 )
 from src.core.config import settings
 from src.core.database import engine, get_db
+from src.core.service_dependencies import get_auth_service
+from src.core.static import CachedStaticFiles
+from src.core.templates import templates
 from src.models import Base
 from src.models.api_key import APIKey
 from src.models.email_signup import EmailSignup
@@ -34,12 +36,9 @@ from src.models.user import User
 from src.schemas.checkout import SubscriptionInterval, SubscriptionTier
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
+from src.services.auth_service import AuthService
 from src.services.email import EmailService
 from src.services.polar import polar_service
-from src.core.service_dependencies import get_auth_service
-from src.services.auth_service import AuthService
-from src.core.templates import templates
-
 
 # Configure logging
 logging.basicConfig(
@@ -118,7 +117,9 @@ app = FastAPI(
 
 # configure logfire
 logfire.configure(token=settings.LOGFIRE_TOKEN)
-logfire.instrument_fastapi(app, capture_headers=True)
+
+
+logfire.instrument_fastapi(app, capture_headers=True, excluded_urls="/healthz")
 # Instrument SQLAlchemy (async engine) so query spans are captured
 logfire.instrument_sqlalchemy(engine, capture_parameters=True)
 
@@ -585,8 +586,8 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
 
     # Get package usage information
     from src.core.subscription_utils import (
-        get_user_package_usage,
         can_user_create_package,
+        get_user_package_usage,
     )
 
     current_count, limit = await get_user_package_usage(db, user_id)
