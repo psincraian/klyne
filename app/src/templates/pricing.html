@@ -102,7 +102,7 @@ header(user=user) }}
 <!-- Pricing Cards -->
 <section class="pb-20 bg-base-100">
   <div class="container mx-auto px-4">
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       <!-- Free Plan -->
       <div
         class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full border-2 border-success/20"
@@ -389,68 +389,6 @@ header(user=user) }}
         </div>
       </div>
 
-      <!-- Enterprise Plan -->
-      <div
-        class="klyne-card transform hover:scale-105 transition-all duration-300 flex flex-col h-full"
-      >
-        <div class="card-body flex flex-col flex-grow">
-          <div class="text-center mb-6">
-            <div
-              class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-building text-accent text-2xl"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-2">Enterprise</h3>
-            <p class="text-base-content/70">For large organizations & teams</p>
-          </div>
-
-          <div class="text-center mb-8">
-            <div class="text-4xl font-bold klyne-gradient-text mb-2">
-              Custom
-            </div>
-            <p class="text-sm text-base-content/60">
-              Pricing based on your needs
-            </p>
-          </div>
-
-          <ul class="space-y-3 mb-8 flex-grow">
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span><strong>Unlimited packages</strong> & team members</span>
-            </li>
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span><strong>Everything in Pro</strong> plan</span>
-            </li>
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span>Custom history retention</span>
-            </li>
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span>Custom integrations & APIs</span>
-            </li>
-
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span>Dedicated support manager</span>
-            </li>
-            <li class="flex items-start gap-3">
-              <i class="fas fa-check text-success mt-1 flex-shrink-0"></i>
-              <span>SLA & uptime guarantees</span>
-            </li>
-          </ul>
-
-          <div class="mt-auto">
-            <a
-              href="mailto:support@klyne.dev"
-              class="btn btn-outline btn-lg w-full"
-            >
-              Contact Sales
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -533,16 +471,16 @@ header(user=user) }}
         <thead>
           <tr>
             <th class="text-left">Feature</th>
+            <th class="text-center">Free</th>
             <th class="text-center">Starter</th>
             <th class="text-center">Pro</th>
-            <th class="text-center">Enterprise</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="font-semibold">Packages included</td>
             <td class="text-center">1</td>
-            <td class="text-center">Unlimited</td>
+            <td class="text-center">1</td>
             <td class="text-center">Unlimited</td>
           </tr>
           <tr>
@@ -559,9 +497,7 @@ header(user=user) }}
           </tr>
           <tr>
             <td class="font-semibold">Real-time dashboard</td>
-            <td class="text-center">
-              <i class="fas fa-check text-success"></i>
-            </td>
+            <td class="text-center">Basic</td>
             <td class="text-center">
               <i class="fas fa-check text-success"></i>
             </td>
@@ -572,31 +508,27 @@ header(user=user) }}
           <tr>
             <td class="font-semibold">Cross-package analytics</td>
             <td class="text-center">—</td>
-            <td class="text-center">
-              <i class="fas fa-check text-success"></i>
-            </td>
+            <td class="text-center">—</td>
             <td class="text-center">
               <i class="fas fa-check text-success"></i>
             </td>
           </tr>
           <tr>
             <td class="font-semibold">Data retention</td>
+            <td class="text-center">7 days</td>
             <td class="text-center">1 year</td>
             <td class="text-center">3 years</td>
-            <td class="text-center">Custom</td>
           </tr>
           <tr>
             <td class="font-semibold">Data export</td>
+            <td class="text-center">—</td>
             <td class="text-center">Basic</td>
             <td class="text-center">Advanced</td>
-            <td class="text-center">Advanced + API</td>
           </tr>
           <tr>
             <td class="font-semibold">Custom reports</td>
             <td class="text-center">—</td>
-            <td class="text-center">
-              <i class="fas fa-check text-success"></i>
-            </td>
+            <td class="text-center">—</td>
             <td class="text-center">
               <i class="fas fa-check text-success"></i>
             </td>
@@ -604,9 +536,9 @@ header(user=user) }}
 
           <tr>
             <td class="font-semibold">Support</td>
+            <td class="text-center">Community</td>
             <td class="text-center">Email</td>
             <td class="text-center">Priority</td>
-            <td class="text-center">Dedicated</td>
           </tr>
         </tbody>
       </table>
