@@ -40,6 +40,8 @@ from src.services.auth_service import AuthService
 from src.services.email import EmailService
 from src.services.polar import polar_service
 
+logger = logging.getLogger(__name__)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -115,13 +117,15 @@ app = FastAPI(
     title="Klyne Analytics API", lifespan=lifespan, docs_url=None, redoc_url=None
 )
 
-# configure logfire
-logfire.configure(token=settings.LOGFIRE_TOKEN)
-
-
-logfire.instrument_fastapi(app, capture_headers=True, excluded_urls="/healthz")
-# Instrument SQLAlchemy (async engine) so query spans are captured
-logfire.instrument_sqlalchemy(engine, capture_parameters=True)
+# configure logfire only if token exists and not using fake token
+if settings.LOGFIRE_TOKEN and settings.LOGFIRE_TOKEN != "fake-token-for-testing":
+    try:
+        logfire.configure(token=settings.LOGFIRE_TOKEN)
+        logfire.instrument_fastapi(app, capture_headers=True, excluded_urls="/healthz")
+        # Instrument SQLAlchemy (async engine) so query spans are captured
+        logfire.instrument_sqlalchemy(engine, capture_parameters=True)
+    except Exception as e:
+        logger.warning(f"Failed to configure Logfire: {e}")
 
 
 # Security middleware
