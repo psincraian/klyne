@@ -6,6 +6,7 @@ from src.repositories.user_repository import UserRepository
 from src.repositories.api_key_repository import APIKeyRepository
 from src.repositories.analytics_event_repository import AnalyticsEventRepository
 from src.repositories.email_signup_repository import EmailSignupRepository
+from src.repositories.email_repository import EmailRepository
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class AbstractUnitOfWork(ABC):
     api_keys: APIKeyRepository
     analytics_events: AnalyticsEventRepository
     email_signups: EmailSignupRepository
+    emails: EmailRepository
 
     async def __aenter__(self):
         return self
@@ -46,6 +48,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self.api_keys = APIKeyRepository(self.session)
         self.analytics_events = AnalyticsEventRepository(self.session)
         self.email_signups = EmailSignupRepository(self.session)
+        self.emails = EmailRepository(self.session)
         
     async def __aenter__(self):
         return self

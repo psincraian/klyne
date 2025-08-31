@@ -50,7 +50,7 @@ class UserService:
         if self.email_service:
             try:
                 await self.email_service.send_verification_email(
-                    user.email, verification_token
+                    user.email, verification_token, user.id
                 )
             except Exception as e:
                 logger.error(f"Failed to send verification email to {user.email}: {e}")
@@ -115,7 +115,7 @@ class UserService:
         if self.email_service:
             try:
                 await self.email_service.send_verification_email(
-                    user.email, verification_token
+                    user.email, verification_token, user.id
                 )
                 await self.uow.commit()
                 logger.info(f"Verification email resent to: {user.email}")

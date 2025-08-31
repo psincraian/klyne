@@ -25,6 +25,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     api_keys = relationship("APIKey", back_populates="user")
+    emails = relationship("Email", back_populates="user")
 
     @property
     def is_free_plan(self) -> bool:

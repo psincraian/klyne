@@ -13,6 +13,7 @@ from apscheduler.executors.asyncio import AsyncIOExecutor
 from src.core.config import settings
 from src.commands.sync_polar_packages import sync_all_users_packages
 from src.commands.cleanup_free_plan_data import cleanup_free_plan_analytics_data
+from src.commands.send_welcome_emails import send_welcome_emails
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,18 @@ async def setup_scheduler() -> AsyncIOScheduler:
         replace_existing=True
     )
     
+    # Add welcome email job (runs every hour)
+    logger.info("Scheduling hourly welcome email task")
+    
+    scheduler.add_job(
+        send_welcome_emails,
+        trigger='cron',
+        minute=0,  # Run at the top of every hour
+        id='send_welcome_emails',
+        name='Send Welcome Emails',
+        replace_existing=True
+    )
+    
     # Start the scheduler
     scheduler.start()
     logger.info("Scheduler started successfully")
@@ -153,6 +166,18 @@ async def trigger_free_plan_cleanup() -> dict:
     """
     logger.info("Manually triggering free plan data cleanup")
     return await cleanup_free_plan_analytics_data()
+
+
+async def trigger_welcome_emails() -> dict:
+    """
+    Manually trigger the welcome email job.
+    Useful for testing or manual runs.
+    
+    Returns:
+        Welcome email results dictionary
+    """
+    logger.info("Manually triggering welcome email job")
+    return await send_welcome_emails()
 
 
 def get_scheduler_status() -> dict:

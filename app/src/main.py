@@ -6,7 +6,12 @@ import logfire
 import requests
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse, Response
+from fastapi.responses import (
+    HTMLResponse,
+    RedirectResponse,
+    PlainTextResponse,
+    Response,
+)
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
@@ -392,15 +397,6 @@ async def verify_email(
         user.verification_token_expires = None
 
         await db.commit()
-
-        # Send welcome email to newly verified user
-        try:
-            # Extract name from email for personalization (optional)
-            user_name = user.email.split("@")[0] if user.email else None
-            await EmailService.send_welcome_email(user.email, user_name)
-        except Exception as e:
-            # Log error but don't fail the verification process
-            logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
 
         return templates.TemplateResponse(
             "verification_success.html", {"request": request}
@@ -1129,6 +1125,18 @@ async def trigger_sync():
         from src.core.scheduler import trigger_polar_sync
 
         results = await trigger_polar_sync()
+        return results
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/scheduler/trigger-welcome-emails", include_in_schema=False)
+async def trigger_welcome_emails():
+    """Manually trigger the welcome email task."""
+    try:
+        from src.core.scheduler import trigger_welcome_emails
+
+        results = await trigger_welcome_emails()
         return results
     except Exception as e:
         return {"error": str(e)}
