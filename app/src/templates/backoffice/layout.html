@@ -5,11 +5,44 @@
 {% block content %}
 <div class="navbar bg-base-200 shadow-lg">
     <div class="navbar-start">
+        <!-- Mobile menu button -->
+        <div class="dropdown lg:hidden">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+                </svg>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                <li><a href="/backoffice" class="{% if request.url.path == '/backoffice' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a></li>
+                <li><a href="/backoffice/users" class="{% if '/users' in request.url.path %}active{% endif %}">
+                    <i class="fas fa-users"></i> Users
+                </a></li>
+                <li><a href="/backoffice/api-keys" class="{% if '/api-keys' in request.url.path %}active{% endif %}">
+                    <i class="fas fa-key"></i> API Keys
+                </a></li>
+                <li><a href="/backoffice/events" class="{% if '/events' in request.url.path %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> Events
+                </a></li>
+                <li class="border-t border-base-200 mt-2 pt-2">
+                    <a href="/" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> View Site
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Logo/Brand -->
         <a href="/backoffice" class="btn btn-ghost text-xl">
-            <i class="fas fa-cogs"></i> Klyne Admin
+            <i class="fas fa-cogs"></i> 
+            <span class="hidden sm:inline">Klyne Admin</span>
+            <span class="sm:hidden">Admin</span>
         </a>
     </div>
-    <div class="navbar-center">
+    
+    <!-- Desktop navigation -->
+    <div class="navbar-center hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
             <li><a href="/backoffice" class="{% if request.url.path == '/backoffice' %}active{% endif %}">Dashboard</a></li>
             <li><a href="/backoffice/users" class="{% if '/users' in request.url.path %}active{% endif %}">Users</a></li>
@@ -17,7 +50,9 @@
             <li><a href="/backoffice/events" class="{% if '/events' in request.url.path %}active{% endif %}">Events</a></li>
         </ul>
     </div>
-    <div class="navbar-end">
+    
+    <!-- Desktop view site button -->
+    <div class="navbar-end hidden lg:flex">
         <a href="/" target="_blank" class="btn btn-outline btn-sm">
             <i class="fas fa-external-link-alt"></i> View Site
         </a>

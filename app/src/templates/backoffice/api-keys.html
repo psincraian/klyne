@@ -8,22 +8,34 @@
     <p class="text-base-content/70 mt-2">Monitor API key usage and manage access</p>
 </div>
 
-<div class="stats shadow mb-8">
+<div class="stats shadow mb-8 stats-vertical sm:stats-horizontal">
     <div class="stat">
         <div class="stat-title">Total API Keys</div>
         <div class="stat-value">{{ total_keys }}</div>
+        <div class="stat-figure text-primary">
+            <i class="fas fa-key text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Unique Packages</div>
         <div class="stat-value">{{ unique_packages }}</div>
+        <div class="stat-figure text-secondary">
+            <i class="fas fa-box text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">This Month</div>
         <div class="stat-value">{{ keys_this_month }}</div>
+        <div class="stat-figure text-success">
+            <i class="fas fa-calendar-alt text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">This Week</div>
         <div class="stat-value">{{ keys_this_week }}</div>
+        <div class="stat-figure text-info">
+            <i class="fas fa-calendar-week text-2xl"></i>
+        </div>
     </div>
 </div>
 

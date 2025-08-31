@@ -8,22 +8,34 @@
     <p class="text-base-content/70 mt-2">Manage user accounts and permissions</p>
 </div>
 
-<div class="stats shadow mb-8">
+<div class="stats shadow mb-8 stats-vertical sm:stats-horizontal">
     <div class="stat">
         <div class="stat-title">Total Users</div>
         <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-figure text-primary">
+            <i class="fas fa-users text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Active Users</div>
         <div class="stat-value">{{ active_users }}</div>
+        <div class="stat-figure text-success">
+            <i class="fas fa-user-check text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Verified Users</div>
         <div class="stat-value">{{ verified_users }}</div>
+        <div class="stat-figure text-info">
+            <i class="fas fa-user-shield text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Admin Users</div>
         <div class="stat-value">{{ admin_users }}</div>
+        <div class="stat-figure text-warning">
+            <i class="fas fa-user-cog text-2xl"></i>
+        </div>
     </div>
 </div>
 
