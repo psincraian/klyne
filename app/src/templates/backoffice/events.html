@@ -8,37 +8,58 @@
     <p class="text-base-content/70 mt-2">Monitor package usage events and analytics data</p>
 </div>
 
-<div class="stats shadow mb-4">
+<div class="stats shadow mb-4 stats-vertical sm:stats-horizontal">
     <div class="stat">
         <div class="stat-title">Total Events</div>
         <div class="stat-value">{{ total_events }}</div>
+        <div class="stat-figure text-primary">
+            <i class="fas fa-chart-line text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Processed</div>
         <div class="stat-value text-success">{{ processed_events }}</div>
+        <div class="stat-figure text-success">
+            <i class="fas fa-check-circle text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Pending</div>
         <div class="stat-value text-warning">{{ pending_events }}</div>
+        <div class="stat-figure text-warning">
+            <i class="fas fa-clock text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">Unique Packages</div>
         <div class="stat-value">{{ unique_packages_from_events }}</div>
+        <div class="stat-figure text-info">
+            <i class="fas fa-box text-2xl"></i>
+        </div>
     </div>
 </div>
 
-<div class="stats shadow mb-8">
+<div class="stats shadow mb-8 stats-vertical sm:stats-horizontal">
     <div class="stat">
         <div class="stat-title">Today</div>
         <div class="stat-value">{{ events_today }}</div>
+        <div class="stat-figure text-accent">
+            <i class="fas fa-calendar-day text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">This Week</div>
         <div class="stat-value">{{ events_this_week }}</div>
+        <div class="stat-figure text-secondary">
+            <i class="fas fa-calendar-week text-2xl"></i>
+        </div>
     </div>
     <div class="stat">
         <div class="stat-title">This Month</div>
         <div class="stat-value">{{ events_this_month }}</div>
+        <div class="stat-figure text-primary">
+            <i class="fas fa-calendar-alt text-2xl"></i>
+        </div>
     </div>
 </div>
 
