@@ -11,8 +11,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
 
-logger = logging.getLogger(__name__)
-
 from src.api.analytics import router as analytics_router
 from src.api.backoffice import router as backoffice_router
 from src.api.dashboard import router as dashboard_router
@@ -41,6 +39,8 @@ from src.schemas.user import UserCreate, UserLogin
 from src.services.auth_service import AuthService
 from src.services.email import EmailService
 from src.services.polar import polar_service
+
+logger = logging.getLogger(__name__)
 
 # Configure logging
 logging.basicConfig(
