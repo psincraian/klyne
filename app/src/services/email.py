@@ -189,22 +189,48 @@ class EmailService:
             # Create greeting
             greeting = f"Hey {user_name}," if user_name else "Hey,"
 
-            # Template context
-            context = {
-                "greeting": greeting,
-                "app_domain": settings.APP_DOMAIN,
-                "current_year": datetime.now().year,
-            }
+            # Create personal plain text email content
+            text_content = f"""{greeting}
 
-            # Render templates
-            html_content = templates.get_template("emails/welcome.html").render(context)
+Welcome to Klyne! 🎉
+
+I'm Petru, and I built Klyne because I was curious about who was actually using my Python packages. Are they running on Linux servers? Windows desktops? Python 3.12 or still stuck on 3.8? I had no idea!
+
+Now you can find out too.
+
+Here's how to get your first insights:
+
+📊 Step 1: Grab your API key
+Head to your dashboard at {settings.APP_DOMAIN}/dashboard and create your first API key. Takes about 30 seconds.
+
+🔌 Step 2: Drop one line into your package
+Add klyne.init(api_key='your-key', project='your-package') somewhere in your package initialization.
+That's it!
+
+📈 Step 3: Watch the data roll in
+Your analytics dashboard will start showing you real usage patterns - which Python versions, operating systems, and how your package is actually being used in the wild.
+
+💡 Privacy note: The integration is designed to be lightweight and privacy-friendly. We only collect anonymous technical metadata, never user data or code.
+
+Want to see it in action? Check out our docs at {settings.APP_DOMAIN}/docs for examples and integration guides.
+
+Got questions? Hit reply - I read every email and love hearing from developers using Klyne.
+
+Happy coding!
+Petru
+
+P.S. If you run into any issues or have ideas for features, I'm always here to help. Just reply to this email.
+
+---
+You're getting this email because you signed up for Klyne.
+© {datetime.now().year} Klyne. All rights reserved."""
 
             params: resend.Emails.SendParams = {
                 "from": "Petru from Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "reply_to": ["petru@klyne.dev"],
                 "subject": subject,
-                "html": html_content,
+                "text": text_content,
             }
 
             email_result = resend.Emails.send(params)
@@ -216,11 +242,10 @@ class EmailService:
                 None
             )
             
-            # Store resend ID and template context in metadata
+            # Store resend ID in metadata
             email_log.email_metadata = {
                 "resend_id": email_result.get("id"),
-                "user_name": user_name,
-                "template_context": context
+                "user_name": user_name
             }
             await self.uow.commit()
             
