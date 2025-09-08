@@ -49,7 +49,8 @@ def get_asset_url(entry_name: str) -> Optional[str]:
         vite_dev_server = os.getenv("VITE_DEV_SERVER", "http://localhost:3001")
         entry_mappings = {
             'main': 'src/js/main.js',
-            'dashboard': 'src/js/dashboard.js', 
+            'dashboard': 'src/js/dashboard.js',
+            'theme-switcher': 'src/js/theme-switcher.js',
         }
         
         input_path = entry_mappings.get(entry_name)
@@ -63,7 +64,8 @@ def get_asset_url(entry_name: str) -> Optional[str]:
     # Map entry names to their input paths
     entry_mappings = {
         'main': 'src/js/main.js',
-        'dashboard': 'src/js/dashboard.js', 
+        'dashboard': 'src/js/dashboard.js',
+        'theme-switcher': 'src/js/theme-switcher.js',
         'styles': 'src/static/css/input.css'
     }
     
@@ -98,6 +100,7 @@ def get_css_url(entry_name: str) -> Optional[str]:
     entry_mappings = {
         'main': 'src/js/main.js',
         'dashboard': 'src/js/dashboard.js',
+        'theme-switcher': 'src/js/theme-switcher.js',
         'styles': 'src/static/css/input.css'
     }
     

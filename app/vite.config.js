@@ -19,6 +19,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'src/js/main.js'),
         dashboard: resolve(__dirname, 'src/js/dashboard.js'),
+        'theme-switcher': resolve(__dirname, 'src/js/theme-switcher.js'),
         styles: resolve(__dirname, 'src/static/css/input.css')
       },
       external: [],

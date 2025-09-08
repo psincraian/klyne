@@ -36,7 +36,39 @@
     <script type="module" src="{{ get_vite_client_url() }}"></script>
     {% endif %}
     <link rel="stylesheet" href="{{ get_css_url('styles') }}" />
+    
+    <!-- Theme detection script to prevent flash -->
+    <script>
+      (function() {
+        const STORAGE_KEY = 'klyne-theme-preference';
+        const LIGHT_THEME = 'klyne';
+        const DARK_THEME = 'klyne-dark';
+        const SYSTEM_PREFERENCE = 'system';
+        
+        function getSystemPreference() {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return DARK_THEME;
+          }
+          return LIGHT_THEME;
+        }
+        
+        function getCurrentTheme() {
+          const savedPreference = localStorage.getItem(STORAGE_KEY);
+          
+          if (savedPreference && savedPreference !== SYSTEM_PREFERENCE) {
+            return savedPreference;
+          }
+          
+          return getSystemPreference();
+        }
+        
+        // Apply theme immediately
+        document.documentElement.setAttribute('data-theme', getCurrentTheme());
+      })();
+    </script>
+    
     <script type="module" src="{{ get_asset_url('main') }}"></script>
+    <script type="module" src="{{ get_asset_url('theme-switcher') }}"></script>
     <script>
       !(function (t, e) {
         var o, n, p, r;
@@ -127,7 +159,7 @@
     
     {% block extra_head %}{% endblock %}
   </head>
-  <body data-theme="klyne">
+  <body>
     <div
       class="klyne-page-wrapper {% if not request.path.startswith('/backoffice') %} klyne-header-offset {% endif %}"
     >
