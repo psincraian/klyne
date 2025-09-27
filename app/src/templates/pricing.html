@@ -105,7 +105,7 @@ header(user=user) }}
                     </div>
 
                     <div class="text-center mb-8">
-                        <div class="pricing-amount">
+                        <div class="pricing-amount free-plan">
                             <span class="text-5xl font-bold text-success"
                                 >$0</span
                             >
@@ -362,7 +362,9 @@ header(user=user) }}
                                 class="text-base-content/60 ml-2 price-frequency"
                                 >/month</span
                             >
-                            <div class="text-sm text-base-content/60 mt-1">
+                            <div
+                                class="text-sm text-base-content/60 mt-1 additional-package-text"
+                            >
                                 per additional package/month
                             </div>
                         </div>
@@ -524,7 +526,10 @@ header(user=user) }}
                         </div>
 
                         <div class="text-center">
-                            <div class="text-sm text-base-content/60 mb-2">
+                            <div
+                                class="text-sm text-base-content/60 mb-2"
+                                id="cost-period-label"
+                            >
                                 Monthly cost
                             </div>
                             <div
@@ -830,18 +835,38 @@ header(user=user) }}
         const packageCount = document.getElementById("package-count");
         const monthlyCost = document.getElementById("monthly-cost");
         const costBreakdown = document.getElementById("cost-breakdown");
+        const pricingToggle = document.getElementById("pricing-toggle");
 
         function updatePricing() {
             const packages = parseInt(packageSlider.value);
-            const monthly = packages === 1 ? 25 : 25 + (packages - 1) * 9;
+            const isAnnual = pricingToggle.checked;
+
+            let cost, breakdown;
+            if (isAnnual) {
+                cost = packages === 1 ? 250 : 250 + (packages - 1) * 90;
+                breakdown =
+                    packages === 1
+                        ? "$250 base price"
+                        : `$250 + $90 x ${packages - 1}`;
+            } else {
+                cost = packages === 1 ? 25 : 25 + (packages - 1) * 9;
+                breakdown =
+                    packages === 1
+                        ? "$25 base price"
+                        : `$25 + $9 x ${packages - 1}`;
+            }
 
             packageCount.textContent = packages;
-            monthlyCost.textContent = `$${monthly}`;
+            monthlyCost.textContent = `$${cost}`;
+            costBreakdown.textContent = breakdown;
 
-            if (packages === 1) {
-                costBreakdown.textContent = "$25 base price";
-            } else {
-                costBreakdown.textContent = `$25 + $9 x ${packages - 1}`;
+            // Update the cost period label
+            const costPeriodLabel =
+                document.getElementById("cost-period-label");
+            if (costPeriodLabel) {
+                costPeriodLabel.textContent = isAnnual
+                    ? "Annual cost"
+                    : "Monthly cost";
             }
         }
 
@@ -849,50 +874,93 @@ header(user=user) }}
         updatePricing();
 
         // Annual/Monthly toggle
-        const pricingToggle = document.getElementById("pricing-toggle");
         const pricingAmounts = document.querySelectorAll(".pricing-amount");
         const billingIntervals = document.querySelectorAll(".billing-interval");
         const subscriptionTexts =
             document.querySelectorAll(".subscription-text");
 
-        pricingToggle.addEventListener("change", function () {
-            const isAnnual = this.checked;
-            const interval = isAnnual ? "yearly" : "monthly";
-            const periodText = isAnnual ? "Yearly" : "Monthly";
+        if (pricingToggle) {
+            pricingToggle.addEventListener("change", function () {
+                const isAnnual = this.checked;
+                const interval = isAnnual ? "yearly" : "monthly";
+                const periodText = isAnnual ? "Yearly" : "Monthly";
 
-            pricingAmounts.forEach((amount) => {
-                const monthly = amount.dataset.monthly;
-                const annual = amount.dataset.annual;
+                pricingAmounts.forEach((amount) => {
+                    // Skip the free plan
+                    if (amount.classList.contains("free-plan")) {
+                        return;
+                    }
 
-                if (isAnnual) {
-                    amount.querySelector("span").textContent = `$${annual}`;
-                    document.getElementById("additional-cost").textContent =
-                        "+ $90";
-                    amount.querySelector(".price-frequency").textContent =
-                        "/year";
-                } else {
-                    amount.querySelector("span").textContent = `$${monthly}`;
-                    document.getElementById("additional-cost").textContent =
-                        "+ $9";
-                    amount.querySelector(".price-frequency").textContent =
-                        "/month";
+                    const monthly = amount.dataset.monthly;
+                    const annual = amount.dataset.annual;
+
+                    if (isAnnual) {
+                        amount.querySelector("span").textContent = `$${annual}`;
+                        if (document.getElementById("additional-cost")) {
+                            document.getElementById(
+                                "additional-cost",
+                            ).textContent = "+ $90";
+                        }
+                        const priceFreq =
+                            amount.querySelector(".price-frequency");
+                        if (priceFreq) {
+                            priceFreq.textContent = "/year";
+                        }
+                    } else {
+                        amount.querySelector("span").textContent =
+                            `$${monthly}`;
+                        if (document.getElementById("additional-cost")) {
+                            document.getElementById(
+                                "additional-cost",
+                            ).textContent = "+ $9";
+                        }
+                        const priceFreq =
+                            amount.querySelector(".price-frequency");
+                        if (priceFreq) {
+                            priceFreq.textContent = "/month";
+                        }
+                    }
+                });
+
+                // Update additional package text
+                const additionalPackageText = document.querySelector(
+                    ".additional-package-text",
+                );
+                if (additionalPackageText) {
+                    additionalPackageText.textContent = isAnnual
+                        ? "per additional package/year"
+                        : "per additional package/month";
                 }
-            });
 
-            // Update form inputs
-            billingIntervals.forEach((input) => {
-                input.value = interval;
-            });
+                // Show/hide annual savings
+                const annualSavings =
+                    document.querySelectorAll(".annual-savings");
+                annualSavings.forEach((saving) => {
+                    if (isAnnual) {
+                        saving.classList.remove("hidden");
+                    } else {
+                        saving.classList.add("hidden");
+                    }
+                });
 
-            // Update button text
-            subscriptionTexts.forEach((text) => {
-                if (text.textContent.includes("Starter")) {
-                    text.textContent = `Subscribe to Starter ${periodText}`;
-                } else if (text.textContent.includes("Pro")) {
-                    text.textContent = `Subscribe to Pro ${periodText}`;
-                }
+                // Update form inputs
+                billingIntervals.forEach((input) => {
+                    input.value = interval;
+                });
+
+                // Update button text
+                subscriptionTexts.forEach((text) => {
+                    if (text.textContent.includes("Starter")) {
+                        text.textContent = `Subscribe to Starter ${periodText}`;
+                    } else if (text.textContent.includes("Pro")) {
+                        text.textContent = `Subscribe to Pro ${periodText}`;
+                    }
+                });
+
+                // Update the pricing calculator
+                updatePricing();
             });
-        });
+        }
     });
 </script>
 {% endblock %}
