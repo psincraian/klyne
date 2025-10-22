@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -69,10 +70,12 @@ logging.getLogger("sqlalchemy.pool").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
-sentry_sdk.init(
-    dsn="https://871a78b7650dcdede6cdbaab5417c75a@o4508215291740160.ingest.de.sentry.io/4510234680229968",
-    send_default_pii=True,
-)
+# Only initialize Sentry in non-test environments
+if not os.getenv("TESTING"):
+    sentry_sdk.init(
+        dsn="https://871a78b7650dcdede6cdbaab5417c75a@o4508215291740160.ingest.de.sentry.io/4510234680229968",
+        send_default_pii=True,
+    )
 
 
 @asynccontextmanager
@@ -129,8 +132,12 @@ app = FastAPI(
     title="Klyne Analytics API", lifespan=lifespan, docs_url=None, redoc_url=None
 )
 
-# configure logfire only if token exists and not using fake token
-if settings.LOGFIRE_TOKEN and settings.LOGFIRE_TOKEN != "fake-token-for-testing":
+# configure logfire only if token exists, not using fake token, and not in test environment
+if (
+    not os.getenv("TESTING")
+    and settings.LOGFIRE_TOKEN
+    and settings.LOGFIRE_TOKEN != "fake-token-for-testing"
+):
     try:
         logfire.configure(token=settings.LOGFIRE_TOKEN)
         logfire.instrument_fastapi(app, capture_headers=True, excluded_urls="/healthz")

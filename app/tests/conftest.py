@@ -26,7 +26,10 @@ def mock_turnstile():
 @pytest.fixture(autouse=True)
 def mock_polar():
     """Mock Polar service to avoid external API calls in tests."""
-    with patch("src.main.polar_service.create_customer", return_value="mock_polar_customer_id"):
+    with patch("src.main.polar_service.create_customer", return_value="mock_polar_customer_id"), \
+         patch("src.main.polar_service.ingest_event", return_value=True), \
+         patch("src.services.polar.polar_service.create_customer", return_value="mock_polar_customer_id"), \
+         patch("src.services.polar.polar_service.ingest_event", return_value=True):
         yield
 
 
