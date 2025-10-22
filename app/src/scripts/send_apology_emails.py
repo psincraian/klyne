@@ -126,9 +126,9 @@ async def send_apology_emails_to_recent_users():
     logger.info("Starting apology email send process...")
 
     # Create async session
-    from src.core.database import async_session_maker
+    from src.core.database import AsyncSessionLocal
 
-    async with async_session_maker() as db:
+    async with AsyncSessionLocal() as db:
         try:
             # Calculate the date 7 days ago
             one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
