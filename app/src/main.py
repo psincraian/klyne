@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 
 import logfire
 import requests
+import sentry_sdk
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import (
     HTMLResponse,
-    RedirectResponse,
     PlainTextResponse,
+    RedirectResponse,
     Response,
 )
 from sqlalchemy import func, select
@@ -38,6 +39,7 @@ from src.models import Base
 from src.models.api_key import APIKey
 from src.models.email_signup import EmailSignup
 from src.models.user import User
+from src.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from src.schemas.checkout import SubscriptionInterval, SubscriptionTier
 from src.schemas.email import EmailCreate
 from src.schemas.user import UserCreate, UserLogin
@@ -66,6 +68,11 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.CRITICAL)
 logging.getLogger("sqlalchemy.pool").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
+
+sentry_sdk.init(
+    dsn="https://871a78b7650dcdede6cdbaab5417c75a@o4508215291740160.ingest.de.sentry.io/4510234680229968",
+    send_default_pii=True,
+)
 
 
 @asynccontextmanager
@@ -324,8 +331,11 @@ async def register_user(
                         f"Failed to create Polar customer for user {db_user.id}"
                     )
 
-                await EmailService.send_verification_email(
-                    user_data.email, verification_token
+                # Send verification email
+                uow = SqlAlchemyUnitOfWork(db)
+                email_service = EmailService(uow)
+                await email_service.send_verification_email(
+                    user_data.email, verification_token, user_id=db_user.id
                 )
 
                 return templates.TemplateResponse(
@@ -452,7 +462,11 @@ async def resend_verification(
         await db.commit()
 
         # Send new verification email
-        await EmailService.send_verification_email(email, verification_token)
+        uow = SqlAlchemyUnitOfWork(db)
+        email_service = EmailService(uow)
+        await email_service.send_verification_email(
+            email, verification_token, user_id=user.id
+        )
 
         return templates.TemplateResponse(
             "resend_verification_success.html",
