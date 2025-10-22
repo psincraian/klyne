@@ -102,8 +102,8 @@ class TestFreeplanDataCleanup:
         assert len(events_before) == 4
 
         # Run cleanup
-        cleanup_result = await cleanup_free_plan_analytics_data()
-        
+        cleanup_result = await cleanup_free_plan_analytics_data(async_session)
+
         # Verify cleanup results
         assert cleanup_result["success"] is True
         assert cleanup_result["total_deleted"] == 2
@@ -169,8 +169,8 @@ class TestFreeplanDataCleanup:
         assert len(events_before) == 1
 
         # Run cleanup
-        cleanup_result = await cleanup_free_plan_analytics_data()
-        
+        cleanup_result = await cleanup_free_plan_analytics_data(async_session)
+
         # Verify cleanup results - no paid user data should be deleted
         assert cleanup_result["success"] is True
         assert cleanup_result["total_deleted"] == 0
@@ -250,8 +250,8 @@ class TestFreeplanDataCleanup:
         await async_session.commit()
 
         # Run cleanup
-        cleanup_result = await cleanup_free_plan_analytics_data()
-        
+        cleanup_result = await cleanup_free_plan_analytics_data(async_session)
+
         # Verify only free user's data was deleted
         assert cleanup_result["success"] is True
         assert cleanup_result["total_deleted"] == 1
@@ -275,8 +275,8 @@ class TestFreeplanDataCleanup:
     async def test_cleanup_with_no_data(self, async_session):
         """Test cleanup when there's no data to clean up."""
         # Run cleanup with no data
-        cleanup_result = await cleanup_free_plan_analytics_data()
-        
+        cleanup_result = await cleanup_free_plan_analytics_data(async_session)
+
         # Verify cleanup results
         assert cleanup_result["success"] is True
         assert cleanup_result["total_deleted"] == 0
@@ -334,8 +334,8 @@ class TestFreeplanDataCleanup:
         await async_session.commit()
 
         # Get stats
-        stats = await get_free_plan_data_stats()
-        
+        stats = await get_free_plan_data_stats(async_session)
+
         # Verify stats
         assert stats["total_events"] == 2
         assert stats["old_events"] == 1
@@ -357,8 +357,8 @@ class TestFreeplanDataCleanup:
         await async_session.commit()
 
         # Run cleanup
-        cleanup_result = await cleanup_free_plan_analytics_data()
-        
+        cleanup_result = await cleanup_free_plan_analytics_data(async_session)
+
         # Verify results
         assert cleanup_result["success"] is True
         assert cleanup_result["total_deleted"] == 0

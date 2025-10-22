@@ -262,12 +262,18 @@ class TestPackageLimitAPI:
         self, auth_client: AsyncClient, authenticated_starter_user_with_api_key
     ):
         """Test that starter users are blocked from creating a second API key."""
+        # Log in the user
+        await auth_client.post(
+            "/login",
+            data={"email": authenticated_starter_user_with_api_key.email, "password": "password123"}
+        )
+
         # Try to create a second API key
         response = await auth_client.post(
             "/api/api-keys",
             data={"package_name": "second-package"}
         )
-        
+
         # Should be forbidden
         assert response.status_code == 403
         assert "limit of 1 package" in response.json()["detail"]
@@ -277,6 +283,12 @@ class TestPackageLimitAPI:
         self, auth_client: AsyncClient, authenticated_pro_user
     ):
         """Test that pro users can create multiple API keys."""
+        # Log in the user
+        await auth_client.post(
+            "/login",
+            data={"email": authenticated_pro_user.email, "password": "password123"}
+        )
+
         # Create first API key
         response = await auth_client.post(
             "/api/api-keys",
@@ -302,6 +314,12 @@ class TestPackageLimitAPI:
         self, auth_client: AsyncClient, authenticated_free_user
     ):
         """Test that free users can create their first API key."""
+        # Log in the user
+        await auth_client.post(
+            "/login",
+            data={"email": authenticated_free_user.email, "password": "password123"}
+        )
+
         response = await auth_client.post(
             "/api/api-keys",
             data={"package_name": "first-package"}
@@ -312,6 +330,12 @@ class TestPackageLimitAPI:
         self, auth_client: AsyncClient, authenticated_starter_user
     ):
         """Test that starter users can create their first API key."""
+        # Log in the user
+        await auth_client.post(
+            "/login",
+            data={"email": authenticated_starter_user.email, "password": "password123"}
+        )
+
         response = await auth_client.post(
             "/api/api-keys",
             data={"package_name": "first-package"}

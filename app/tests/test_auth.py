@@ -149,7 +149,7 @@ class TestLogin:
         login_data = {"email": "test@example.com", "password": "testpassword123"}
         response = await client.post("/login", data=login_data, follow_redirects=False)
         assert response.status_code == 302
-        assert response.headers["location"] == "/dashboard"
+        assert response.headers["location"] == "/analytics"
 
     @pytest.mark.asyncio
     async def test_login_invalid_email(self, client: AsyncClient):
@@ -247,7 +247,7 @@ class TestDashboard:
         # Access dashboard
         response = await client.get("/dashboard")
         assert response.status_code == 200
-        assert "Welcome to Klyne" in response.text
+        assert "API Keys" in response.text
         assert user.email in response.text
 
     @pytest.mark.asyncio
@@ -282,7 +282,7 @@ class TestAuthenticationRedirects:
         # Try to access register page
         response = await client.get("/register", follow_redirects=False)
         assert response.status_code == 302
-        assert response.headers["location"] == "/dashboard"
+        assert response.headers["location"] == "/analytics"
 
     @pytest.mark.asyncio
     async def test_login_page_authenticated_user(
@@ -305,4 +305,4 @@ class TestAuthenticationRedirects:
         # Try to access login page
         response = await client.get("/login", follow_redirects=False)
         assert response.status_code == 302
-        assert response.headers["location"] == "/dashboard"
+        assert response.headers["location"] == "/analytics"

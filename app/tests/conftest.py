@@ -1,4 +1,6 @@
 import os
+from unittest.mock import patch
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
@@ -11,6 +13,21 @@ from src.core.database import get_db
 
 # Set testing environment variable
 os.environ["TESTING"] = "1"
+
+# Mock validate_turnstile to always return True in tests
+@pytest.fixture(autouse=True)
+def mock_turnstile():
+    """Mock turnstile validation to always return True in tests."""
+    with patch("src.main.validate_turnstile", return_value=True):
+        yield
+
+
+# Mock Polar service to avoid external API calls in tests
+@pytest.fixture(autouse=True)
+def mock_polar():
+    """Mock Polar service to avoid external API calls in tests."""
+    with patch("src.main.polar_service.create_customer", return_value="mock_polar_customer_id"):
+        yield
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -99,6 +116,7 @@ def user_data():
         "email": "test@example.com",
         "password": "testpassword123",
         "password_confirm": "testpassword123",
+        "cf-turnstile-response": "test_turnstile_token",
     }
 
 
