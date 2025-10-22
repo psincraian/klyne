@@ -217,6 +217,11 @@ async def landing_page(
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
 
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
+
+
 @app.post("/signup", include_in_schema=False)
 async def signup(
     request: Request, email: str = Form(...), db: AsyncSession = Depends(get_db)
