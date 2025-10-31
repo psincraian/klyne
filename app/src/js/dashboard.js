@@ -183,9 +183,10 @@ function renderOverviewStats(data) {
     const totals = data.reduce((acc, pkg) => ({
         events: acc.events + pkg.total_events,
         sessions: acc.sessions + pkg.total_sessions,
+        uniqueUsers: acc.uniqueUsers + (pkg.total_unique_users || 0),
         packages: acc.packages + 1,
         avgDaily: acc.avgDaily + pkg.avg_daily_events
-    }), { events: 0, sessions: 0, packages: 0, avgDaily: 0 });
+    }), { events: 0, sessions: 0, uniqueUsers: 0, packages: 0, avgDaily: 0 });
     
     container.innerHTML = `
         <div class="stat-card fade-in">
@@ -212,13 +213,13 @@ function renderOverviewStats(data) {
         </div>
         <div class="stat-card fade-in">
             <div class="stat-icon">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-user-check"></i>
             </div>
-            <div class="stat-value">${formatNumber(totals.sessions)}</div>
-            <div class="stat-label">Total Sessions</div>
+            <div class="stat-value">${formatNumber(totals.uniqueUsers)}</div>
+            <div class="stat-label">Unique Users</div>
             <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                Unique user sessions
+                <i class="fas fa-fingerprint"></i>
+                Distinct installations
             </div>
         </div>
         <div class="stat-card fade-in">
@@ -302,6 +303,15 @@ function renderTimeSeriesChart(data) {
                     data: data.sessions,
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Unique Users',
+                    data: data.unique_users || [],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.3
