@@ -20,6 +20,17 @@ class AnalyticsEvent(Base):
         UUID(as_uuid=True), nullable=False, index=True
     )  # Unique per package run
 
+    # Unique user tracking (pseudonymous identifiers)
+    installation_id = Column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )  # Persistent device ID
+    fingerprint_hash = Column(
+        String, nullable=True, index=True
+    )  # Hashed hardware fingerprint
+    user_identifier = Column(
+        String, nullable=True, index=True
+    )  # Coalesced: installation_id OR fingerprint_hash
+
     # Package information
     package_name = Column(String, nullable=False, index=True)
     package_version = Column(String, nullable=False, index=True)
@@ -70,4 +81,14 @@ class AnalyticsEvent(Base):
             "python_version",
             "os_type",
         ),
+        # Unique user tracking indexes (already created in migration)
+        Index("idx_analytics_user_identifier", "user_identifier"),
+        Index(
+            "idx_analytics_user_identifier_date",
+            "api_key",
+            "user_identifier",
+            "event_timestamp",
+        ),
+        Index("idx_analytics_installation_id", "installation_id"),
+        Index("idx_analytics_fingerprint", "fingerprint_hash"),
     )

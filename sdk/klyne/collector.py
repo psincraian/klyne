@@ -158,11 +158,14 @@ def create_analytics_event(
     package_version: str,
     session_id: Optional[str] = None,
     entry_point: Optional[str] = None,
-    extra_data: Optional[Dict[str, Any]] = None
+    extra_data: Optional[Dict[str, Any]] = None,
+    installation_id: Optional[str] = None,
+    fingerprint_hash: Optional[str] = None,
+    user_identifier: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Create a complete analytics event with system information.
-    
+
     Args:
         api_key: Klyne API key
         package_name: Name of the package
@@ -170,14 +173,17 @@ def create_analytics_event(
         session_id: Optional session ID (generates UUID if not provided)
         entry_point: Optional entry point/function name
         extra_data: Optional additional data
-    
+        installation_id: Optional installation UUID for unique user tracking
+        fingerprint_hash: Optional hardware fingerprint hash
+        user_identifier: Optional user identifier (installation_id or fingerprint_hash)
+
     Returns:
         Complete analytics event dictionary
     """
     # Generate session ID if not provided
     if not session_id:
         session_id = str(uuid.uuid4())
-    
+
     # Collect system information
     event = {
         "api_key": api_key,
@@ -186,28 +192,36 @@ def create_analytics_event(
         "package_version": package_version,
         "event_timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    
+
+    # Add unique user tracking fields
+    if installation_id:
+        event["installation_id"] = installation_id
+    if fingerprint_hash:
+        event["fingerprint_hash"] = fingerprint_hash
+    if user_identifier:
+        event["user_identifier"] = user_identifier
+
     # Add Python info
     event.update(get_python_info())
-    
+
     # Add system info
     event.update(get_system_info())
-    
+
     # Add environment info
     event.update(get_environment_info())
-    
+
     # Add hardware info (optional)
     hardware_info = get_hardware_info()
     if hardware_info:
         event.update(hardware_info)
-    
+
     # Add optional fields
     if entry_point:
         event["entry_point"] = entry_point
-    
+
     if extra_data:
         event["extra_data"] = extra_data
-    
+
     return event
 
 

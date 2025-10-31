@@ -19,6 +19,17 @@ class AnalyticsEventCreate(BaseModel):
     os_type: str = Field(..., description="Operating system type")
     event_timestamp: datetime = Field(..., description="When the event occurred")
 
+    # Unique user tracking fields (optional, for pseudonymous analytics)
+    installation_id: Optional[str] = Field(
+        None, description="Persistent installation UUID for unique user tracking"
+    )
+    fingerprint_hash: Optional[str] = Field(
+        None, max_length=64, description="Hashed hardware fingerprint for fallback identification"
+    )
+    user_identifier: Optional[str] = Field(
+        None, max_length=100, description="Coalesced user identifier (installation_id or fingerprint_hash)"
+    )
+
     # Optional environment fields
     python_implementation: Optional[str] = Field(
         None, max_length=50, description="Python implementation"
@@ -96,6 +107,9 @@ class AnalyticsEventCreate(BaseModel):
         json_schema_extra = {
             "example": {
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
+                "installation_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+                "fingerprint_hash": "a3c2e1b9f8d7c6e5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1",
+                "user_identifier": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
                 "package_name": "requests",
                 "package_version": "2.31.0",
                 "python_version": "3.11.5",

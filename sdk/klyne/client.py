@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from .collector import create_analytics_event, create_session_id
+from .installation import get_or_create_installation_id, get_user_identifier
 from .transport import HTTPTransport
 
 # Global SDK state
@@ -44,9 +45,17 @@ class KlyneClient:
         self.enabled = enabled
         self.session_id = create_session_id()
 
+        # Initialize unique user tracking
+        self.installation_id, self.fingerprint_hash = get_or_create_installation_id(project)
+        self.user_identifier = get_user_identifier(self.installation_id, self.fingerprint_hash)
+
         # Set up logging
         if debug:
             logging.basicConfig(level=logging.DEBUG)
+            if self.installation_id:
+                _logger.debug(f"Klyne initialized with installation ID: {self.installation_id}")
+            else:
+                _logger.debug(f"Klyne initialized with fingerprint tracking only")
 
         # Initialize transport
         self.transport = None
@@ -73,6 +82,9 @@ class KlyneClient:
                 package_version=self.package_version,
                 session_id=self.session_id,
                 entry_point="init",
+                installation_id=self.installation_id,
+                fingerprint_hash=self.fingerprint_hash,
+                user_identifier=self.user_identifier,
             )
 
             if self.transport:
@@ -106,6 +118,9 @@ class KlyneClient:
                 session_id=session_id or self.session_id,
                 entry_point=entry_point,
                 extra_data=extra_data,
+                installation_id=self.installation_id,
+                fingerprint_hash=self.fingerprint_hash,
+                user_identifier=self.user_identifier,
             )
 
             self.transport.send_event(event)

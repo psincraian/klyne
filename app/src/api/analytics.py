@@ -144,6 +144,14 @@ async def create_analytics_event(
         # Validate that API key matches the package in the event
         await validate_package_match(api_key, event_data.package_name)
 
+        # Parse user identifiers
+        installation_id_uuid = None
+        if event_data.installation_id:
+            try:
+                installation_id_uuid = UUID(event_data.installation_id)
+            except (ValueError, AttributeError):
+                logger.warning(f"Invalid installation_id format: {event_data.installation_id}")
+
         # Create analytics event
         analytics_event = AnalyticsEvent(
             api_key=api_key.key,
@@ -164,6 +172,10 @@ async def create_analytics_event(
             entry_point=event_data.entry_point,
             extra_data=event_data.extra_data,
             event_timestamp=event_data.event_timestamp,
+            # Unique user tracking fields
+            installation_id=installation_id_uuid,
+            fingerprint_hash=event_data.fingerprint_hash,
+            user_identifier=event_data.user_identifier,
         )
 
         db.add(analytics_event)
@@ -242,6 +254,14 @@ async def create_analytics_events_batch(
                 # Validate that API key matches the package in each event
                 await validate_package_match(api_key, event_data.package_name)
 
+                # Parse user identifiers
+                installation_id_uuid = None
+                if event_data.installation_id:
+                    try:
+                        installation_id_uuid = UUID(event_data.installation_id)
+                    except (ValueError, AttributeError):
+                        logger.warning(f"Invalid installation_id format in batch event {i}: {event_data.installation_id}")
+
                 # Create analytics event
                 analytics_event = AnalyticsEvent(
                     api_key=api_key.key,
@@ -262,6 +282,10 @@ async def create_analytics_events_batch(
                     entry_point=event_data.entry_point,
                     extra_data=event_data.extra_data,
                     event_timestamp=event_data.event_timestamp,
+                    # Unique user tracking fields
+                    installation_id=installation_id_uuid,
+                    fingerprint_hash=event_data.fingerprint_hash,
+                    user_identifier=event_data.user_identifier,
                 )
 
                 db.add(analytics_event)

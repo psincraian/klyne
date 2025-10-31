@@ -6,6 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.analytics_event import AnalyticsEvent
 from src.repositories.base import BaseRepository
 
+# Whitelist of allowed dimension fields for security
+ALLOWED_DIMENSION_FIELDS = {
+    'os_type',
+    'python_version',
+    'architecture',
+    'os_release',
+    'python_implementation',
+    'virtual_env_type',
+    'installation_method'
+}
+
 
 class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
     """Repository for AnalyticsEvent model operations."""
@@ -247,7 +258,7 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
             for row in result.all()
         ]
 
-    async def create_analytics_event(self, api_key: str, session_id: str, 
+    async def create_analytics_event(self, api_key: str, session_id: str,
                                    package_name: str, package_version: str,
                                    python_version: str, os_type: str,
                                    event_timestamp: datetime) -> AnalyticsEvent:
@@ -261,3 +272,205 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
             "os_type": os_type,
             "event_timestamp": event_timestamp
         })
+
+    # Unique User Tracking Methods
+
+    async def get_unique_users_count(
+        self,
+        api_keys: List[str],
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> int:
+        """Get total unique users for given API keys within date range."""
+        query = select(func.count(func.distinct(AnalyticsEvent.user_identifier))).filter(
+            and_(
+                AnalyticsEvent.api_key.in_(api_keys),
+                AnalyticsEvent.user_identifier.isnot(None)
+            )
+        )
+
+        if start_date:
+            query = query.filter(AnalyticsEvent.event_timestamp >= start_date)
+        if end_date:
+            query = query.filter(AnalyticsEvent.event_timestamp <= end_date)
+
+        result = await self.db.execute(query)
+        return result.scalar() or 0
+
+    async def get_active_users_by_period(
+        self,
+        api_keys: List[str],
+        period_start: datetime,
+        period_end: datetime
+    ) -> int:
+        """Get unique active users for a specific time period."""
+        query = select(func.count(func.distinct(AnalyticsEvent.user_identifier))).filter(
+            and_(
+                AnalyticsEvent.api_key.in_(api_keys),
+                AnalyticsEvent.user_identifier.isnot(None),
+                AnalyticsEvent.event_timestamp >= period_start,
+                AnalyticsEvent.event_timestamp <= period_end
+            )
+        )
+
+        result = await self.db.execute(query)
+        return result.scalar() or 0
+
+    async def get_new_users_count(
+        self,
+        api_keys: List[str],
+        period_start: datetime,
+        period_end: datetime
+    ) -> int:
+        """Get count of new users (first seen) in the given period."""
+        # Subquery to get first event timestamp for each user
+        first_seen_subquery = (
+            select(
+                AnalyticsEvent.user_identifier,
+                func.min(AnalyticsEvent.event_timestamp).label("first_seen")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.user_identifier.isnot(None)
+                )
+            )
+            .group_by(AnalyticsEvent.user_identifier)
+            .subquery()
+        )
+
+        # Count users whose first seen date is in the period
+        query = select(func.count()).select_from(first_seen_subquery).filter(
+            and_(
+                first_seen_subquery.c.first_seen >= period_start,
+                first_seen_subquery.c.first_seen <= period_end
+            )
+        )
+
+        result = await self.db.execute(query)
+        return result.scalar() or 0
+
+    async def get_daily_active_users_timeseries(
+        self,
+        api_keys: List[str],
+        start_date: datetime,
+        end_date: datetime
+    ) -> List[Dict[str, Any]]:
+        """Get daily active users time series."""
+        query = (
+            select(
+                func.date(AnalyticsEvent.event_timestamp).label("date"),
+                func.count(func.distinct(AnalyticsEvent.user_identifier)).label("unique_users")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.user_identifier.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .group_by(func.date(AnalyticsEvent.event_timestamp))
+            .order_by(func.date(AnalyticsEvent.event_timestamp))
+        )
+
+        result = await self.db.execute(query)
+        return [
+            {
+                "date": row.date,
+                "unique_users": row.unique_users
+            }
+            for row in result.all()
+        ]
+
+    async def get_user_retention_stats(
+        self,
+        api_keys: List[str],
+        start_date: datetime,
+        end_date: datetime
+    ) -> Dict[str, Any]:
+        """Get user retention statistics."""
+        # Get users with session counts
+        user_sessions_query = (
+            select(
+                AnalyticsEvent.user_identifier,
+                func.count(func.distinct(AnalyticsEvent.session_id)).label("session_count")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.user_identifier.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .group_by(AnalyticsEvent.user_identifier)
+            .subquery()
+        )
+
+        # Count users by session categories
+        stats_query = select(
+            func.count().label("total_users"),
+            func.sum(func.case((user_sessions_query.c.session_count == 1, 1), else_=0)).label("single_session"),
+            func.sum(func.case((user_sessions_query.c.session_count > 1, 1), else_=0)).label("multi_session"),
+            func.sum(func.case((user_sessions_query.c.session_count >= 10, 1), else_=0)).label("power_users"),
+            func.avg(user_sessions_query.c.session_count).label("avg_sessions")
+        ).select_from(user_sessions_query)
+
+        result = await self.db.execute(stats_query)
+        stats = result.first()
+
+        return {
+            "total_users": int(stats.total_users or 0),
+            "single_session_users": int(stats.single_session or 0),
+            "multi_session_users": int(stats.multi_session or 0),
+            "power_users": int(stats.power_users or 0),
+            "avg_sessions_per_user": float(stats.avg_sessions or 0)
+        }
+
+    async def get_unique_users_by_dimension(
+        self,
+        api_keys: List[str],
+        dimension_field: str,  # e.g., "os_type", "python_version"
+        start_date: datetime,
+        end_date: datetime
+    ) -> List[Dict[str, Any]]:
+        """Get unique users broken down by a dimension (OS, Python version, etc.)."""
+        # Validate dimension field against whitelist (security: prevent SQL injection)
+        if dimension_field not in ALLOWED_DIMENSION_FIELDS:
+            raise ValueError(
+                f"Invalid dimension field: {dimension_field}. "
+                f"Allowed fields: {', '.join(sorted(ALLOWED_DIMENSION_FIELDS))}"
+            )
+
+        # Map dimension field to model attribute
+        dimension_column = getattr(AnalyticsEvent, dimension_field)
+
+        query = (
+            select(
+                dimension_column.label("dimension_name"),
+                func.count(func.distinct(AnalyticsEvent.user_identifier)).label("unique_users"),
+                func.count(func.distinct(AnalyticsEvent.session_id)).label("total_sessions")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.user_identifier.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .group_by(dimension_column)
+            .order_by(desc("unique_users"))
+        )
+
+        result = await self.db.execute(query)
+        return [
+            {
+                "dimension_name": row.dimension_name,
+                "unique_users": row.unique_users,
+                "total_sessions": row.total_sessions,
+                "avg_sessions_per_user": row.total_sessions / row.unique_users if row.unique_users > 0 else 0
+            }
+            for row in result.all()
+        ]

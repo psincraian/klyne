@@ -16,6 +16,10 @@ from src.schemas.dashboard import (
     PythonVersionDistribution,
     OSDistribution,
     PackageVersionAdoption,
+    UniqueUsersOverview,
+    ActiveUsersTimeSeries,
+    UserRetentionMetrics,
+    UniqueUsersByDimension,
 )
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -108,6 +112,108 @@ async def get_package_version_adoption(
     """
     logger.info(f"Getting package version adoption for user {user_id}, package: {package_name}")
     return await analytics_service.get_package_version_adoption(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+# Unique User Tracking Endpoints
+
+@router.get("/unique-users")
+async def get_unique_users_overview(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> UniqueUsersOverview:
+    """
+    Get overview of unique users with DAU/WAU/MAU metrics.
+    """
+    logger.info(f"Getting unique users overview for user {user_id}, package: {package_name}")
+    return await analytics_service.get_unique_users_overview(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/active-users")
+async def get_active_users_timeseries(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> ActiveUsersTimeSeries:
+    """
+    Get time series data for active users (DAU/WAU/MAU over time).
+    """
+    logger.info(f"Getting active users timeseries for user {user_id}")
+    return await analytics_service.get_active_users_timeseries(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/user-retention")
+async def get_user_retention_metrics(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> UserRetentionMetrics:
+    """
+    Get user retention and engagement metrics.
+    """
+    logger.info(f"Getting user retention metrics for user {user_id}")
+    return await analytics_service.get_user_retention_metrics(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/unique-users/by-os")
+async def get_unique_users_by_os(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> List[UniqueUsersByDimension]:
+    """
+    Get unique users broken down by operating system.
+    """
+    logger.info(f"Getting unique users by OS for user {user_id}")
+    return await analytics_service.get_unique_users_by_os(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/unique-users/by-python-version")
+async def get_unique_users_by_python_version(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> List[UniqueUsersByDimension]:
+    """
+    Get unique users broken down by Python version.
+    """
+    logger.info(f"Getting unique users by Python version for user {user_id}")
+    return await analytics_service.get_unique_users_by_python_version(
         user_id=user_id,
         package_name=package_name,
         start_date=start_date,
