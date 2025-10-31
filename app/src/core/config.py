@@ -1,5 +1,3 @@
-import secrets
-
 from pydantic_settings import BaseSettings
 
 
@@ -36,15 +34,17 @@ class Settings(BaseSettings):
     CF_TURNSTILE_SITE_KEY: str = "1x00000000000000000000AA"
 
     LOGFIRE_TOKEN: str = ""
+    SENTRY_DSN: str = ""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Generate a secure secret key if using the default in production
-        if (
-            self.ENVIRONMENT == "production"
-            and self.SECRET_KEY == "your-secret-key-change-in-production"
-        ):
-            self.SECRET_KEY = secrets.token_urlsafe(32)
+        # Validate that required secrets are set in production
+        if self.ENVIRONMENT == "production":
+            if self.SECRET_KEY == "your-secret-key-change-in-production":
+                raise ValueError(
+                    "SECRET_KEY must be set in production environment. "
+                    "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                )
 
     class Config:
         case_sensitive = True

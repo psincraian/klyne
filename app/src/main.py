@@ -47,6 +47,7 @@ from src.schemas.user import UserCreate, UserLogin
 from src.services.auth_service import AuthService
 from src.services.email import EmailService
 from src.services.polar import polar_service
+from src.services.subscription_service import SubscriptionService
 
 logger = logging.getLogger(__name__)
 
@@ -71,10 +72,11 @@ logging.getLogger("sqlalchemy.pool").setLevel(logging.CRITICAL)
 logger = logging.getLogger(__name__)
 
 # Only initialize Sentry in non-test environments
-if not os.getenv("TESTING"):
+if not os.getenv("TESTING") and settings.SENTRY_DSN:
     sentry_sdk.init(
-        dsn="https://871a78b7650dcdede6cdbaab5417c75a@o4508215291740160.ingest.de.sentry.io/4510234680229968",
+        dsn=settings.SENTRY_DSN,
         send_default_pii=True,
+        environment=settings.ENVIRONMENT,
     )
 
 
@@ -1013,99 +1015,33 @@ async def delete_api_key_form(
 async def polar_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Polar webhook events."""
     try:
-        # Get the webhook payload
+        # Validate webhook event using Polar SDK
         body = await request.body()
+        headers = dict(request.headers)
 
-        # TODO: Verify webhook signature using POLAR_WEBHOOK_SECRET
-        # For now, we'll proceed without signature verification
+        # Validate and parse using Polar SDK
+        event = polar_service.validate_webhook_event(payload=body, headers=headers)
+        event_type = event.get("type")
+        event_data = event.get("data", {})
 
-        # Parse JSON payload
-        import json
+        # Process the webhook event using subscription service
+        from src.repositories.unit_of_work import UnitOfWork
 
-        try:
-            payload = json.loads(body)
-        except json.JSONDecodeError:
-            logger.error("Failed to parse webhook payload as JSON")
-            return {"error": "Invalid JSON"}, 400
-
-        event_type = payload.get("type")
-        event_data = payload.get("data", {})
-
-        # Only handle subscription events we care about
-        if event_type not in ["subscription.active", "subscription.canceled"]:
-            logger.info(f"Ignoring webhook event type: {event_type}")
-            return {"status": "ignored"}
-
-        # Get external customer ID from the subscription
-        external_customer_id = event_data.get("customer", {}).get("external_id")
-        if not external_customer_id:
-            logger.error("No external_customer_id found in webhook payload")
-            return {"error": "Missing external_customer_id"}, 400
-
-        # Find the user by external customer ID (user.id)
-        try:
-            user_id = int(external_customer_id)
-        except (ValueError, TypeError):
-            logger.error(f"Invalid external_customer_id: {external_customer_id}")
-            return {"error": "Invalid external_customer_id"}, 400
-
-        result = await db.execute(select(User).filter(User.id == user_id))
-        user = result.scalar_one_or_none()
-
-        if not user:
-            logger.error(
-                f"User not found for external_customer_id: {external_customer_id}"
+        async with UnitOfWork(db) as uow:
+            subscription_service = SubscriptionService(
+                uow=uow, polar_service=polar_service
             )
-            return {"error": "User not found"}, 404
-
-        # Update user subscription status based on event type
-        if event_type == "subscription.active":
-            user.subscription_status = "active"
-            # Extract subscription tier from product name or ID
-            product = event_data.get("product", {})
-            product_name = product.get("name", "").lower()
-            if "starter" in product_name:
-                user.subscription_tier = "starter"
-            elif "pro" in product_name:
-                user.subscription_tier = "pro"
-            else:
-                # Fallback to extracting from product ID configuration
-                product_id = product.get("id")
-                if product_id in [
-                    settings.POLAR_STARTER_MONTHLY_PRODUCT_ID,
-                    settings.POLAR_STARTER_YEARLY_PRODUCT_ID,
-                ]:
-                    user.subscription_tier = "starter"
-                elif product_id in [
-                    settings.POLAR_PRO_MONTHLY_PRODUCT_ID,
-                    settings.POLAR_PRO_YEARLY_PRODUCT_ID,
-                ]:
-                    user.subscription_tier = "pro"
-                else:
-                    user.subscription_tier = "unknown"
-
-            logger.info(
-                f"Activated {user.subscription_tier} subscription for user {user_id}"
+            result = await subscription_service.process_webhook_event(
+                event_type, event_data
             )
+            return result
 
-        elif event_type == "subscription.canceled":
-            user.subscription_status = "canceled"
-            # Keep the tier for historical purposes, just change status
-            logger.info(f"Canceled subscription for user {user_id}")
-
-        # Update the timestamp
-        from datetime import datetime, timezone
-
-        user.subscription_updated_at = datetime.now(timezone.utc)
-
-        await db.commit()
-
-        return {"status": "success"}
-
+    except HTTPException:
+        # Re-raise HTTPExceptions (already logged in services)
+        raise
     except Exception as e:
         logger.error(f"Error processing Polar webhook: {e}", exc_info=True)
-        await db.rollback()
-        return {"error": "Internal server error"}, 500
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/health", include_in_schema=False)
