@@ -198,6 +198,12 @@ def create_analytics_event(
         event["installation_id"] = installation_id
     if fingerprint_hash:
         event["fingerprint_hash"] = fingerprint_hash
+    
+    # Calculate user_identifier if not provided
+    # Priority: installation_id > fingerprint_hash
+    if not user_identifier and (installation_id or fingerprint_hash):
+        user_identifier = installation_id if installation_id else fingerprint_hash
+    
     if user_identifier:
         event["user_identifier"] = user_identifier
 
