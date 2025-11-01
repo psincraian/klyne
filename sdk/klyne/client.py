@@ -55,7 +55,7 @@ class KlyneClient:
             if self.installation_id:
                 _logger.debug(f"Klyne initialized with installation ID: {self.installation_id}")
             else:
-                _logger.debug(f"Klyne initialized with fingerprint tracking only")
+                _logger.debug("Klyne initialized with fingerprint tracking only")
 
         # Initialize transport
         self.transport = None
