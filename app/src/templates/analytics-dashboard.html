@@ -2,1471 +2,1678 @@
 block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
 <script type="module" src="{{ get_asset_url('dashboard') }}"></script>
 <style>
-  /* Dashboard-specific styles that override base */
-  .analytics-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    /* Header offset handled by klyne-header-offset class */
-  }
-
-  /* Analytics page specific styles */
-
-  .analytics-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .analytics-title-section {
-    margin-bottom: 2rem;
-  }
-
-  .analytics-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .analytics-subtitle {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.125rem;
-    font-weight: 400;
-  }
-
-  .controls-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-  }
-
-  .controls-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    align-items: end;
-  }
-
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .control-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .control-input {
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    background: white;
-  }
-
-  .control-input:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-
-  /* DaisyUI component customization */
-  .select-bordered,
-  .input-bordered {
-    border-color: #d1d5db;
-    border-radius: 8px;
-    font-size: 0.9rem;
-  }
-
-  .select-bordered:focus,
-  .input-bordered:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    gap: 0.5rem;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
-  }
-
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Removed accent line from stat cards */
-
-  .stat-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-    background: #e0e7ff;
-    color: #6366f1;
-  }
-
-  .stat-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 0.5rem;
-    line-height: 1;
-  }
-
-  .stat-label {
-    color: #6b7280;
-    font-weight: 500;
-    margin-bottom: 0.75rem;
-  }
-
-  .stat-change {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #9ca3af;
-  }
-
-  .stat-change.positive {
-    color: #10b981;
-  }
-
-  .stat-change.negative {
-    color: #ef4444;
-  }
-
-  .charts-section {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .chart-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-  }
-
-  .chart-row.full-width {
-    grid-template-columns: 1fr;
-  }
-
-  .chart-container {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .chart-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .chart-title i {
-    color: #6366f1;
-  }
-
-  .chart-wrapper {
-    position: relative;
-    height: 350px;
-  }
-
-  .chart-wrapper.large {
-    height: 450px;
-  }
-
-  .loading-spinner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: #9ca3af;
-  }
-
-  .spinner {
-    width: 2rem;
-    height: 2rem;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #6366f1;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 0.75rem;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .error-message {
-    background: linear-gradient(135deg, #fef2f2, #fee2e2);
-    border: 1px solid #fca5a5;
-    border-radius: 12px;
-    padding: 1rem;
-    color: #ef4444;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .no-data {
-    text-align: center;
-    padding: 3rem;
-    color: #9ca3af;
-  }
-
-  .no-data-icon {
-    font-size: 3rem;
-    color: #9ca3af;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-  }
-
-  .no-data h3 {
-    font-size: 1.125rem;
-    margin-bottom: 0.5rem;
-    color: #6b7280;
-  }
-
-  .empty-state {
-    background: white;
-    border-radius: 16px;
-    padding: 4rem 2rem;
-    text-align: center;
-    margin: 2rem 0;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-    grid-column: 1 / -1;
-  }
-
-  .empty-state-icon {
-    width: 4rem;
-    height: 4rem;
-    border-radius: 50%;
-    background: #e0e7ff;
-    color: #6366f1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin: 0 auto 1.5rem;
-  }
-
-  .empty-state h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: #111827;
-  }
-
-  .empty-state p {
-    color: #6b7280;
-    font-size: 1rem;
-    line-height: 1.6;
-    max-width: 24rem;
-    margin: 0 auto 1.5rem;
-  }
-
-  .cta-button {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    padding: 0.75rem 2rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-
-  .cta-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    color: white;
-  }
-
-  .fade-in {
-    animation: fadeIn 0.5s ease-in;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Mobile responsiveness */
-  @media (max-width: 768px) {
-    .analytics-container {
-      padding: 1rem;
-    }
-
-    .analytics-header nav {
-      padding: 0 1rem;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .analytics-nav-tabs {
+    /* Dashboard-specific styles that override base */
+    .analytics-body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       margin: 0;
-      width: 100%;
-      justify-content: center;
+      padding: 0;
+      /* Header offset handled by klyne-header-offset class */
+    }
+
+    /* Analytics page specific styles */
+
+    .analytics-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .analytics-title-section {
+      margin-bottom: 2rem;
     }
 
     .analytics-title {
-      font-size: 2rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .analytics-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.125rem;
+      font-weight: 400;
+    }
+
+    .controls-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
     }
 
     .controls-grid {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      align-items: end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .control-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .control-input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      background: white;
+    }
+
+    .control-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* DaisyUI component customization */
+    .select-bordered,
+    .input-bordered {
+      border-color: #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .select-bordered:focus,
+    .input-bordered:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .stats-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .chart-row {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
     }
 
     .stat-card {
-      padding: 1.5rem;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Removed accent line from stat cards */
+
+    .stat-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      background: #e0e7ff;
+      color: #6366f1;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-change {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+
+    .stat-change.positive {
+      color: #10b981;
+    }
+
+    .stat-change.negative {
+      color: #ef4444;
+    }
+
+    .charts-section {
+      display: grid;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    .chart-row.full-width {
+      grid-template-columns: 1fr;
     }
 
     .chart-container {
-      padding: 1.5rem;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chart-title i {
+      color: #6366f1;
     }
 
     .chart-wrapper {
-      height: 280px;
-    }
-  }
-
-  /* Analytics specific responsive styles */
-
-  /* Event Tracking Widget Styles */
-  .event-type-card {
-    transition: all 0.2s ease;
-  }
-
-  .event-type-card:hover > div {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border-color: rgba(99, 102, 241, 0.3) !important;
-    background: rgba(99, 102, 241, 0.02) !important;
-  }
-
-  .event-type-card.event-selected > div {
-    background: rgba(99, 102, 241, 0.05) !important;
-    border-color: rgba(99, 102, 241, 0.2) !important;
-  }
-
-  /* Rocket animation */
-  .fa-rocket {
-    animation: rocket-bounce 3s ease-in-out infinite;
-  }
-
-  @keyframes rocket-bounce {
-    0%,
-    100% {
-      transform: translateY(0) rotate(0deg);
-    }
-    50% {
-      transform: translateY(-3px) rotate(2deg);
-    }
-  }
-
-  /* Coming Soon badge pulse */
-  .chart-header span {
-    animation: pulse-badge 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-badge {
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.05);
-      opacity: 0.9;
-    }
-  }
-
-  /* Enhanced hover effects for buttons */
-  a[href*="github"]:hover {
-    background: #6366f1 !important;
-    color: white !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-  }
-
-  /* Mobile responsiveness for event tracking widget */
-  @media (max-width: 768px) {
-    .event-type-card > div {
-      padding: 0.75rem !important;
+      position: relative;
+      height: 350px;
     }
 
-    .chart-header .flex {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      gap: 0.75rem !important;
+    .chart-wrapper.large {
+      height: 450px;
     }
 
-    div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"] {
-      grid-template-columns: 1fr !important;
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: #9ca3af;
     }
 
-    div[style*="display: flex; gap: 0.75rem;"] {
-      flex-direction: column !important;
-      gap: 0.5rem !important;
+    .spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.75rem;
     }
 
-    div[style*="display: flex; gap: 1rem; flex-wrap: wrap;"] {
-      flex-direction: column !important;
-      gap: 0.75rem !important;
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
-  }
 
-  /* Subtle animations for better UX */
-  .chart-container {
-    animation: fadeInUp 0.6s ease-out;
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
+    .error-message {
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      border: 1px solid #fca5a5;
+      border-radius: 12px;
+      padding: 1rem;
+      color: #ef4444;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: #9ca3af;
     }
-  }
 
-  /* Code block improvements */
-  pre code {
-    font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas",
-      monospace !important;
-    font-size: 0.8rem !important;
-    line-height: 1.6 !important;
-  }
+    .no-data-icon {
+      font-size: 3rem;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
 
-  /* Enhanced focus states for accessibility */
-  input:focus,
-  button:focus {
-    outline: 2px solid #6366f1;
-    outline-offset: 2px;
-  }
+    .no-data h3 {
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+      color: #6b7280;
+    }
+
+    .empty-state {
+      background: white;
+      border-radius: 16px;
+      padding: 4rem 2rem;
+      text-align: center;
+      margin: 2rem 0;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      grid-column: 1 / -1;
+    }
+
+    .empty-state-icon {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      background: #e0e7ff;
+      color: #6366f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 1.5rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #111827;
+    }
+
+    .empty-state p {
+      color: #6b7280;
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 24rem;
+      margin: 0 auto 1.5rem;
+    }
+
+    .cta-button {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      color: white;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .analytics-container {
+        padding: 1rem;
+      }
+
+      .analytics-header nav {
+        padding: 0 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .analytics-nav-tabs {
+        margin: 0;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .analytics-title {
+        font-size: 2rem;
+      }
+
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-row {
+        grid-template-columns: 1fr;
+      }
+
+      .stat-card {
+        padding: 1.5rem;
+      }
+
+      .chart-container {
+        padding: 1.5rem;
+      }
+
+      .chart-wrapper {
+        height: 280px;
+      }
+    }
+
+    /* Analytics specific responsive styles */
+
+    /* Event Tracking Widget Styles */
+    .event-type-card {
+      transition: all 0.2s ease;
+    }
+
+    .event-type-card:hover > div {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-color: rgba(99, 102, 241, 0.3) !important;
+      background: rgba(99, 102, 241, 0.02) !important;
+    }
+
+    .event-type-card.event-selected > div {
+      background: rgba(99, 102, 241, 0.05) !important;
+      border-color: rgba(99, 102, 241, 0.2) !important;
+    }
+
+    /* Rocket animation */
+    .fa-rocket {
+      animation: rocket-bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes rocket-bounce {
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-3px) rotate(2deg);
+      }
+    }
+
+    /* Coming Soon badge pulse */
+    .chart-header span {
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+    }
+
+    /* Enhanced hover effects for buttons */
+    a[href*="github"]:hover {
+      background: #6366f1 !important;
+      color: white !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Mobile responsiveness for event tracking widget */
+    @media (max-width: 768px) {
+      .event-type-card > div {
+        padding: 0.75rem !important;
+      }
+
+      .chart-header .flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+      }
+
+      div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      div[style*="display: flex; gap: 0.75rem;"] {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+      }
+
+      div[style*="display: flex; gap: 1rem; flex-wrap: wrap;"] {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+      }
+    }
+
+    /* Subtle animations for better UX */
+    .chart-container {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Code block improvements */
+    pre code {
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas",
+        monospace !important;
+      font-size: 0.8rem !important;
+      line-height: 1.6 !important;
+    }
+
+    /* Enhanced focus states for accessibility */
+    input:focus,
+    button:focus {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+
+    /* Dark mode styles */
+    [data-theme="klyne-dark"] .controls-card,
+    [data-theme="klyne-dark"] .stat-card,
+    [data-theme="klyne-dark"] .chart-container,
+    [data-theme="klyne-dark"] .empty-state {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    [data-theme="klyne-dark"] .stat-card:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    [data-theme="klyne-dark"] .stat-value {
+      color: #f1f5f9;
+    }
+
+    [data-theme="klyne-dark"] .stat-label {
+      color: #cbd5e1;
+    }
+
+    [data-theme="klyne-dark"] .stat-change {
+      color: #94a3b8;
+    }
+
+    [data-theme="klyne-dark"] .chart-title {
+      color: #f1f5f9;
+    }
+
+    [data-theme="klyne-dark"] .control-label {
+      color: #e2e8f0;
+    }
+
+    [data-theme="klyne-dark"] .select-bordered,
+    [data-theme="klyne-dark"] .input-bordered {
+      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(148, 163, 184, 0.3);
+      color: #f1f5f9;
+    }
+
+    [data-theme="klyne-dark"] .select-bordered:focus,
+    [data-theme="klyne-dark"] .input-bordered:focus {
+      background: rgba(15, 23, 42, 0.8);
+      border-color: #6366f1;
+    }
+
+    [data-theme="klyne-dark"] .empty-state h3 {
+      color: #f1f5f9;
+    }
+
+    [data-theme="klyne-dark"] .empty-state p {
+      color: #cbd5e1;
+    }
+
+    /* Dark mode background gradient */
+    [data-theme="klyne-dark"] .analytics-body {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    /* Dark mode for subscription section inline styles */
+    [data-theme="klyne-dark"] .subscription-wall > div {
+      background: rgba(30, 41, 59, 0.8) !important;
+      backdrop-filter: blur(10px);
+      border-color: rgba(148, 163, 184, 0.2) !important;
+    }
+
+    [data-theme="klyne-dark"] .subscription-wall h2,
+    [data-theme="klyne-dark"] .subscription-wall h3 {
+      color: #f1f5f9 !important;
+    }
+
+    [data-theme="klyne-dark"] .subscription-wall p {
+      color: #cbd5e1 !important;
+    }
+
+    [data-theme="klyne-dark"] .subscription-wall > div > div > div[style*="background: #f9fafb"],
+    [data-theme="klyne-dark"] .subscription-wall > div > div[style*="background: white"] {
+      background: rgba(30, 41, 59, 0.6) !important;
+      border-color: rgba(148, 163, 184, 0.2) !important;
+    }
+
+    [data-theme="klyne-dark"] .subscription-wall ul li span {
+      color: #e2e8f0 !important;
+    }
+
+    [data-theme="klyne-dark"] .subscription-wall .stat-icon {
+      background: rgba(99, 102, 241, 0.2) !important;
+    }
+
+    /* Dark mode for stat icons */
+    [data-theme="klyne-dark"] .stat-icon {
+      background: rgba(99, 102, 241, 0.2);
+    }
+
+    [data-theme="klyne-dark"] .empty-state-icon {
+      background: rgba(99, 102, 241, 0.2);
+    }
+
+    /* Dark mode for chart backgrounds */
+    [data-theme="klyne-dark"] canvas {
+      background: transparent;
+    }
+
+    /* Dark mode text adjustments */
+    [data-theme="klyne-dark"] .analytics-title {
+      color: #f1f5f9;
+    }
+
+    [data-theme="klyne-dark"] .analytics-subtitle {
+      color: rgba(241, 245, 249, 0.8);
+    }
 </style>
 {% endblock %} {% block content %}
 <div class="analytics-body">
-  {{ header(page_title="Analytics Dashboard", user=user, show_nav_tabs=true,
-  active_tab="analytics") }}
+    {{ header(page_title="Analytics Dashboard", user=user, show_nav_tabs=true,
+    active_tab="analytics") }}
 
-  <div class="analytics-container">
-    <div class="analytics-title-section">
-      <div class="flex justify-between items-start">
-        <div>
-          <h1 class="analytics-title">Welcome to Klyne</h1>
-          <p class="analytics-subtitle">
-            {% if user.subscription_status == "active" %} Monitor your package
-            usage and performance metrics {% else %} Powerful analytics for your
-            Python packages {% endif %}
-          </p>
-        </div>
-        <div
-          class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-white"
-        >
-          {% if user.subscription_status == "active" %}
-          <div class="text-sm font-medium">
-            {% if package_usage.limit == -1 %} {{ package_usage.current }}
-            packages {% else %} {{ package_usage.current }}/{{
-            package_usage.limit }} packages {% endif %}
-          </div>
-          <div class="text-xs opacity-75">
-            {% if package_usage.tier == "none" %}No Plan{% else %}{{
-            package_usage.tier.title() }} Plan{% endif %}
-          </div>
-          {% else %}
-          <div class="text-sm font-medium flex items-center gap-2">
-            <i class="fas fa-lock"></i>
-            Subscription Required
-          </div>
-          <div class="text-xs opacity-75">Choose a plan below</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    {% if user.subscription_status == "active" %}
-    <div class="controls-card">
-      <div class="controls-grid">
-        <div class="control-group">
-          <label class="control-label">
-            <i class="fas fa-box"></i> Package
-          </label>
-          <select id="package-filter" class="select select-bordered w-full">
-            <option value="">All Packages</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label class="control-label">
-            <i class="fas fa-calendar-alt"></i> Start Date
-          </label>
-          <input type="date" id="start-date" class="input input-bordered w-full" />
-        </div>
-        <div class="control-group">
-          <label class="control-label">
-            <i class="fas fa-calendar-alt"></i> End Date
-          </label>
-          <input type="date" id="end-date" class="input input-bordered w-full" />
-        </div>
-        <div class="control-group">
-          <button id="refresh-data" class="btn btn-primary w-full">
-            <i class="fas fa-sync-alt"></i> Refresh Data
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div id="error-container"></div>
-
-    <div id="overview-stats" class="stats-grid">
-      <!-- Overview stats will be populated here -->
-    </div>
-    {% else %}
-    <!-- Subscription Required Section -->
-    <div class="subscription-wall">
-      <div
-        style="
-          background: white;
-          border-radius: 16px;
-          padding: 3rem;
-          margin-bottom: 2rem;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-            0 4px 6px -4px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e5e7eb;
-          text-align: center;
-        "
-      >
-        <div style="margin-bottom: 2rem">
-          <div
-            style="
-              width: 4rem;
-              height: 4rem;
-              background: linear-gradient(135deg, #6366f1, #8b5cf6);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0 auto 1.5rem;
-              color: white;
-              font-size: 1.5rem;
-            "
-          >
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <h2
-            style="
-              font-size: 2rem;
-              font-weight: bold;
-              color: #1f2937;
-              margin-bottom: 1rem;
-            "
-          >
-            Unlock Your Analytics
-          </h2>
-          <p
-            style="
-              font-size: 1.125rem;
-              color: #6b7280;
-              margin-bottom: 2rem;
-              max-width: 32rem;
-              margin-left: auto;
-              margin-right: auto;
-            "
-          >
-            Get detailed insights into your Python package usage with real-time
-            analytics, user demographics, and performance metrics.
-          </p>
-        </div>
-
-        <!-- Feature Preview Grid -->
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-          "
-        >
-          <div
-            style="
-              background: #f9fafb;
-              padding: 2rem;
-              border-radius: 12px;
-              border: 1px solid #e5e7eb;
-            "
-          >
-            <div
-              style="
-                width: 3rem;
-                height: 3rem;
-                background: #dbeafe;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 1rem;
-                color: #3b82f6;
-              "
-            >
-              <i class="fas fa-chart-area"></i>
-            </div>
-            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem">
-              Usage Tracking
-            </h3>
-            <p style="color: #6b7280; font-size: 0.9rem">
-              Monitor how your package is being used over time with detailed
-              analytics
-            </p>
-          </div>
-
-          <div
-            style="
-              background: #f9fafb;
-              padding: 2rem;
-              border-radius: 12px;
-              border: 1px solid #e5e7eb;
-            "
-          >
-            <div
-              style="
-                width: 3rem;
-                height: 3rem;
-                background: #dcfce7;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 1rem;
-                color: #16a34a;
-              "
-            >
-              <i class="fab fa-python"></i>
-            </div>
-            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem">
-              Python Versions
-            </h3>
-            <p style="color: #6b7280; font-size: 0.9rem">
-              See which Python versions your users are running
-            </p>
-          </div>
-
-          <div
-            style="
-              background: #f9fafb;
-              padding: 2rem;
-              border-radius: 12px;
-              border: 1px solid #e5e7eb;
-            "
-          >
-            <div
-              style="
-                width: 3rem;
-                height: 3rem;
-                background: #fef3c7;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 1rem;
-                color: #d97706;
-              "
-            >
-              <i class="fas fa-desktop"></i>
-            </div>
-            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem">
-              OS Distribution
-            </h3>
-            <p style="color: #6b7280; font-size: 0.9rem">
-              Understand your users' operating system preferences
-            </p>
-          </div>
-        </div>
-
-        <!-- Subscription Plans -->
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-          "
-        >
-          <!-- Starter Plan -->
-          <div
-            style="
-              background: white;
-              border: 2px solid #e5e7eb;
-              border-radius: 12px;
-              padding: 2rem;
-              position: relative;
-            "
-          >
-            <div style="text-align: center; margin-bottom: 1.5rem">
-              <div
-                style="
-                  width: 4rem;
-                  height: 4rem;
-                  background: #dbeafe;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 1rem;
-                "
-              >
-                <i
-                  class="fas fa-box"
-                  style="color: #3b82f6; font-size: 1.25rem"
-                ></i>
-              </div>
-              <h3
-                style="
-                  font-size: 1.25rem;
-                  font-weight: bold;
-                  margin-bottom: 0.5rem;
-                  color: #1f2937;
-                "
-              >
-                Starter
-              </h3>
-              <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem">
-                Perfect for single package developers
-              </p>
-              <div
-                style="
-                  font-size: 2rem;
-                  font-weight: bold;
-                  color: #6366f1;
-                  margin-bottom: 0.25rem;
-                "
-              >
-                $19
-              </div>
-              <div style="color: #6b7280; font-size: 0.875rem">/month</div>
-            </div>
-            <ul
-              style="
-                list-style: none;
-                padding: 0;
-                margin-bottom: 2rem;
-                font-size: 0.875rem;
-                color: #374151;
-              "
-            >
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span
-                  ><strong>1 Python package</strong> with unlimited
-                  tracking</span
+    <div class="analytics-container">
+        <div class="analytics-title-section">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="analytics-title">Welcome to Klyne</h1>
+                    <p class="analytics-subtitle">
+                        {% if user.subscription_status == "active" %} Monitor
+                        your package usage and performance metrics {% else %}
+                        Powerful analytics for your Python packages {% endif %}
+                    </p>
+                </div>
+                <div
+                    class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-white"
                 >
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Real-time analytics dashboard</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>OS & Python version insights</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Usage trends & patterns</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>API access</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>1 year of data history</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Email support</span>
-              </li>
-            </ul>
-            <a
-              href="/pricing"
-              style="
-                display: block;
-                background: transparent;
-                border: 1px solid #6366f1;
-                color: #6366f1;
-                text-align: center;
-                padding: 0.75rem 1.5rem;
-                border-radius: 8px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.background='#6366f1'; this.style.color='white';"
-              onmouseout="this.style.background='transparent'; this.style.color='#6366f1';"
-            >
-              Get Started with Starter
-            </a>
-          </div>
+                    {% if user.subscription_status == "active" %}
+                    <div class="text-sm font-medium">
+                        {% if package_usage.limit == -1 %} {{
+                        package_usage.current }} packages {% else %} {{
+                        package_usage.current }}/{{ package_usage.limit }}
+                        packages {% endif %}
+                    </div>
+                    <div class="text-xs opacity-75">
+                        {% if package_usage.tier == "none" %}No Plan{% else %}{{
+                        package_usage.tier.title() }} Plan{% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-lock"></i>
+                        Subscription Required
+                    </div>
+                    <div class="text-xs opacity-75">Choose a plan below</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-          <!-- Pro Plan -->
-          <div
-            style="
-              background: white;
-              border: 2px solid #6366f1;
-              border-radius: 12px;
-              padding: 2rem;
-              position: relative;
-            "
-          >
+        {% if user.subscription_status == "active" %}
+        <div class="controls-card">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-box"></i> Package
+                    </label>
+                    <select
+                        id="package-filter"
+                        class="select select-bordered w-full"
+                    >
+                        <option value="">All Packages</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-calendar-alt"></i> Start Date
+                    </label>
+                    <input
+                        type="date"
+                        id="start-date"
+                        class="input input-bordered w-full"
+                    />
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-calendar-alt"></i> End Date
+                    </label>
+                    <input
+                        type="date"
+                        id="end-date"
+                        class="input input-bordered w-full"
+                    />
+                </div>
+                <div class="control-group">
+                    <button id="refresh-data" class="btn btn-primary w-full">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <div id="overview-stats" class="stats-grid">
+            <!-- Overview stats will be populated here -->
+        </div>
+        {% else %}
+        <!-- Subscription Required Section -->
+        <div class="subscription-wall">
             <div
-              style="
-                position: absolute;
-                top: -0.75rem;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #6366f1;
-                color: white;
-                padding: 0.25rem 1rem;
-                border-radius: 9999px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 0.25rem;
-              "
+                style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 3rem;
+                    margin-bottom: 2rem;
+                    box-shadow:
+                        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e5e7eb;
+                    text-align: center;
+                "
             >
-              <i class="fas fa-crown"></i>
-              Most Popular
-            </div>
-            <div style="text-align: center; margin-bottom: 1.5rem">
-              <div
-                style="
-                  width: 4rem;
-                  height: 4rem;
-                  background: #dbeafe;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 1rem;
-                "
-              >
-                <i
-                  class="fas fa-boxes"
-                  style="color: #3b82f6; font-size: 1.25rem"
-                ></i>
-              </div>
-              <h3
-                style="
-                  font-size: 1.25rem;
-                  font-weight: bold;
-                  margin-bottom: 0.5rem;
-                  color: #1f2937;
-                "
-              >
-                Pro
-              </h3>
-              <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem">
-                For developers with multiple packages
-              </p>
-              <div
-                style="
-                  display: flex;
-                  align-items: baseline;
-                  justify-content: center;
-                  gap: 0.25rem;
-                  margin-bottom: 0.25rem;
-                "
-              >
-                <span
-                  style="font-size: 1.5rem; font-weight: bold; color: #6366f1"
-                  >$25</span
+                <div style="margin-bottom: 2rem">
+                    <div
+                        style="
+                            width: 4rem;
+                            height: 4rem;
+                            background: linear-gradient(
+                                135deg,
+                                #6366f1,
+                                #8b5cf6
+                            );
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 1.5rem;
+                            color: white;
+                            font-size: 1.5rem;
+                        "
+                    >
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h2
+                        style="
+                            font-size: 2rem;
+                            font-weight: bold;
+                            color: #1f2937;
+                            margin-bottom: 1rem;
+                        "
+                    >
+                        Unlock Your Analytics
+                    </h2>
+                    <p
+                        style="
+                            font-size: 1.125rem;
+                            color: #6b7280;
+                            margin-bottom: 2rem;
+                            max-width: 32rem;
+                            margin-left: auto;
+                            margin-right: auto;
+                        "
+                    >
+                        Get detailed insights into your Python package usage
+                        with real-time analytics, user demographics, and
+                        performance metrics.
+                    </p>
+                </div>
+
+                <!-- Feature Preview Grid -->
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(300px, 1fr)
+                        );
+                        gap: 2rem;
+                        margin-bottom: 3rem;
+                    "
                 >
-                <span style="font-size: 1.125rem; color: #6b7280">+ $9</span>
-              </div>
-              <div style="color: #6b7280; font-size: 0.875rem">/month</div>
-              <div
-                style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem"
-              >
-                per additional package/month
-              </div>
-            </div>
-            <ul
-              style="
-                list-style: none;
-                padding: 0;
-                margin-bottom: 2rem;
-                font-size: 0.875rem;
-                color: #374151;
-              "
-            >
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span
-                  ><strong>Multiple packages</strong> with bulk pricing</span
+                    <div
+                        style="
+                            background: #f9fafb;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            border: 1px solid #e5e7eb;
+                        "
+                    >
+                        <div
+                            style="
+                                width: 3rem;
+                                height: 3rem;
+                                background: #dbeafe;
+                                border-radius: 8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto 1rem;
+                                color: #3b82f6;
+                            "
+                        >
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <h3
+                            style="
+                                font-weight: 600;
+                                color: #1f2937;
+                                margin-bottom: 0.5rem;
+                            "
+                        >
+                            Usage Tracking
+                        </h3>
+                        <p style="color: #6b7280; font-size: 0.9rem">
+                            Monitor how your package is being used over time
+                            with detailed analytics
+                        </p>
+                    </div>
+
+                    <div
+                        style="
+                            background: #f9fafb;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            border: 1px solid #e5e7eb;
+                        "
+                    >
+                        <div
+                            style="
+                                width: 3rem;
+                                height: 3rem;
+                                background: #dcfce7;
+                                border-radius: 8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto 1rem;
+                                color: #16a34a;
+                            "
+                        >
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3
+                            style="
+                                font-weight: 600;
+                                color: #1f2937;
+                                margin-bottom: 0.5rem;
+                            "
+                        >
+                            Python Versions
+                        </h3>
+                        <p style="color: #6b7280; font-size: 0.9rem">
+                            See which Python versions your users are running
+                        </p>
+                    </div>
+
+                    <div
+                        style="
+                            background: #f9fafb;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            border: 1px solid #e5e7eb;
+                        "
+                    >
+                        <div
+                            style="
+                                width: 3rem;
+                                height: 3rem;
+                                background: #fef3c7;
+                                border-radius: 8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto 1rem;
+                                color: #d97706;
+                            "
+                        >
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <h3
+                            style="
+                                font-weight: 600;
+                                color: #1f2937;
+                                margin-bottom: 0.5rem;
+                            "
+                        >
+                            OS Distribution
+                        </h3>
+                        <p style="color: #6b7280; font-size: 0.9rem">
+                            Understand your users' operating system preferences
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Subscription Plans -->
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(320px, 1fr)
+                        );
+                        gap: 1.5rem;
+                        margin-bottom: 2rem;
+                    "
                 >
-              </li>
-              <li
+                    <!-- Starter Plan -->
+                    <div
+                        style="
+                            background: white;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 12px;
+                            padding: 2rem;
+                            position: relative;
+                        "
+                    >
+                        <div style="text-align: center; margin-bottom: 1.5rem">
+                            <div
+                                style="
+                                    width: 4rem;
+                                    height: 4rem;
+                                    background: #dbeafe;
+                                    border-radius: 50%;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    margin: 0 auto 1rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-box"
+                                    style="color: #3b82f6; font-size: 1.25rem"
+                                ></i>
+                            </div>
+                            <h3
+                                style="
+                                    font-size: 1.25rem;
+                                    font-weight: bold;
+                                    margin-bottom: 0.5rem;
+                                    color: #1f2937;
+                                "
+                            >
+                                Starter
+                            </h3>
+                            <p
+                                style="
+                                    color: #6b7280;
+                                    font-size: 0.9rem;
+                                    margin-bottom: 1rem;
+                                "
+                            >
+                                Perfect for single package developers
+                            </p>
+                            <div
+                                style="
+                                    font-size: 2rem;
+                                    font-weight: bold;
+                                    color: #6366f1;
+                                    margin-bottom: 0.25rem;
+                                "
+                            >
+                                $19
+                            </div>
+                            <div style="color: #6b7280; font-size: 0.875rem">
+                                /month
+                            </div>
+                        </div>
+                        <ul
+                            style="
+                                list-style: none;
+                                padding: 0;
+                                margin-bottom: 2rem;
+                                font-size: 0.875rem;
+                                color: #374151;
+                            "
+                        >
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span
+                                    ><strong>1 Python package</strong> with
+                                    unlimited tracking</span
+                                >
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Real-time analytics dashboard</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>OS & Python version insights</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Usage trends & patterns</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>API access</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>1 year of data history</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Email support</span>
+                            </li>
+                        </ul>
+                        <a
+                            href="/pricing"
+                            style="
+                                display: block;
+                                background: transparent;
+                                border: 1px solid #6366f1;
+                                color: #6366f1;
+                                text-align: center;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 8px;
+                                text-decoration: none;
+                                font-weight: 600;
+                                transition: all 0.2s ease;
+                            "
+                            onmouseover="this.style.background='#6366f1'; this.style.color='white';"
+                            onmouseout="this.style.background='transparent'; this.style.color='#6366f1';"
+                        >
+                            Get Started with Starter
+                        </a>
+                    </div>
+
+                    <!-- Pro Plan -->
+                    <div
+                        style="
+                            background: white;
+                            border: 2px solid #6366f1;
+                            border-radius: 12px;
+                            padding: 2rem;
+                            position: relative;
+                        "
+                    >
+                        <div
+                            style="
+                                position: absolute;
+                                top: -0.75rem;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                background: #6366f1;
+                                color: white;
+                                padding: 0.25rem 1rem;
+                                border-radius: 9999px;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.25rem;
+                            "
+                        >
+                            <i class="fas fa-crown"></i>
+                            Most Popular
+                        </div>
+                        <div style="text-align: center; margin-bottom: 1.5rem">
+                            <div
+                                style="
+                                    width: 4rem;
+                                    height: 4rem;
+                                    background: #dbeafe;
+                                    border-radius: 50%;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    margin: 0 auto 1rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-boxes"
+                                    style="color: #3b82f6; font-size: 1.25rem"
+                                ></i>
+                            </div>
+                            <h3
+                                style="
+                                    font-size: 1.25rem;
+                                    font-weight: bold;
+                                    margin-bottom: 0.5rem;
+                                    color: #1f2937;
+                                "
+                            >
+                                Pro
+                            </h3>
+                            <p
+                                style="
+                                    color: #6b7280;
+                                    font-size: 0.9rem;
+                                    margin-bottom: 1rem;
+                                "
+                            >
+                                For developers with multiple packages
+                            </p>
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: baseline;
+                                    justify-content: center;
+                                    gap: 0.25rem;
+                                    margin-bottom: 0.25rem;
+                                "
+                            >
+                                <span
+                                    style="
+                                        font-size: 1.5rem;
+                                        font-weight: bold;
+                                        color: #6366f1;
+                                    "
+                                    >$25</span
+                                >
+                                <span
+                                    style="font-size: 1.125rem; color: #6b7280"
+                                    >+ $9</span
+                                >
+                            </div>
+                            <div style="color: #6b7280; font-size: 0.875rem">
+                                /month
+                            </div>
+                            <div
+                                style="
+                                    color: #6b7280;
+                                    font-size: 0.75rem;
+                                    margin-top: 0.25rem;
+                                "
+                            >
+                                per additional package/month
+                            </div>
+                        </div>
+                        <ul
+                            style="
+                                list-style: none;
+                                padding: 0;
+                                margin-bottom: 2rem;
+                                font-size: 0.875rem;
+                                color: #374151;
+                            "
+                        >
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span
+                                    ><strong>Multiple packages</strong> with
+                                    bulk pricing</span
+                                >
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span
+                                    ><strong>Everything in Starter</strong>
+                                    plan</span
+                                >
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span
+                                    >Cross-package analytics & comparisons</span
+                                >
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Advanced filtering & segmentation</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Data export (CSV, JSON, API)</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Custom dashboard & reports</span>
+                            </li>
+                            <li
+                                style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    margin-bottom: 0.75rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-check"
+                                    style="
+                                        margin-right: 0.75rem;
+                                        color: #10b981;
+                                        margin-top: 0.125rem;
+                                        flex-shrink: 0;
+                                    "
+                                ></i>
+                                <span>Priority support & onboarding</span>
+                            </li>
+                        </ul>
+                        <a
+                            href="/pricing"
+                            style="
+                                display: block;
+                                background: linear-gradient(
+                                    135deg,
+                                    #6366f1,
+                                    #8b5cf6
+                                );
+                                color: white;
+                                text-align: center;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 8px;
+                                text-decoration: none;
+                                font-weight: 600;
+                                transition: all 0.2s ease;
+                            "
+                            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.4)';"
+                            onmouseout="this.style.transform='none'; this.style.boxShadow='none';"
+                        >
+                            Subscribe to Pro
+                        </a>
+                    </div>
+                </div>
+
+                <p style="color: #6b7280; font-size: 0.9rem">
+                    Start your subscription today and get immediate access to
+                    all analytics features.
+                    <a
+                        href="/pricing"
+                        style="color: #6366f1; text-decoration: underline"
+                        >View detailed pricing →</a
+                    >
+                </p>
+            </div>
+        </div>
+        {% endif %} {% if user.subscription_status == "active" %}
+        <div class="charts-section">
+            <div class="chart-row full-width">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-area"></i>
+                            Usage Over Time
+                        </h3>
+                    </div>
+                    <div class="chart-wrapper large">
+                        <canvas id="timeseries-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fab fa-python"></i>
+                            Python Versions
+                        </h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="python-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-desktop"></i>
+                            Operating Systems
+                        </h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="os-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Event Tracking Widget (Coming Soon) -->
+        <div class="chart-container" style="margin-bottom: 2rem">
+            <div class="chart-header">
+                <div class="flex items-center gap-3">
+                    <div
+                        style="
+                            width: 2.5rem;
+                            height: 2.5rem;
+                            background: rgba(251, 191, 36, 0.1);
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        "
+                    >
+                        <i
+                            class="fas fa-rocket"
+                            style="color: #f59e0b; font-size: 1rem"
+                        ></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="chart-title" style="margin-bottom: 0.25rem">
+                            Custom Event Tracking
+                        </h3>
+                        <span
+                            style="
+                                background: #f59e0b;
+                                color: white;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                                padding: 0.25rem 0.5rem;
+                                border-radius: 4px;
+                                text-transform: uppercase;
+                            "
+                            >Coming Soon</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6">
+                Track custom events in your applications beyond basic package
+                imports. Monitor user interactions, feature usage, and
+                application-specific metrics.
+            </p>
+
+            <!-- Event Selection Grid -->
+
+            <!-- Custom Event Input -->
+            <div style="margin-bottom: 1.5rem">
+                <label
+                    style="
+                        display: block;
+                        font-weight: 600;
+                        color: #374151;
+                        margin-bottom: 0.5rem;
+                        font-size: 0.875rem;
+                    "
+                >
+                    <i
+                        class="fas fa-plus"
+                        style="color: #6366f1; margin-right: 0.5rem"
+                    ></i>
+                    Add Custom Event Name
+                </label>
+                <div style="display: flex; gap: 0.75rem">
+                    <input
+                        type="text"
+                        placeholder="e.g., model_training_started, file_uploaded"
+                        style="
+                            flex: 1;
+                            padding: 0.75rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 8px;
+                            font-size: 0.875rem;
+                            opacity: 0.6;
+                        "
+                        disabled
+                    />
+                    <button
+                        style="
+                            padding: 0.75rem 1.5rem;
+                            background: linear-gradient(
+                                135deg,
+                                #8b5cf6,
+                                #a855f7
+                            );
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        "
+                        disabled
+                    >
+                        <i class="fas fa-plus" style="margin-right: 0.5rem"></i>
+                        Add
+                    </button>
+                </div>
+                <p
+                    style="
+                        font-size: 0.75rem;
+                        color: #6b7280;
+                        margin-top: 0.25rem;
+                    "
+                >
+                    Use descriptive names like 'user_signup' or
+                    'payment_processed'
+                </p>
+            </div>
+
+            <!-- Usage Preview -->
+            <div
                 style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
+                    background: #1f2937;
+                    color: #f9fafb;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
                 "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span><strong>Everything in Starter</strong> plan</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Cross-package analytics & comparisons</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Advanced filtering & segmentation</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Data export (CSV, JSON, API)</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Custom dashboard & reports</span>
-              </li>
-              <li
-                style="
-                  display: flex;
-                  align-items: flex-start;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                <i
-                  class="fas fa-check"
-                  style="
-                    margin-right: 0.75rem;
-                    color: #10b981;
-                    margin-top: 0.125rem;
-                    flex-shrink: 0;
-                  "
-                ></i>
-                <span>Priority support & onboarding</span>
-              </li>
-            </ul>
-            <a
-              href="/pricing"
-              style="
-                display: block;
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: white;
-                text-align: center;
-                padding: 0.75rem 1.5rem;
-                border-radius: 8px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.4)';"
-              onmouseout="this.style.transform='none'; this.style.boxShadow='none';"
             >
-              Subscribe to Pro
-            </a>
-          </div>
-        </div>
-
-        <p style="color: #6b7280; font-size: 0.9rem">
-          Start your subscription today and get immediate access to all
-          analytics features.
-          <a href="/pricing" style="color: #6366f1; text-decoration: underline"
-            >View detailed pricing →</a
-          >
-        </p>
-      </div>
-    </div>
-    {% endif %} {% if user.subscription_status == "active" %}
-    <div class="charts-section">
-      <div class="chart-row full-width">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">
-              <i class="fas fa-chart-area"></i>
-              Usage Over Time
-            </h3>
-          </div>
-          <div class="chart-wrapper large">
-            <canvas id="timeseries-chart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="chart-row">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">
-              <i class="fab fa-python"></i>
-              Python Versions
-            </h3>
-          </div>
-          <div class="chart-wrapper">
-            <canvas id="python-chart"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">
-              <i class="fas fa-desktop"></i>
-              Operating Systems
-            </h3>
-          </div>
-          <div class="chart-wrapper">
-            <canvas id="os-chart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Event Tracking Widget (Coming Soon) -->
-    <div class="chart-container" style="margin-bottom: 2rem">
-      <div class="chart-header">
-        <div class="flex items-center gap-3">
-          <div
-            style="
-              width: 2.5rem;
-              height: 2.5rem;
-              background: rgba(251, 191, 36, 0.1);
-              border-radius: 8px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
-            <i
-              class="fas fa-rocket"
-              style="color: #f59e0b; font-size: 1rem"
-            ></i>
-          </div>
-          <div class="flex-1">
-            <h3 class="chart-title" style="margin-bottom: 0.25rem">
-              Custom Event Tracking
-            </h3>
-            <span
-              style="
-                background: #f59e0b;
-                color: white;
-                font-size: 0.75rem;
-                font-weight: 600;
-                padding: 0.25rem 0.5rem;
-                border-radius: 4px;
-                text-transform: uppercase;
-              "
-              >Coming Soon</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6">
-        Track custom events in your applications beyond basic package imports.
-        Monitor user interactions, feature usage, and application-specific
-        metrics.
-      </p>
-
-      <!-- Event Selection Grid -->
-
-      <!-- Custom Event Input -->
-      <div style="margin-bottom: 1.5rem">
-        <label
-          style="
-            display: block;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-          "
-        >
-          <i
-            class="fas fa-plus"
-            style="color: #6366f1; margin-right: 0.5rem"
-          ></i>
-          Add Custom Event Name
-        </label>
-        <div style="display: flex; gap: 0.75rem">
-          <input
-            type="text"
-            placeholder="e.g., model_training_started, file_uploaded"
-            style="
-              flex: 1;
-              padding: 0.75rem;
-              border: 1px solid #d1d5db;
-              border-radius: 8px;
-              font-size: 0.875rem;
-              opacity: 0.6;
-            "
-            disabled
-          />
-          <button
-            style="
-              padding: 0.75rem 1.5rem;
-              background: linear-gradient(135deg, #8b5cf6, #a855f7);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              font-weight: 600;
-              opacity: 0.6;
-              cursor: not-allowed;
-            "
-            disabled
-          >
-            <i class="fas fa-plus" style="margin-right: 0.5rem"></i>
-            Add
-          </button>
-        </div>
-        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem">
-          Use descriptive names like 'user_signup' or 'payment_processed'
-        </p>
-      </div>
-
-      <!-- Usage Preview -->
-      <div
-        style="
-          background: #1f2937;
-          color: #f9fafb;
-          border-radius: 8px;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-          "
-        >
-          <i class="fas fa-code" style="color: #8b5cf6"></i>
-          <span style="font-weight: 600; font-size: 0.875rem"
-            >Usage Preview</span
-          >
-        </div>
-        <pre
-          style="
-            margin: 0;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.8rem;
-            line-height: 1.5;
-          "
-        ><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
+                <div
+                    style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        margin-bottom: 1rem;
+                    "
+                >
+                    <i class="fas fa-code" style="color: #8b5cf6"></i>
+                    <span style="font-weight: 600; font-size: 0.875rem"
+                        >Usage Preview</span
+                    >
+                </div>
+                <pre
+                    style="
+                        margin: 0;
+                        font-family:
+                            &quot;Monaco&quot;, &quot;Menlo&quot;, monospace;
+                        font-size: 0.8rem;
+                        line-height: 1.5;
+                    "
+                ><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
 
 <span style="color: #9ca3af;"># Track custom events</span>
 <span style="color: #f9fafb;">klyne</span><span style="color: #34d399;">.</span><span style="color: #fbbf24;">track</span><span style="color: #d1d5db;">(</span><span style="color: #10b981;">'user_login'</span><span style="color: #d1d5db;">, {</span>
     <span style="color: #f87171;">'user_id'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'12345'</span><span style="color: #d1d5db;">,</span>
     <span style="color: #f87171;">'login_method'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'google'</span>
 <span style="color: #d1d5db;">})</span></code></pre>
-      </div>
+            </div>
 
-      <!-- Action Buttons -->
-      <div style="display: flex; gap: 1rem; flex-wrap: wrap">
-        <a
-          href="https://github.com/psincraian/klyne/issues"
-          target="_blank"
-          style="
-            background: transparent;
-            color: #6366f1;
-            padding: 0.75rem 1.5rem;
-            border: 1px solid #6366f1;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-          "
-        >
-          <i class="fas fa-comment"></i>
-          Suggest features
-        </a>
-      </div>
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+                <a
+                    href="https://github.com/psincraian/klyne/issues"
+                    target="_blank"
+                    style="
+                        background: transparent;
+                        color: #6366f1;
+                        padding: 0.75rem 1.5rem;
+                        border: 1px solid #6366f1;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        text-decoration: none;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        transition: all 0.2s ease;
+                    "
+                >
+                    <i class="fas fa-comment"></i>
+                    Suggest features
+                </a>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-  </div>
 </div>
 
 {% endblock %}
