@@ -78,19 +78,46 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          # Auto-generate alpha version using commit count
-          # Format: {major}.{minor}.{fix}.a{commit_count}
-          TOTAL_COMMITS=$(git rev-list --count HEAD)
-          CURRENT_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          BASE_VERSION=$(echo $CURRENT_VERSION | cut -d'a' -f1)
-          VERSION="${BASE_VERSION}a${TOTAL_COMMITS}"
+          # Auto-generate alpha version based on latest stable release tag
+          # Get the latest version tag (e.g., v0.1.95)
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "sdk-v*" 2>/dev/null || echo "")
+
+          if [ -z "$LATEST_TAG" ]; then
+            # No tag found, use version from pyproject.toml
+            CURRENT_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+            BASE_VERSION=$(echo $CURRENT_VERSION | cut -d'a' -f1)
+            COMMITS_SINCE=$(git rev-list --count HEAD -- .)
+          else
+            # Extract version from tag (remove 'sdk-v' prefix)
+            TAG_VERSION=$(echo $LATEST_TAG | sed 's/sdk-v//')
+
+            # Count commits since the tag that affected sdk/ directory
+            COMMITS_SINCE=$(git rev-list --count ${LATEST_TAG}..HEAD -- .)
+
+            # Increment patch version for next alpha series
+            # e.g., if tag is 0.1.95, base becomes 0.1.96
+            MAJOR=$(echo $TAG_VERSION | cut -d. -f1)
+            MINOR=$(echo $TAG_VERSION | cut -d. -f2)
+            PATCH=$(echo $TAG_VERSION | cut -d. -f3)
+            NEXT_PATCH=$((PATCH + 1))
+            BASE_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}"
+          fi
+
+          # Generate alpha version with commit count
+          VERSION="${BASE_VERSION}a${COMMITS_SINCE}"
         fi
-        
+
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Publishing version: $VERSION"
-        
+
         # Update version in pyproject.toml
         sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+
+        # Update version in version.py
+        if [ -f "klyne/version.py" ]; then
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" klyne/version.py
+        fi
+
         echo "Updated version to $VERSION"
         grep "version =" pyproject.toml
 
