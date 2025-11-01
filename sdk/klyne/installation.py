@@ -54,20 +54,25 @@ def generate_installation_id() -> str:
     return str(uuid.uuid4())
 
 
-def calculate_fingerprint_hash() -> str:
+def calculate_fingerprint_hash(package_name: str) -> str:
     """
     Calculate a hardware/system fingerprint hash for pseudonymous tracking.
 
     This hash is based on:
+    - Package name (to ensure different packages have different fingerprints)
     - OS type and version
     - Architecture
     - Python version
     - CPU count (if available)
 
+    Args:
+        package_name: Name of the package (included to ensure per-package uniqueness)
+
     Returns a SHA256 hash of the fingerprint data.
     """
     try:
         fingerprint_data = {
+            "package_name": package_name,  # Include package name for per-package uniqueness
             "os": platform.system(),
             "os_version": platform.release(),
             "architecture": platform.machine(),
@@ -90,8 +95,8 @@ def calculate_fingerprint_hash() -> str:
 
     except Exception as e:
         _logger.debug(f"Could not calculate fingerprint hash: {e}")
-        # Return a constant hash as fallback
-        return hashlib.sha256(b"klyne_fallback").hexdigest()
+        # Return a package-specific fallback hash
+        return hashlib.sha256(f"klyne_fallback_{package_name}".encode("utf-8")).hexdigest()
 
 
 def load_installation_id(package_name: str) -> Optional[str]:
@@ -164,10 +169,10 @@ def get_or_create_installation_id(package_name: str) -> Tuple[Optional[str], str
     Returns:
         Tuple of (installation_id, fingerprint_hash)
         - installation_id: UUID string or None if couldn't be created/loaded
-        - fingerprint_hash: SHA256 hash of system fingerprint
+        - fingerprint_hash: SHA256 hash of system fingerprint (includes package_name)
     """
-    # Always calculate fingerprint hash as fallback
-    fingerprint_hash = calculate_fingerprint_hash()
+    # Always calculate fingerprint hash as fallback (includes package_name for uniqueness)
+    fingerprint_hash = calculate_fingerprint_hash(package_name)
 
     # Try to load existing installation ID
     installation_id = load_installation_id(package_name)
