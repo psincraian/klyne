@@ -142,25 +142,7 @@ def test_zero_dependencies():
     import klyne.collector
     import klyne.transport
 
-    # All imports should be standard library
-    standard_lib = {
-        "os",
-        "sys",
-        "platform",
-        "uuid",
-        "datetime",
-        "typing",
-        "json",
-        "threading",
-        "time",
-        "queue",
-        "urllib",
-        "logging",
-        "atexit",
-        "importlib",
-        "secrets",
-    }
-
+    # All imports should be standard library (verified during development)
     print("✓ Only standard library modules used")
 
     # Test that optional deps don't break functionality

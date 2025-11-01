@@ -7,8 +7,6 @@ into their Python packages for analytics collection.
 """
 
 import sys
-import os
-import time
 
 # Add the SDK to the path for testing
 sys.path.insert(0, '.')
