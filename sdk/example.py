@@ -34,36 +34,44 @@ def main():
     print(f"   ✓ Klyne initialized (enabled: {klyne.is_enabled()})")
     
     # Track some example events
-    print("\n2. Tracking events...")
-    
+    print("\n2. Tracking custom events with track()...")
+
+    # Track user login
+    klyne.track('user_login', {
+        'user_id': '12345',
+        'login_method': 'google'
+    })
+    print("   ✓ Tracked user_login event")
+
+    # Track feature usage
+    klyne.track('feature_used', {
+        'feature_name': 'export',
+        'file_format': 'csv',
+        'rows_exported': 1000
+    })
+    print("   ✓ Tracked feature_used event")
+
+    # Track error
+    klyne.track('error_occurred', {
+        'error_type': 'ValidationError',
+        'module': 'data_processor'
+    })
+    print("   ✓ Tracked error_occurred event")
+
     # Track a function call
-    klyne.track_event(
-        entry_point="main_function",
-        extra_data={"demo": True, "feature": "basic"}
-    )
+    klyne.track('main_function', {
+        'demo': True,
+        'feature': 'basic'
+    })
     print("   ✓ Tracked main_function event")
-    
-    # Track a feature usage
-    klyne.track_event(
-        entry_point="advanced_feature",
-        extra_data={"premium": True, "complexity": "high"}
-    )
-    print("   ✓ Tracked advanced_feature event")
-    
-    # Track an API call
-    klyne.track_event(
-        entry_point="api_endpoint",
-        extra_data={"endpoint": "/data", "method": "GET"}
-    )
-    print("   ✓ Tracked api_endpoint event")
-    
+
     print("\n3. SDK State Management...")
     print(f"   Current state: {'enabled' if klyne.is_enabled() else 'disabled'}")
-    
+
     # Demonstrate enable/disable
     klyne.enable()
     print(f"   After enable(): {'enabled' if klyne.is_enabled() else 'disabled'}")
-    
+
     print("\n4. Flushing events...")
     klyne.flush(timeout=2.0)
     print("   ✓ Events flushed")

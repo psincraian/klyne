@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, model_validator
 from datetime import datetime
 from typing import Optional, Dict, Any
 from uuid import UUID
@@ -100,9 +100,45 @@ class AnalyticsEventCreate(BaseModel):
             raise ValueError("Session ID must be a valid UUID")
         return v
 
+    @model_validator(mode='before')
+    @classmethod
+    def capture_extra_fields(cls, values):
+        """
+        Capture any extra fields at the root level and merge them into extra_data.
+        This allows custom properties to be sent at the root level by the SDK
+        while storing them in the extra_data JSON column in the database.
+        """
+        if not isinstance(values, dict):
+            return values
+
+        # Get the defined field names
+        defined_fields = {
+            'session_id', 'package_name', 'package_version', 'python_version',
+            'os_type', 'event_timestamp', 'installation_id', 'fingerprint_hash',
+            'user_identifier', 'python_implementation', 'os_version', 'os_release',
+            'architecture', 'installation_method', 'virtual_env', 'virtual_env_type',
+            'cpu_count', 'total_memory_gb', 'entry_point', 'extra_data'
+        }
+
+        # Find extra fields (custom properties)
+        extra_fields = {k: v for k, v in values.items() if k not in defined_fields}
+
+        # If there are extra fields, merge them into extra_data
+        if extra_fields:
+            existing_extra_data = values.get('extra_data', {}) or {}
+            # Merge extra fields into extra_data (extra fields take precedence)
+            merged_extra_data = {**existing_extra_data, **extra_fields}
+            values['extra_data'] = merged_extra_data
+
+            # Remove extra fields from root level to avoid Pydantic warnings
+            for key in extra_fields:
+                values.pop(key, None)
+
+        return values
+
     class Config:
         # Allow extra fields for forward compatibility
-        extra = "ignore"
+        extra = "allow"
         # Example data for documentation
         json_schema_extra = {
             "example": {

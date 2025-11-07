@@ -21,7 +21,7 @@ def test_basic_functionality():
 
     # Test import
     assert hasattr(klyne, "init")
-    assert hasattr(klyne, "track_event")
+    assert hasattr(klyne, "track")
     assert hasattr(klyne, "flush")
     assert hasattr(klyne, "disable")
     assert hasattr(klyne, "enable")
@@ -46,11 +46,12 @@ def test_basic_functionality():
     assert not klyne.is_enabled()
     print("✓ State management working")
 
-    # Test event tracking
-    klyne.track_event(
-        entry_point="test_function", extra_data={"test": True, "number": 42}
-    )
+    # Test event tracking with track()
+    klyne.track("test_function", {"test": True, "number": 42})
     print("✓ Event tracking successful")
+
+    klyne.track("user_login", {"user_id": "12345", "login_method": "google"})
+    print("✓ Event tracking with properties successful")
 
     # Test flush
     klyne.flush(timeout=1.0)
@@ -78,7 +79,7 @@ def test_data_collection():
     assert "virtual_env" in env_info
     print("✓ Environment info collection")
 
-    # Test event creation
+    # Test event creation with extra_data
     event = collector.create_analytics_event(
         api_key="test_key",
         package_name="test_package",
@@ -100,6 +101,39 @@ def test_data_collection():
         assert field in event, f"Missing required field: {field}"
 
     print("✓ Complete event creation")
+
+    # Test event creation with properties (custom properties merged at root level)
+    event_with_props = collector.create_analytics_event(
+        api_key="test_key",
+        package_name="test_package",
+        package_version="1.0.0",
+        entry_point="user_login",
+        properties={"user_id": "12345", "login_method": "google", "custom_field": "value"}
+    )
+
+    # Verify properties are merged at root level
+    assert "user_id" in event_with_props, "Custom property 'user_id' should be at root level"
+    assert event_with_props["user_id"] == "12345"
+    assert "login_method" in event_with_props
+    assert event_with_props["login_method"] == "google"
+    assert "custom_field" in event_with_props
+    print("✓ Custom properties merged at root level")
+
+    # Test event creation with both extra_data and properties
+    event_both = collector.create_analytics_event(
+        api_key="test_key",
+        package_name="test_package",
+        package_version="1.0.0",
+        entry_point="test",
+        extra_data={"nested": "data"},
+        properties={"root": "level"}
+    )
+
+    assert "extra_data" in event_both
+    assert event_both["extra_data"]["nested"] == "data"
+    assert "root" in event_both
+    assert event_both["root"] == "level"
+    print("✓ Both extra_data and properties work together")
 
 
 def test_transport():

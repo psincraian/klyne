@@ -15,13 +15,13 @@ from .client import (
     flush,
     init,
     is_enabled,
-    track_event,
+    track,
 )
 from .version import __version__
 
 __all__ = [
     "init",
-    "track_event",
+    "track",
     "flush",
     "disable",
     "enable",

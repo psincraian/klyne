@@ -159,6 +159,7 @@ def create_analytics_event(
     session_id: Optional[str] = None,
     entry_point: Optional[str] = None,
     extra_data: Optional[Dict[str, Any]] = None,
+    properties: Optional[Dict[str, Any]] = None,
     installation_id: Optional[str] = None,
     fingerprint_hash: Optional[str] = None,
     user_identifier: Optional[str] = None
@@ -172,7 +173,8 @@ def create_analytics_event(
         package_version: Version of the package
         session_id: Optional session ID (generates UUID if not provided)
         entry_point: Optional entry point/function name
-        extra_data: Optional additional data
+        extra_data: Optional additional data (nested under extra_data field)
+        properties: Optional custom properties (merged at root level)
         installation_id: Optional installation UUID for unique user tracking
         fingerprint_hash: Optional hardware fingerprint hash
         user_identifier: Optional user identifier (installation_id or fingerprint_hash)
@@ -198,12 +200,12 @@ def create_analytics_event(
         event["installation_id"] = installation_id
     if fingerprint_hash:
         event["fingerprint_hash"] = fingerprint_hash
-    
+
     # Calculate user_identifier if not provided
     # Priority: installation_id > fingerprint_hash
     if not user_identifier and (installation_id or fingerprint_hash):
         user_identifier = installation_id if installation_id else fingerprint_hash
-    
+
     if user_identifier:
         event["user_identifier"] = user_identifier
 
@@ -227,6 +229,10 @@ def create_analytics_event(
 
     if extra_data:
         event["extra_data"] = extra_data
+
+    # Merge custom properties at root level (if provided)
+    if properties:
+        event.update(properties)
 
     return event
 

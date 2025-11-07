@@ -50,16 +50,31 @@ The SDK automatically collects:
 
 ## Advanced Usage
 
-### Custom Event Tracking (coming soon)
+### Custom Event Tracking
+
+Track custom events with properties to understand how users interact with your package:
 
 ```python
 import klyne
 
-# Track specific functions or features
-klyne.track_event(
-    entry_point="advanced_feature",
-    extra_data={"mode": "premium", "user_type": "enterprise"}
-)
+# Track user actions
+klyne.track('user_login', {
+    'user_id': '12345',
+    'login_method': 'google'
+})
+
+# Track feature usage
+klyne.track('feature_used', {
+    'feature_name': 'export',
+    'file_format': 'csv',
+    'rows_exported': 1000
+})
+
+# Track errors or issues
+klyne.track('error_occurred', {
+    'error_type': 'ValidationError',
+    'module': 'data_processor'
+})
 ```
 
 ### Configuration Options

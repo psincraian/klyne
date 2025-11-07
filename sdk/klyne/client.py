@@ -93,19 +93,28 @@ class KlyneClient:
         except Exception as e:
             _logger.warning(f"Failed to send Klyne init event: {e}")
 
-    def track_event(
+    def track(
         self,
-        entry_point: Optional[str] = None,
-        extra_data: Optional[Dict[str, Any]] = None,
+        event_name: str,
+        properties: Optional[Dict[str, Any]] = None,
         session_id: Optional[str] = None,
     ):
         """
-        Track a custom analytics event.
+        Track a custom event with properties.
+
+        This method merges custom properties at the root level of the analytics
+        event alongside system-collected metrics.
 
         Args:
-            entry_point: Function or entry point name
-            extra_data: Additional custom data
+            event_name: Name of the event (e.g., 'user_login', 'feature_used')
+            properties: Custom properties to track with the event
             session_id: Optional custom session ID
+
+        Example:
+            client.track('user_login', {
+                'user_id': '12345',
+                'login_method': 'google'
+            })
         """
         if not self.enabled or not self.transport:
             return
@@ -116,8 +125,8 @@ class KlyneClient:
                 package_name=self.project,
                 package_version=self.package_version,
                 session_id=session_id or self.session_id,
-                entry_point=entry_point,
-                extra_data=extra_data,
+                entry_point=event_name,
+                properties=properties,
                 installation_id=self.installation_id,
                 fingerprint_hash=self.fingerprint_hash,
                 user_identifier=self.user_identifier,
@@ -233,28 +242,39 @@ def init(
         _logger.warning(f"Failed to initialize Klyne: {e}")
 
 
-def track_event(
-    entry_point: Optional[str] = None,
-    extra_data: Optional[Dict[str, Any]] = None,
+def track(
+    event_name: str,
+    properties: Optional[Dict[str, Any]] = None,
     session_id: Optional[str] = None,
 ) -> None:
     """
-    Track a custom analytics event.
+    Track a custom event with properties.
+
+    This method merges custom properties at the root level of the analytics
+    event alongside system-collected metrics.
 
     Args:
-        entry_point: Function or entry point name
-        extra_data: Additional custom data
+        event_name: Name of the event (e.g., 'user_login', 'feature_used')
+        properties: Custom properties to track with the event
         session_id: Optional custom session ID
 
     Example:
         import klyne
-        klyne.track_event(
-            entry_point="my_function",
-            extra_data={"feature": "advanced_mode"}
-        )
+        klyne.init(api_key="klyne_...", project="my-package")
+
+        # Track custom events
+        klyne.track('user_login', {
+            'user_id': '12345',
+            'login_method': 'google'
+        })
+
+        klyne.track('feature_used', {
+            'feature_name': 'export',
+            'file_format': 'csv'
+        })
     """
     if _client:
-        _client.track_event(entry_point, extra_data, session_id)
+        _client.track(event_name, properties, session_id)
 
 
 def flush(timeout: float = 10.0) -> None:
