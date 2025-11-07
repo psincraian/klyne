@@ -32,7 +32,7 @@ def test_basic_functionality():
     # Test initialization
     klyne.init(
         api_key="klyne_oh2O_2mGfDm3o8oDtK45PY17jtnlXuKz1CoHOWBWUww",
-        project="test-cli",
+        project="test-ci",
         package_version="1.0.0",
         enabled=False,  # Disable to avoid network calls
     )
@@ -108,11 +108,17 @@ def test_data_collection():
         package_name="test_package",
         package_version="1.0.0",
         entry_point="user_login",
-        properties={"user_id": "12345", "login_method": "google", "custom_field": "value"}
+        properties={
+            "user_id": "12345",
+            "login_method": "google",
+            "custom_field": "value",
+        },
     )
 
     # Verify properties are merged at root level
-    assert "user_id" in event_with_props, "Custom property 'user_id' should be at root level"
+    assert "user_id" in event_with_props, (
+        "Custom property 'user_id' should be at root level"
+    )
     assert event_with_props["user_id"] == "12345"
     assert "login_method" in event_with_props
     assert event_with_props["login_method"] == "google"
@@ -126,7 +132,7 @@ def test_data_collection():
         package_version="1.0.0",
         entry_point="test",
         extra_data={"nested": "data"},
-        properties={"root": "level"}
+        properties={"root": "level"},
     )
 
     assert "extra_data" in event_both

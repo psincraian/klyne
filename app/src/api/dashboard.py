@@ -3,8 +3,9 @@ Refactored Dashboard API endpoints using the new architecture with services and 
 """
 
 from datetime import date
-from typing import Optional, List
-from fastapi import APIRouter, Depends, Query
+from typing import Optional, List, Annotated
+from fastapi import APIRouter, Depends, Query, Path
+from pydantic import constr
 import logging
 
 from src.core.auth import require_authentication
@@ -20,6 +21,9 @@ from src.schemas.dashboard import (
     ActiveUsersTimeSeries,
     UserRetentionMetrics,
     UniqueUsersByDimension,
+    CustomEventType,
+    CustomEventTimeSeries,
+    CustomEventDetails,
 )
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -215,6 +219,110 @@ async def get_unique_users_by_python_version(
     logger.info(f"Getting unique users by Python version for user {user_id}")
     return await analytics_service.get_unique_users_by_python_version(
         user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/custom-events/types")
+async def get_custom_event_types(
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> List[CustomEventType]:
+    """
+    Get all custom event types tracked for the user's packages.
+    Returns event names with their total counts.
+    """
+    logger.info(f"Getting custom event types for user {user_id}")
+    return await analytics_service.get_custom_event_types_for_user(
+        user_id=user_id,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/custom-events/timeseries")
+async def get_custom_events_timeseries(
+    event_types: Annotated[str, Query(
+        ...,
+        description="Comma-separated list of event types",
+        pattern=r'^[a-zA-Z0-9_\-\.,\s]+$',
+        max_length=1000
+    )],
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> CustomEventTimeSeries:
+    """
+    Get time series data for selected custom event types.
+    Event types must contain only alphanumeric characters, underscores, hyphens, and dots.
+    """
+    logger.info(f"Getting custom events timeseries for user {user_id}, events: {event_types}")
+
+    # Parse and validate comma-separated event types
+    import re
+    event_pattern = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+    event_types_list = []
+
+    for e in event_types.split(","):
+        e_stripped = e.strip()
+        if e_stripped:
+            if not event_pattern.match(e_stripped):
+                from fastapi import HTTPException
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Invalid event type: '{e_stripped}'. Must contain only alphanumeric characters, underscores, hyphens, and dots."
+                )
+            if len(e_stripped) > 200:
+                from fastapi import HTTPException
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Event type too long: '{e_stripped}'. Maximum 200 characters allowed."
+                )
+            event_types_list.append(e_stripped)
+
+    return await analytics_service.get_custom_events_timeseries_for_user(
+        user_id=user_id,
+        event_types=event_types_list,
+        package_name=package_name,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/custom-events/{event_type}/details")
+async def get_custom_event_details(
+    event_type: Annotated[str, Path(
+        ...,
+        description="Event type name",
+        pattern=r'^[a-zA-Z0-9_\-\.]+$',
+        min_length=1,
+        max_length=200
+    )],
+    package_name: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    user_id: int = Depends(require_authentication),
+    analytics_service: AnalyticsService = Depends(get_analytics_service),
+) -> CustomEventDetails:
+    """
+    Get detailed information about a specific custom event type,
+    including sample property data.
+
+    Event type must contain only alphanumeric characters, underscores, hyphens, and dots.
+    Maximum length: 200 characters.
+    """
+    logger.info(f"Getting details for custom event '{event_type}' for user {user_id}")
+    return await analytics_service.get_custom_event_details_for_user(
+        user_id=user_id,
+        event_type=event_type,
         package_name=package_name,
         start_date=start_date,
         end_date=end_date

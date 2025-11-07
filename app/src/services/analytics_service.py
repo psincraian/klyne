@@ -14,6 +14,9 @@ from src.schemas.dashboard import (
     ActiveUsersTimeSeries,
     UserRetentionMetrics,
     UniqueUsersByDimension,
+    CustomEventType,
+    CustomEventTimeSeries,
+    CustomEventDetails,
 )
 
 logger = logging.getLogger(__name__)
@@ -721,3 +724,179 @@ class AnalyticsService:
             )
 
         return result
+
+    async def get_custom_event_types(self, api_keys: List[str],
+                                    start_date: datetime,
+                                    end_date: datetime) -> List[CustomEventType]:
+        """Get all custom event types with their counts."""
+        from src.schemas.dashboard import CustomEventType
+
+        event_types = await self.repository.get_custom_event_types(
+            api_keys, start_date, end_date
+        )
+
+        return [
+            CustomEventType(
+                event_type=event["event_type"],
+                total_count=event["total_count"]
+            )
+            for event in event_types
+        ]
+
+    async def get_custom_events_timeseries(self, api_keys: List[str],
+                                          event_types: List[str],
+                                          start_date: datetime,
+                                          end_date: datetime) -> CustomEventTimeSeries:
+        """Get time series data for selected custom event types."""
+        from src.schemas.dashboard import CustomEventTimeSeries
+        from collections import defaultdict
+
+        # Get raw time series data
+        raw_data = await self.repository.get_custom_events_timeseries(
+            api_keys, event_types, start_date, end_date
+        )
+
+        # Build date range
+        date_range = []
+        current_date = start_date.date()
+        while current_date <= end_date.date():
+            date_range.append(current_date.isoformat())
+            current_date += timedelta(days=1)
+
+        # Organize data by event type
+        data_by_type = defaultdict(lambda: defaultdict(int))
+        for row in raw_data:
+            date_str = row["date"].isoformat()
+            event_type = row["event_type"]
+            count = row["count"]
+            data_by_type[event_type][date_str] = count
+
+        # Build series data with zeros for missing dates
+        series_data = {}
+        for event_type in event_types:
+            series_data[event_type] = [
+                data_by_type[event_type].get(date_str, 0)
+                for date_str in date_range
+            ]
+
+        return CustomEventTimeSeries(
+            dates=date_range,
+            event_types=event_types,
+            series_data=series_data
+        )
+
+    async def get_custom_event_details(self, api_keys: List[str],
+                                      event_type: str,
+                                      start_date: datetime,
+                                      end_date: datetime) -> CustomEventDetails:
+        """Get detailed information about a specific custom event type."""
+        from src.schemas.dashboard import CustomEventDetails, CustomEventProperty
+
+        # Get event count
+        event_types_data = await self.repository.get_custom_event_types(
+            api_keys, start_date, end_date
+        )
+
+        total_count = 0
+        for event_data in event_types_data:
+            if event_data["event_type"] == event_type:
+                total_count = event_data["total_count"]
+                break
+
+        # Get property samples
+        properties_data = await self.repository.get_custom_event_properties(
+            api_keys, event_type, start_date, end_date, limit=10
+        )
+
+        sample_properties = [
+            CustomEventProperty(
+                properties=prop["properties"],
+                timestamp=prop["timestamp"].isoformat()
+            )
+            for prop in properties_data
+        ]
+
+        return CustomEventDetails(
+            event_type=event_type,
+            total_count=total_count,
+            sample_properties=sample_properties
+        )
+
+    async def get_custom_event_types_for_user(self, user_id: int,
+                                              package_name: Optional[str] = None,
+                                              start_date: Optional[date] = None,
+                                              end_date: Optional[date] = None) -> List[CustomEventType]:
+        """Get custom event types for a user's packages."""
+        # Get user's API keys
+        api_keys = await self.uow.api_keys.get_user_api_keys_with_filter(user_id, package_name)
+
+        if not api_keys:
+            return []
+
+        api_key_values = [key.key for key in api_keys]
+
+        # Use default date range if not provided
+        if not end_date:
+            end_date = date.today()
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+
+        # Convert to datetime
+        start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=tz.utc)
+        end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=tz.utc)
+
+        return await self.get_custom_event_types(api_key_values, start_datetime, end_datetime)
+
+    async def get_custom_events_timeseries_for_user(self, user_id: int,
+                                                   event_types: List[str],
+                                                   package_name: Optional[str] = None,
+                                                   start_date: Optional[date] = None,
+                                                   end_date: Optional[date] = None) -> CustomEventTimeSeries:
+        """Get custom events timeseries for a user's packages."""
+        # Get user's API keys
+        api_keys = await self.uow.api_keys.get_user_api_keys_with_filter(user_id, package_name)
+
+        if not api_keys:
+            # Return empty time series
+            return CustomEventTimeSeries(dates=[], event_types=event_types, series_data={})
+
+        api_key_values = [key.key for key in api_keys]
+
+        # Use default date range if not provided
+        if not end_date:
+            end_date = date.today()
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+
+        # Convert to datetime
+        start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=tz.utc)
+        end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=tz.utc)
+
+        return await self.get_custom_events_timeseries(api_key_values, event_types, start_datetime, end_datetime)
+
+    async def get_custom_event_details_for_user(self, user_id: int,
+                                               event_type: str,
+                                               package_name: Optional[str] = None,
+                                               start_date: Optional[date] = None,
+                                               end_date: Optional[date] = None) -> CustomEventDetails:
+        """Get custom event details for a user's packages."""
+        # Get user's API keys
+        api_keys = await self.uow.api_keys.get_user_api_keys_with_filter(user_id, package_name)
+
+        if not api_keys:
+            # Return empty details
+            return CustomEventDetails(event_type=event_type, total_count=0, sample_properties=[])
+
+        api_key_values = [key.key for key in api_keys]
+
+        # Use default date range if not provided
+        if not end_date:
+            end_date = date.today()
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+
+        # Convert to datetime
+        start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=tz.utc)
+        end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=tz.utc)
+
+        return await self.get_custom_event_details(api_key_values, event_type, start_datetime, end_datetime)

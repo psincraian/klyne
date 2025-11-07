@@ -474,3 +474,113 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
             }
             for row in result.all()
         ]
+
+    async def get_custom_event_types(self, api_keys: List[str],
+                                     start_date: datetime,
+                                     end_date: datetime) -> List[Dict[str, Any]]:
+        """
+        Get all custom event types (entry_point values where extra_data is not null).
+        Returns event types with their counts.
+        """
+        query = (
+            select(
+                AnalyticsEvent.entry_point.label("event_type"),
+                func.count(AnalyticsEvent.id).label("total_count")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.entry_point.isnot(None),
+                    AnalyticsEvent.extra_data.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .group_by(AnalyticsEvent.entry_point)
+            .order_by(desc("total_count"))
+        )
+
+        result = await self.db.execute(query)
+        return [
+            {
+                "event_type": row.event_type,
+                "total_count": row.total_count
+            }
+            for row in result.all()
+        ]
+
+    async def get_custom_events_timeseries(self, api_keys: List[str],
+                                          event_types: List[str],
+                                          start_date: datetime,
+                                          end_date: datetime) -> List[Dict[str, Any]]:
+        """
+        Get time series data for specific custom event types.
+        Returns daily counts grouped by event type.
+        """
+        query = (
+            select(
+                func.date(AnalyticsEvent.event_timestamp).label("date"),
+                AnalyticsEvent.entry_point.label("event_type"),
+                func.count(AnalyticsEvent.id).label("count")
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.entry_point.in_(event_types),
+                    AnalyticsEvent.extra_data.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .group_by(
+                func.date(AnalyticsEvent.event_timestamp),
+                AnalyticsEvent.entry_point
+            )
+            .order_by(func.date(AnalyticsEvent.event_timestamp))
+        )
+
+        result = await self.db.execute(query)
+        return [
+            {
+                "date": row.date,
+                "event_type": row.event_type,
+                "count": row.count
+            }
+            for row in result.all()
+        ]
+
+    async def get_custom_event_properties(self, api_keys: List[str],
+                                         event_type: str,
+                                         start_date: datetime,
+                                         end_date: datetime,
+                                         limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get sample property data (extra_data) for a specific event type.
+        Returns recent examples to show what properties are being tracked.
+        """
+        query = (
+            select(
+                AnalyticsEvent.extra_data,
+                AnalyticsEvent.event_timestamp
+            )
+            .filter(
+                and_(
+                    AnalyticsEvent.api_key.in_(api_keys),
+                    AnalyticsEvent.entry_point == event_type,
+                    AnalyticsEvent.extra_data.isnot(None),
+                    AnalyticsEvent.event_timestamp >= start_date,
+                    AnalyticsEvent.event_timestamp <= end_date
+                )
+            )
+            .order_by(desc(AnalyticsEvent.event_timestamp))
+            .limit(limit)
+        )
+
+        result = await self.db.execute(query)
+        return [
+            {
+                "properties": row.extra_data,
+                "timestamp": row.event_timestamp
+            }
+            for row in result.all()
+        ]

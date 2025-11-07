@@ -136,3 +136,41 @@ class UniqueUsersByDimension(BaseModel):
     unique_users: int = Field(ge=0)
     percentage: float = Field(ge=0, le=100)
     avg_sessions_per_user: float = Field(ge=0)
+
+
+class CustomEventType(BaseModel):
+    """Custom event type with count."""
+
+    event_type: str = Field(description="Name of the custom event (e.g., 'user_login', 'feature_used')")
+    total_count: int = Field(ge=0, description="Total number of times this event was tracked")
+
+
+class CustomEventTimeSeriesPoint(BaseModel):
+    """Single data point in custom event time series."""
+
+    date: str = Field(description="ISO date string")
+    event_type: str = Field(description="Event type name")
+    count: int = Field(ge=0, description="Number of events on this date")
+
+
+class CustomEventTimeSeries(BaseModel):
+    """Time series data for custom events."""
+
+    dates: List[str] = Field(description="List of ISO date strings")
+    event_types: List[str] = Field(description="List of event types included")
+    series_data: Dict[str, List[int]] = Field(description="Event counts by type, keyed by event_type")
+
+
+class CustomEventProperty(BaseModel):
+    """Sample property data for a custom event."""
+
+    properties: Dict[str, Any] = Field(description="The extra_data JSON for this event")
+    timestamp: str = Field(description="ISO timestamp when event occurred")
+
+
+class CustomEventDetails(BaseModel):
+    """Detailed view of a specific custom event type."""
+
+    event_type: str = Field(description="Name of the custom event")
+    total_count: int = Field(ge=0, description="Total occurrences in date range")
+    sample_properties: List[CustomEventProperty] = Field(description="Recent examples of event properties")

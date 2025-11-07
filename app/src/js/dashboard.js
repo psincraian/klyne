@@ -58,12 +58,13 @@ function initializeDateInputs() {
 async function loadInitialData() {
     try {
         showLoading();
-        
+
         await Promise.all([
             loadOverviewData(),
             loadTimeSeriesData(),
             loadPythonVersionData(),
-            loadOSData()
+            loadOSData(),
+            loadCustomEvents()
         ]);
         
         hideLoading();
@@ -516,4 +517,298 @@ function showError(message) {
 
 function clearError() {
     // Clear any existing error messages
+}
+
+// ============================================================================
+// CUSTOM EVENTS TRACKING
+// ============================================================================
+
+let selectedEventTypes = new Set();
+let customEventsChart = null;
+
+async function loadCustomEvents() {
+    try {
+        // Show loading
+        document.getElementById('custom-events-loading').style.display = 'block';
+        document.getElementById('custom-events-empty').style.display = 'none';
+        document.getElementById('custom-events-selector').style.display = 'none';
+        document.getElementById('custom-events-chart-container').style.display = 'none';
+        document.getElementById('custom-events-properties').style.display = 'none';
+
+        // Get event types
+        const params = buildQueryParams();
+        const response = await fetch(`/api/dashboard/custom-events/types?${params}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to load custom events');
+        }
+
+        const eventTypes = await response.json();
+
+        // Hide loading
+        document.getElementById('custom-events-loading').style.display = 'none';
+
+        if (eventTypes.length === 0) {
+            // Show empty state
+            document.getElementById('custom-events-empty').style.display = 'block';
+            return;
+        }
+
+        // Show selector and render event chips
+        document.getElementById('custom-events-selector').style.display = 'block';
+        renderEventTypeChips(eventTypes);
+
+        // Select all events by default
+        selectedEventTypes = new Set(eventTypes.map(e => e.event_type));
+
+        // Load time series data
+        await loadCustomEventsTimeseries();
+
+    } catch (error) {
+        console.error('Error loading custom events:', error);
+        document.getElementById('custom-events-loading').style.display = 'none';
+        document.getElementById('custom-events-empty').style.display = 'block';
+    }
+}
+
+function renderEventTypeChips(eventTypes) {
+    const container = document.getElementById('event-type-chips');
+    container.innerHTML = '';
+
+    eventTypes.forEach(eventType => {
+        const chip = document.createElement('button');
+        chip.className = 'event-type-chip';
+        chip.dataset.eventType = eventType.event_type;
+        chip.innerHTML = `
+            <span class="event-name">${eventType.event_type}</span>
+            <span class="event-count">${eventType.total_count}</span>
+        `;
+
+        chip.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #6366f1;
+            color: white;
+            border: 2px solid #6366f1;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        `;
+
+        chip.querySelector('.event-count').style.cssText = `
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        `;
+
+        chip.addEventListener('click', () => toggleEventType(eventType.event_type, chip));
+        container.appendChild(chip);
+    });
+}
+
+async function toggleEventType(eventType, chipElement) {
+    if (selectedEventTypes.has(eventType)) {
+        selectedEventTypes.delete(eventType);
+        chipElement.style.background = 'white';
+        chipElement.style.color = '#6366f1';
+    } else {
+        selectedEventTypes.add(eventType);
+        chipElement.style.background = '#6366f1';
+        chipElement.style.color = 'white';
+    }
+
+    // Reload timeseries if at least one event is selected
+    if (selectedEventTypes.size > 0) {
+        await loadCustomEventsTimeseries();
+    } else {
+        // Hide chart if no events selected
+        document.getElementById('custom-events-chart-container').style.display = 'none';
+        document.getElementById('custom-events-properties').style.display = 'none';
+    }
+}
+
+async function loadCustomEventsTimeseries() {
+    if (selectedEventTypes.size === 0) return;
+
+    try {
+        const params = buildQueryParams();
+        const eventTypesParam = Array.from(selectedEventTypes).join(',');
+        const response = await fetch(`/api/dashboard/custom-events/timeseries?event_types=${encodeURIComponent(eventTypesParam)}&${params}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to load timeseries');
+        }
+
+        const data = await response.json();
+
+        // Show chart container
+        document.getElementById('custom-events-chart-container').style.display = 'block';
+
+        // Render chart
+        renderCustomEventsChart(data);
+
+        // Load properties for first selected event
+        if (selectedEventTypes.size > 0) {
+            const firstEvent = Array.from(selectedEventTypes)[0];
+            await loadEventProperties(firstEvent);
+        }
+
+    } catch (error) {
+        console.error('Error loading custom events timeseries:', error);
+    }
+}
+
+function renderCustomEventsChart(data) {
+    const canvas = document.getElementById('customEventsChart');
+    const ctx = canvas.getContext('2d');
+
+    // Destroy existing chart
+    if (customEventsChart) {
+        customEventsChart.destroy();
+    }
+
+    // Prepare datasets
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+    const datasets = data.event_types.map((eventType, index) => {
+        const color = colors[index % colors.length];
+        return {
+            label: eventType,
+            data: data.series_data[eventType] || [],
+            borderColor: color,
+            backgroundColor: color + '20',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        };
+    });
+
+    // Create chart
+    customEventsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.dates,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13
+                    },
+                    bodyFont: {
+                        size: 12
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM d'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+async function loadEventProperties(eventType) {
+    try {
+        const params = buildQueryParams();
+        const response = await fetch(`/api/dashboard/custom-events/${encodeURIComponent(eventType)}/details?${params}`);
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.sample_properties.length === 0) {
+            return;
+        }
+
+        // Show properties section
+        document.getElementById('custom-events-properties').style.display = 'block';
+
+        // Render properties (using textContent to prevent XSS)
+        const container = document.getElementById('event-properties-content');
+        container.innerHTML = ''; // Clear existing content
+
+        // Create header paragraph safely
+        const header = document.createElement('p');
+        header.style.cssText = 'color: #6b7280; margin-bottom: 1rem; font-family: system-ui';
+
+        const headerText = document.createTextNode('Showing recent examples for ');
+        const strongElement = document.createElement('strong');
+        strongElement.textContent = eventType;
+        const countText = document.createTextNode(` (${data.total_count} total events)`);
+
+        header.appendChild(headerText);
+        header.appendChild(strongElement);
+        header.appendChild(countText);
+        container.appendChild(header);
+
+        // Render each property sample safely
+        data.sample_properties.forEach((sample, index) => {
+            const propertyDiv = document.createElement('div');
+            propertyDiv.style.cssText = 'margin-bottom: 1rem; padding: 1rem; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb';
+
+            // Timestamp header (safe - using textContent)
+            const timestampDiv = document.createElement('div');
+            timestampDiv.style.cssText = 'color: #6b7280; font-size: 0.7rem; margin-bottom: 0.5rem; font-family: system-ui';
+            timestampDiv.textContent = new Date(sample.timestamp).toLocaleString();
+            propertyDiv.appendChild(timestampDiv);
+
+            // JSON display (safe - using textContent to prevent XSS)
+            const pre = document.createElement('pre');
+            pre.style.cssText = 'margin: 0; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word';
+            pre.textContent = JSON.stringify(sample.properties, null, 2);
+            propertyDiv.appendChild(pre);
+
+            container.appendChild(propertyDiv);
+        });
+
+    } catch (error) {
+        console.error('Error loading event properties:', error);
+    }
 }

@@ -1496,7 +1496,7 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
             </div>
         </div>
 
-        <!-- Custom Event Tracking Widget (Coming Soon) -->
+        <!-- Custom Event Tracking Widget -->
         <div class="chart-container" style="margin-bottom: 2rem">
             <div class="chart-header">
                 <div class="flex items-center gap-3">
@@ -1520,32 +1520,15 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
                         <h3 class="chart-title" style="margin-bottom: 0.25rem">
                             Custom Event Tracking
                         </h3>
-                        <span
-                            style="
-                                background: #f59e0b;
-                                color: white;
-                                font-size: 0.75rem;
-                                font-weight: 600;
-                                padding: 0.25rem 0.5rem;
-                                border-radius: 4px;
-                                text-transform: uppercase;
-                            "
-                            >Coming Soon</span
-                        >
+                        <p style="font-size: 0.75rem; color: #6b7280; margin: 0">
+                            Monitor custom events from klyne.track()
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6">
-                Track custom events in your applications beyond basic package
-                imports. Monitor user interactions, feature usage, and
-                application-specific metrics.
-            </p>
-
-            <!-- Event Selection Grid -->
-
-            <!-- Custom Event Input -->
-            <div style="margin-bottom: 1.5rem">
+            <!-- Event Type Selector -->
+            <div id="custom-events-selector" style="margin-bottom: 1.5rem; display: none">
                 <label
                     style="
                         display: block;
@@ -1555,121 +1538,73 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
                         font-size: 0.875rem;
                     "
                 >
-                    <i
-                        class="fas fa-plus"
-                        style="color: #6366f1; margin-right: 0.5rem"
-                    ></i>
-                    Add Custom Event Name
+                    <i class="fas fa-filter" style="color: #6366f1; margin-right: 0.5rem"></i>
+                    Select Events to Display
                 </label>
-                <div style="display: flex; gap: 0.75rem">
-                    <input
-                        type="text"
-                        placeholder="e.g., model_training_started, file_uploaded"
-                        style="
-                            flex: 1;
-                            padding: 0.75rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 8px;
-                            font-size: 0.875rem;
-                            opacity: 0.6;
-                        "
-                        disabled
-                    />
-                    <button
-                        style="
-                            padding: 0.75rem 1.5rem;
-                            background: linear-gradient(
-                                135deg,
-                                #8b5cf6,
-                                #a855f7
-                            );
-                            color: white;
-                            border: none;
-                            border-radius: 8px;
-                            font-weight: 600;
-                            opacity: 0.6;
-                            cursor: not-allowed;
-                        "
-                        disabled
-                    >
-                        <i class="fas fa-plus" style="margin-right: 0.5rem"></i>
-                        Add
-                    </button>
+                <div id="event-type-chips" style="display: flex; flex-wrap: wrap; gap: 0.5rem">
+                    <!-- Event chips will be dynamically inserted here -->
                 </div>
-                <p
-                    style="
-                        font-size: 0.75rem;
-                        color: #6b7280;
-                        margin-top: 0.25rem;
-                    "
-                >
-                    Use descriptive names like 'user_signup' or
-                    'payment_processed'
-                </p>
             </div>
 
-            <!-- Usage Preview -->
-            <div
-                style="
-                    background: #1f2937;
-                    color: #f9fafb;
-                    border-radius: 8px;
-                    padding: 1.5rem;
-                    margin-bottom: 1.5rem;
-                "
-            >
+            <!-- Chart Container -->
+            <div id="custom-events-chart-container" style="position: relative; height: 300px; margin-bottom: 1.5rem; display: none">
+                <canvas id="customEventsChart"></canvas>
+            </div>
+
+            <!-- Loading State -->
+            <div id="custom-events-loading" style="display: none; text-align: center; padding: 2rem">
+                <div class="loading-spinner" style="margin: 0 auto 1rem"></div>
+                <p style="color: #6b7280">Loading custom events...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="custom-events-empty" style="text-align: center; padding: 3rem 1rem">
+                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4 style="color: #374151; margin-bottom: 0.5rem; font-weight: 600">
+                    No Custom Events Yet
+                </h4>
+                <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto">
+                    Start tracking custom events in your application using klyne.track()
+                </p>
                 <div
                     style="
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        margin-bottom: 1rem;
+                        background: #1f2937;
+                        color: #f9fafb;
+                        border-radius: 8px;
+                        padding: 1.5rem;
+                        margin: 0 auto;
+                        max-width: 500px;
+                        text-align: left;
                     "
                 >
-                    <i class="fas fa-code" style="color: #8b5cf6"></i>
-                    <span style="font-weight: 600; font-size: 0.875rem"
-                        >Usage Preview</span
-                    >
-                </div>
-                <pre
-                    style="
-                        margin: 0;
-                        font-family:
-                            &quot;Monaco&quot;, &quot;Menlo&quot;, monospace;
-                        font-size: 0.8rem;
-                        line-height: 1.5;
-                    "
-                ><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem">
+                        <i class="fas fa-code" style="color: #8b5cf6"></i>
+                        <span style="font-weight: 600; font-size: 0.875rem">Example Usage</span>
+                    </div>
+                    <pre style="margin: 0; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.8rem; line-height: 1.5"><code><span style="color: #60a5fa;">import</span> <span style="color: #f9fafb;">klyne</span>
 
 <span style="color: #9ca3af;"># Track custom events</span>
 <span style="color: #f9fafb;">klyne</span><span style="color: #34d399;">.</span><span style="color: #fbbf24;">track</span><span style="color: #d1d5db;">(</span><span style="color: #10b981;">'user_login'</span><span style="color: #d1d5db;">, {</span>
     <span style="color: #f87171;">'user_id'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'12345'</span><span style="color: #d1d5db;">,</span>
     <span style="color: #f87171;">'login_method'</span><span style="color: #d1d5db;">:</span> <span style="color: #10b981;">'google'</span>
 <span style="color: #d1d5db;">})</span></code></pre>
+                </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap">
-                <a
-                    href="https://github.com/psincraian/klyne/issues"
-                    target="_blank"
-                    style="
-                        background: transparent;
-                        color: #6366f1;
-                        padding: 0.75rem 1.5rem;
-                        border: 1px solid #6366f1;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        text-decoration: none;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        transition: all 0.2s ease;
-                    "
-                >
-                    <i class="fas fa-comment"></i>
-                    Suggest features
-                </a>
+            <!-- Event Properties Viewer (collapsible) -->
+            <div id="custom-events-properties" style="display: none; margin-top: 1.5rem">
+                <details style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem">
+                    <summary style="cursor: pointer; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 0.5rem">
+                        <i class="fas fa-brackets-curly" style="color: #6366f1"></i>
+                        View Event Properties
+                        <span style="font-size: 0.75rem; color: #6b7280; font-weight: normal; margin-left: auto">(Click to expand)</span>
+                    </summary>
+                    <div id="event-properties-content" style="margin-top: 1rem; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.75rem">
+                        <!-- Properties will be dynamically inserted here -->
+                    </div>
+                </details>
             </div>
         </div>
         {% endif %}

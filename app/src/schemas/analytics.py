@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, validator, model_validator
 from datetime import datetime
 from typing import Optional, Dict, Any
 from uuid import UUID
+import json
+import re
 
 
 class AnalyticsEventCreate(BaseModel):
@@ -107,6 +109,12 @@ class AnalyticsEventCreate(BaseModel):
         Capture any extra fields at the root level and merge them into extra_data.
         This allows custom properties to be sent at the root level by the SDK
         while storing them in the extra_data JSON column in the database.
+
+        Security validations:
+        - Maximum 50 custom properties
+        - Property names must be alphanumeric with underscores, max 64 chars
+        - Total JSON size limit of 10KB
+        - Maximum nesting depth of 5 levels
         """
         if not isinstance(values, dict):
             return values
@@ -123,10 +131,57 @@ class AnalyticsEventCreate(BaseModel):
         # Find extra fields (custom properties)
         extra_fields = {k: v for k, v in values.items() if k not in defined_fields}
 
-        # If there are extra fields, merge them into extra_data
+        # If there are extra fields, validate and merge them into extra_data
         if extra_fields:
+            # Validate number of custom properties (prevent excessive properties)
+            MAX_CUSTOM_PROPERTIES = 50
+            if len(extra_fields) > MAX_CUSTOM_PROPERTIES:
+                raise ValueError(f"Too many custom properties. Maximum {MAX_CUSTOM_PROPERTIES} allowed, got {len(extra_fields)}.")
+
+            # Validate property names (alphanumeric + underscore only, max length)
+            PROPERTY_NAME_PATTERN = re.compile(r'^[a-zA-Z0-9_]{1,64}$')
+            invalid_keys = [k for k in extra_fields.keys() if not PROPERTY_NAME_PATTERN.match(str(k))]
+            if invalid_keys:
+                raise ValueError(
+                    f"Invalid property names: {invalid_keys}. "
+                    "Property names must be alphanumeric with underscores, max 64 characters."
+                )
+
+            # Validate serialized size (prevent JSON bombs)
+            MAX_JSON_SIZE_BYTES = 10 * 1024  # 10KB limit for custom properties
+            try:
+                serialized = json.dumps(extra_fields)
+                if len(serialized) > MAX_JSON_SIZE_BYTES:
+                    raise ValueError(
+                        f"Custom properties too large: {len(serialized)} bytes. "
+                        f"Maximum {MAX_JSON_SIZE_BYTES} bytes allowed."
+                    )
+            except (TypeError, ValueError) as e:
+                if "too large" in str(e):
+                    raise
+                raise ValueError(f"Custom properties must be JSON-serializable: {str(e)}")
+
+            # Validate JSON depth (prevent deeply nested objects)
+            def get_depth(obj, current_depth=0):
+                if current_depth > 5:  # Max 5 levels deep
+                    raise ValueError("Custom properties too deeply nested. Maximum 5 levels allowed.")
+                if isinstance(obj, dict):
+                    if not obj:  # Empty dict
+                        return current_depth
+                    return max((get_depth(v, current_depth + 1) for v in obj.values()), default=current_depth)
+                elif isinstance(obj, list):
+                    if not obj:  # Empty list
+                        return current_depth
+                    return max((get_depth(item, current_depth + 1) for item in obj), default=current_depth)
+                return current_depth
+
+            try:
+                get_depth(extra_fields)
+            except ValueError:
+                raise
+
+            # Merge validated extra fields into extra_data
             existing_extra_data = values.get('extra_data', {}) or {}
-            # Merge extra fields into extra_data (extra fields take precedence)
             merged_extra_data = {**existing_extra_data, **extra_fields}
             values['extra_data'] = merged_extra_data
 
