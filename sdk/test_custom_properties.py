@@ -33,7 +33,7 @@ def test_custom_properties_at_root():
     # Validate with Pydantic
     event = AnalyticsEventCreate(**event_data)
 
-    print(f"\nValidation successful!")
+    print("\nValidation successful!")
     print(f"Event entry_point: {event.entry_point}")
     print(f"Event extra_data: {event.extra_data}")
 
@@ -46,7 +46,7 @@ def test_custom_properties_at_root():
     assert "custom_field" in event.extra_data, "custom_field should be in extra_data"
 
     print("\n✅ All assertions passed!")
-    print(f"✅ Custom properties successfully captured in extra_data")
+    print("✅ Custom properties successfully captured in extra_data")
     return True
 
 def test_mixed_extra_data_and_properties():
@@ -71,11 +71,11 @@ def test_mixed_extra_data_and_properties():
 
     print("\n\nTesting mixed extra_data and custom properties...")
     print(f"Input extra_data: {event_data['extra_data']}")
-    print(f"Input custom properties: feature_name, file_format")
+    print("Input custom properties: feature_name, file_format")
 
     event = AnalyticsEventCreate(**event_data)
 
-    print(f"\nValidation successful!")
+    print("\nValidation successful!")
     print(f"Event extra_data: {event.extra_data}")
 
     # Verify both nested and root-level custom properties were captured
@@ -88,7 +88,7 @@ def test_mixed_extra_data_and_properties():
     assert event.extra_data["file_format"] == "csv"
 
     print("\n✅ All assertions passed!")
-    print(f"✅ Both explicit extra_data and custom properties were merged correctly")
+    print("✅ Both explicit extra_data and custom properties were merged correctly")
     return True
 
 if __name__ == "__main__":

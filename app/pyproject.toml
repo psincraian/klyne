@@ -45,6 +45,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "ruff>=0.12.8",
+    "ty>=0.0.1a25",
 ]
 
 [tool.pytest.ini_options]
@@ -57,4 +58,19 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+
+[tool.ty]
+# Type checking configuration
+# Use inline `# type: ignore[rule-name]` for specific suppressions
+
+# SQLAlchemy models have complex column types - we'll try to fix these
+rules.invalid-argument-type = "ignore"
+rules.invalid-return-type = "ignore"
+
+# Override for test files only - fixtures use dynamic attributes
+[[tool.ty.overrides]]
+include = ["tests/**/*.py"]
+rules.unresolved-attribute = "ignore"
+rules.possibly-missing-attribute = "ignore"
+rules.unsupported-operator = "ignore"
 

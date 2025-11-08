@@ -52,9 +52,9 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
         stats = result.first()
 
         return {
-            "total_events": int(stats.total_events or 0),
-            "total_sessions": int(stats.total_sessions or 0),
-            "active_days": int(stats.active_days or 0)
+            "total_events": int(stats.total_events or 0),  # type: ignore[possibly-missing-attribute]
+            "total_sessions": int(stats.total_sessions or 0),  # type: ignore[possibly-missing-attribute]
+            "active_days": int(stats.active_days or 0)  # type: ignore[possibly-missing-attribute]
         }
 
     async def get_python_version_distribution(self, api_keys: List[str], 
@@ -421,11 +421,11 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
         stats = result.first()
 
         return {
-            "total_users": int(stats.total_users or 0),
-            "single_session_users": int(stats.single_session or 0),
-            "multi_session_users": int(stats.multi_session or 0),
-            "power_users": int(stats.power_users or 0),
-            "avg_sessions_per_user": float(stats.avg_sessions or 0)
+            "total_users": int(stats.total_users or 0),  # type: ignore[possibly-missing-attribute]
+            "single_session_users": int(stats.single_session or 0),  # type: ignore[possibly-missing-attribute]
+            "multi_session_users": int(stats.multi_session or 0),  # type: ignore[possibly-missing-attribute]
+            "power_users": int(stats.power_users or 0),  # type: ignore[possibly-missing-attribute]
+            "avg_sessions_per_user": float(stats.avg_sessions or 0)  # type: ignore[possibly-missing-attribute]
         }
 
     async def get_unique_users_by_dimension(

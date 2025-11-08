@@ -4,8 +4,8 @@ This is run as a scheduled task to ensure Polar has up-to-date package usage dat
 """
 
 import logging
-from datetime import datetime
-from typing import List, Tuple, Dict, Any
+from datetime import datetime, timezone
+from typing import List, Tuple, TypedDict
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,22 +18,35 @@ from src.services.polar import polar_service
 logger = logging.getLogger(__name__)
 
 
-async def sync_all_users_packages() -> Dict[str, Any]:
+class SyncResult(TypedDict):
+    """Result structure for sync task execution."""
+    start_time: str
+    total_users: int
+    successful_syncs: int
+    failed_syncs: int
+    errors: list[str]
+    end_time: str
+    duration_seconds: float
+
+
+async def sync_all_users_packages() -> SyncResult:
     """
     Sync package counts for all users to Polar.
-    
+
     Returns:
         Dict with sync results including success/failure counts and any errors
     """
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     logger.info("Starting daily Polar package sync...")
-    
-    results = {
+
+    results: SyncResult = {
         "start_time": start_time.isoformat(),
         "total_users": 0,
         "successful_syncs": 0,
         "failed_syncs": 0,
-        "errors": []
+        "errors": [],
+        "end_time": "",
+        "duration_seconds": 0.0
     }
     
     try:
@@ -74,7 +87,7 @@ async def sync_all_users_packages() -> Dict[str, Any]:
         logger.error(error_msg, exc_info=True)
     
     finally:
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         duration = (end_time - start_time).total_seconds()
         results["end_time"] = end_time.isoformat()
         results["duration_seconds"] = duration

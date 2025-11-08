@@ -14,14 +14,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.auth import generate_verification_token, get_verification_token_expiry
 from src.core.config import settings
-from src.core.database import engine, get_db
 from src.models.user import User
-from src.repositories.unit_of_work import SqlAlchemyUnitOfWork
-from src.services.email import EmailService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,7 +35,7 @@ async def send_apology_email(email: str, verification_token: str, user_id: int) 
     import resend
 
     try:
-        params: resend.Emails.SendParams = {
+        params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
             "from": "Petru from Klyne <support@transactional.klyne.dev>",
             "to": [email],
             "reply_to": ["petru@klyne.dev"],

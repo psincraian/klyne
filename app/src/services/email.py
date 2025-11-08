@@ -5,9 +5,8 @@ from typing import Optional
 
 import resend
 
-from ..core.config import settings
-from ..core.templates import templates
-from ..repositories.unit_of_work import AbstractUnitOfWork
+from ..core.config import settings  # type: ignore[unresolved-import]
+from ..repositories.unit_of_work import AbstractUnitOfWork  # type: ignore[unresolved-import]
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ class EmailService:
             return True
 
         try:
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "subject": subject,
@@ -116,7 +115,7 @@ class EmailService:
             return True
 
         try:
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "subject": subject,
@@ -157,7 +156,7 @@ class EmailService:
             logger.error(f"Failed to send password reset email to {email}: {str(e)}")
             return False
 
-    async def send_welcome_email(self, email: str, user_id: int, user_name: str = None) -> bool:
+    async def send_welcome_email(self, email: str, user_id: int, user_name: str | None = None) -> bool:
         """Send welcome email to newly verified user using Resend and Jinja templates."""
         subject = "Welcome to Klyne!"
         
@@ -225,7 +224,7 @@ P.S. If you run into any issues or have ideas for features, I'm always here to h
 You're getting this email because you signed up for Klyne.
 © {datetime.now().year} Klyne. All rights reserved."""
 
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Petru from Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "reply_to": ["petru@klyne.dev"],

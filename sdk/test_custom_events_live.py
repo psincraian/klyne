@@ -7,7 +7,6 @@ import sys
 sys.path.insert(0, '.')
 
 import klyne
-import time
 
 def main():
     print("Sending test custom events to local server...")

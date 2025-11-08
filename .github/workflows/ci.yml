@@ -67,9 +67,19 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         ENVIRONMENT: test
       run: |
-        # Run tests and linting in parallel to save time
+        # Run tests, linting, and type checking in parallel to save time
         uv run pytest -v &
         uv run ruff check . &
+        uv run ty check . &
+        wait
+
+    - name: Install SDK dependencies and run checks
+      working-directory: ./sdk
+      run: |
+        uv sync --dev
+        # Run linting and type checking on SDK
+        uv run ruff check . &
+        uv run ty check . &
         wait
 
   build-and-push:

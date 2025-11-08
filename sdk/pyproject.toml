@@ -35,3 +35,21 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["klyne"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.4",
+    "ty>=0.0.1a25",
+]
+
+[tool.ty]
+# Type checking configuration for SDK
+
+# SDK has optional dependencies (distro, psutil) that may not be installed
+rules.unresolved-import = "ignore"
+
+# Transport layer has complex optional return types
+rules.invalid-return-type = "ignore"
+
+# Test files manipulate sys.modules for dependency testing
+rules.invalid-assignment = "ignore"

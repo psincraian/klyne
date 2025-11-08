@@ -46,7 +46,7 @@ async def requires_active_subscription(user_id: int, db: AsyncSession = Depends(
     return user
 
 
-def get_subscription_error_context(user: User = None) -> dict:
+def get_subscription_error_context(user: User | None = None) -> dict:
     """Get context for subscription error pages."""
     if not user:
         return {

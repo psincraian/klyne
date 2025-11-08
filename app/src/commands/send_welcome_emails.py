@@ -5,7 +5,7 @@ Sends welcome emails to users 24+ hours after registration.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import TypedDict
 
 from sqlalchemy import and_, select
 
@@ -15,10 +15,18 @@ from src.models.user import User
 from src.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from src.services.email import EmailService
 
+
+class TaskResult(TypedDict):
+    """Result structure for task execution."""
+    processed_users: int
+    emails_sent: int
+    emails_failed: int
+    errors: list[str]
+
 logger = logging.getLogger(__name__)
 
 
-async def send_welcome_emails() -> Dict[str, Any]:
+async def send_welcome_emails() -> TaskResult:
     """
     Send welcome emails to users who registered 24+ hours ago
     and haven't received a welcome email yet.
@@ -26,7 +34,7 @@ async def send_welcome_emails() -> Dict[str, Any]:
     Returns:
         Dict containing execution results
     """
-    results = {"processed_users": 0, "emails_sent": 0, "emails_failed": 0, "errors": []}
+    results: TaskResult = {"processed_users": 0, "emails_sent": 0, "emails_failed": 0, "errors": []}
 
     try:
         async with get_db_session() as session:
