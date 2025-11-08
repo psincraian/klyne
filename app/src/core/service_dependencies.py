@@ -15,7 +15,7 @@ from src.services.polar import polar_service
 async def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
     """Dependency to provide UserService."""
     uow = SqlAlchemyUnitOfWork(db)
-    email_service = EmailService()  # You could make this configurable
+    email_service = EmailService(uow)
     return UserService(uow, email_service)
 
 

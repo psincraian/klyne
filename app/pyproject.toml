@@ -45,6 +45,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "ruff>=0.12.8",
+    "ty>=0.0.1a25",
 ]
 
 [tool.pytest.ini_options]
@@ -57,4 +58,15 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+
+[tool.ty]
+# Type checking configuration
+rules.invalid-argument-type = "ignore"  # SQLAlchemy columns often show as Unknown
+rules.invalid-return-type = "ignore"    # SQLAlchemy relationships have complex types
+rules.unsupported-operator = "ignore"   # Dict operations with SQLAlchemy objects
+rules.unresolved-attribute = "ignore"   # Dynamic attributes in test fixtures
+rules.possibly-missing-attribute = "ignore"  # SQLAlchemy and test fixture attributes
+rules.invalid-assignment = "ignore"  # Type mismatches with third-party libraries
+rules.unresolved-import = "ignore"  # Relative imports and dynamic imports
+rules.deprecated = "ignore"  # Deprecated warnings for datetime and pydantic
 

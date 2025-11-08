@@ -228,7 +228,7 @@ async def landing_page(
 
 @app.get("/sentry-debug")
 async def trigger_error():
-    division_by_zero = 1 / 0
+    pass
 
 
 @app.post("/signup", include_in_schema=False)

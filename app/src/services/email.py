@@ -6,7 +6,6 @@ from typing import Optional
 import resend
 
 from ..core.config import settings
-from ..core.templates import templates
 from ..repositories.unit_of_work import AbstractUnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -157,7 +156,7 @@ class EmailService:
             logger.error(f"Failed to send password reset email to {email}: {str(e)}")
             return False
 
-    async def send_welcome_email(self, email: str, user_id: int, user_name: str = None) -> bool:
+    async def send_welcome_email(self, email: str, user_id: int, user_name: str | None = None) -> bool:
         """Send welcome email to newly verified user using Resend and Jinja templates."""
         subject = "Welcome to Klyne!"
         

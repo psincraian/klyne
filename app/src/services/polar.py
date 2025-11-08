@@ -46,7 +46,7 @@ class PolarService:
             try:
                 # Use Polar SDK's built-in webhook validation
                 event = validate_event(
-                    payload=payload,
+                    body=payload,
                     headers=headers,
                     secret=settings.POLAR_WEBHOOK_SECRET,
                 )

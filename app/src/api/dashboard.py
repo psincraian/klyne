@@ -5,7 +5,6 @@ Refactored Dashboard API endpoints using the new architecture with services and 
 from datetime import date
 from typing import Optional, List, Annotated
 from fastapi import APIRouter, Depends, Query, Path
-from pydantic import constr
 import logging
 
 from src.core.auth import require_authentication
