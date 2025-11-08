@@ -661,6 +661,48 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
     [data-theme="klyne-dark"] .analytics-subtitle {
       color: rgba(241, 245, 249, 0.8);
     }
+
+    /* Dark mode for Event Properties viewer */
+    [data-theme="klyne-dark"] #custom-events-properties details {
+      border-color: rgba(148, 163, 184, 0.3) !important;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    [data-theme="klyne-dark"] #custom-events-properties summary {
+      color: #f1f5f9 !important;
+    }
+
+    [data-theme="klyne-dark"] #custom-events-properties summary span {
+      color: #94a3b8 !important;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content {
+      color: #e2e8f0;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content p {
+      color: #94a3b8 !important;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content strong {
+      color: #f1f5f9 !important;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content > div {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(148, 163, 184, 0.3) !important;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content > div > div {
+      color: #94a3b8 !important;
+    }
+
+    [data-theme="klyne-dark"] #event-properties-content pre {
+      color: #e2e8f0 !important;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.75rem;
+      border-radius: 4px;
+    }
 </style>
 {% endblock %} {% block content %}
 <div class="analytics-body">
