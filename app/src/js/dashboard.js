@@ -526,6 +526,26 @@ function clearError() {
 let selectedEventTypes = new Set();
 let customEventsChart = null;
 
+function buildQueryParams() {
+    const params = new URLSearchParams();
+
+    if (currentPackage) {
+        params.append('package_name', currentPackage);
+    }
+
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    if (startDateInput?.value) {
+        params.append('start_date', startDateInput.value);
+    }
+    if (endDateInput?.value) {
+        params.append('end_date', endDateInput.value);
+    }
+
+    return params;
+}
+
 async function loadCustomEvents() {
     try {
         // Show loading
