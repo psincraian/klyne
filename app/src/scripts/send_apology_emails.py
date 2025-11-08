@@ -35,7 +35,7 @@ async def send_apology_email(email: str, verification_token: str, user_id: int) 
     import resend
 
     try:
-        params: resend.Emails.SendParams = {
+        params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
             "from": "Petru from Klyne <support@transactional.klyne.dev>",
             "to": [email],
             "reply_to": ["petru@klyne.dev"],

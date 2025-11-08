@@ -5,8 +5,8 @@ from typing import Optional
 
 import resend
 
-from ..core.config import settings
-from ..repositories.unit_of_work import AbstractUnitOfWork
+from ..core.config import settings  # type: ignore[unresolved-import]
+from ..repositories.unit_of_work import AbstractUnitOfWork  # type: ignore[unresolved-import]
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class EmailService:
             return True
 
         try:
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "subject": subject,
@@ -115,7 +115,7 @@ class EmailService:
             return True
 
         try:
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "subject": subject,
@@ -224,7 +224,7 @@ P.S. If you run into any issues or have ideas for features, I'm always here to h
 You're getting this email because you signed up for Klyne.
 © {datetime.now().year} Klyne. All rights reserved."""
 
-            params: resend.Emails.SendParams = {
+            params: resend.Emails.SendParams = {  # type: ignore[invalid-assignment]
                 "from": "Petru from Klyne <support@transactional.klyne.dev>",
                 "to": [email],
                 "reply_to": ["petru@klyne.dev"],

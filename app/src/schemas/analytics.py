@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, model_validator
+from pydantic import BaseModel, Field, validator, model_validator  # type: ignore[deprecated]
 from datetime import datetime
 from typing import Optional, Dict, Any
 from uuid import UUID
@@ -71,7 +71,7 @@ class AnalyticsEventCreate(BaseModel):
         None, description="Additional metadata"
     )
 
-    @validator("python_version")
+    @validator("python_version")  # type: ignore[deprecated]
     def validate_python_version(cls, v):
         """Validate Python version format."""
         if not v:
@@ -82,7 +82,7 @@ class AnalyticsEventCreate(BaseModel):
             raise ValueError("Invalid Python version format")
         return v
 
-    @validator("os_type")
+    @validator("os_type")  # type: ignore[deprecated]
     def validate_os_type(cls, v):
         """Validate OS type."""
         valid_os_types = ["Linux", "Windows", "Darwin", "FreeBSD", "OpenBSD", "Other"]
@@ -90,7 +90,7 @@ class AnalyticsEventCreate(BaseModel):
             return "Other"  # Default to 'Other' for unknown OS types
         return v
 
-    @validator("session_id")
+    @validator("session_id")  # type: ignore[deprecated]
     def validate_session_id(cls, v):
         """Validate session ID format."""
         if not v:

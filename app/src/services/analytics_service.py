@@ -731,7 +731,7 @@ class AnalyticsService:
         """Get all custom event types with their counts."""
         from src.schemas.dashboard import CustomEventType
 
-        event_types = await self.repository.get_custom_event_types(
+        event_types = await self.uow.analytics_events.get_custom_event_types(
             api_keys, start_date, end_date
         )
 
@@ -752,7 +752,7 @@ class AnalyticsService:
         from collections import defaultdict
 
         # Get raw time series data
-        raw_data = await self.repository.get_custom_events_timeseries(
+        raw_data = await self.uow.analytics_events.get_custom_events_timeseries(
             api_keys, event_types, start_date, end_date
         )
 
@@ -793,7 +793,7 @@ class AnalyticsService:
         from src.schemas.dashboard import CustomEventDetails, CustomEventProperty
 
         # Get event count
-        event_types_data = await self.repository.get_custom_event_types(
+        event_types_data = await self.uow.analytics_events.get_custom_event_types(
             api_keys, start_date, end_date
         )
 
@@ -804,7 +804,7 @@ class AnalyticsService:
                 break
 
         # Get property samples
-        properties_data = await self.repository.get_custom_event_properties(
+        properties_data = await self.uow.analytics_events.get_custom_event_properties(
             api_keys, event_type, start_date, end_date, limit=10
         )
 

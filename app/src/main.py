@@ -297,7 +297,7 @@ async def register_user(
     remoteip = (
         request.headers.get("CF-Connecting-IP")
         or request.headers.get("X-Forwarded-For")
-        or request.client.host
+        or request.client.host  # type: ignore[possibly-missing-attribute]
     )
 
     try:
@@ -1025,9 +1025,9 @@ async def polar_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         event_data = event.get("data", {})
 
         # Process the webhook event using subscription service
-        from src.repositories.unit_of_work import UnitOfWork
+        from src.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
-        async with UnitOfWork(db) as uow:
+        async with SqlAlchemyUnitOfWork(db) as uow:
             subscription_service = SubscriptionService(
                 uow=uow, polar_service=polar_service
             )
