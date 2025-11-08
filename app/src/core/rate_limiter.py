@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Request
 from typing import Dict, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import asyncio
 import logging
 
@@ -31,7 +31,7 @@ class InMemoryRateLimiter:
             True if request is allowed, False otherwise
         """
         async with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             # Get current count and window start
             if key in self._storage:
@@ -60,12 +60,12 @@ class InMemoryRateLimiter:
         async with self._lock:
             if key in self._storage:
                 return self._storage[key]
-            return 0, datetime.utcnow()
+            return 0, datetime.now(timezone.utc)
 
     async def cleanup_expired(self, window_seconds: int):
         """Clean up expired entries to prevent memory leaks."""
         async with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             expired_keys = [
                 key
                 for key, (_, window_start) in self._storage.items()
@@ -124,7 +124,7 @@ async def check_rate_limit(
             },
             headers={
                 "Retry-After": str(
-                    int((reset_time - datetime.utcnow()).total_seconds())
+                    int((reset_time - datetime.now(timezone.utc)).total_seconds())
                 ),
                 "X-RateLimit-Limit": str(limit),
                 "X-RateLimit-Remaining": str(max(0, limit - count)),

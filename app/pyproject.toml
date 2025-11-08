@@ -60,13 +60,44 @@ filterwarnings = [
 ]
 
 [tool.ty]
-# Type checking configuration
-rules.invalid-argument-type = "ignore"  # SQLAlchemy columns often show as Unknown
-rules.invalid-return-type = "ignore"    # SQLAlchemy relationships have complex types
-rules.unsupported-operator = "ignore"   # Dict operations with SQLAlchemy objects
-rules.unresolved-attribute = "ignore"   # Dynamic attributes in test fixtures
-rules.possibly-missing-attribute = "ignore"  # SQLAlchemy and test fixture attributes
-rules.invalid-assignment = "ignore"  # Type mismatches with third-party libraries
-rules.unresolved-import = "ignore"  # Relative imports and dynamic imports
-rules.deprecated = "ignore"  # Deprecated warnings for datetime and pydantic
+# Type checking configuration - only ignoring unavoidable issues
+
+# SQLAlchemy models have complex types that ty can't fully infer
+# These are framework limitations, not code issues
+rules.invalid-argument-type = "ignore"
+rules.invalid-return-type = "ignore"
+
+# Override for test files - fixtures use dynamic attributes
+[[tool.ty.overrides]]
+include = ["tests/**/*.py"]
+rules.unresolved-attribute = "ignore"
+rules.possibly-missing-attribute = "ignore"
+rules.unsupported-operator = "ignore"  # SQLAlchemy Column comparisons in assertions
+
+# Override for email service - resend library has incomplete type stubs
+[[tool.ty.overrides]]
+include = ["src/services/email.py", "src/scripts/send_apology_emails.py"]
+rules.invalid-assignment = "ignore"  # resend.Emails.SendParams type mismatch
+rules.unresolved-import = "ignore"  # Relative imports work fine at runtime
+
+# Override for services - inheritance patterns ty can't fully infer
+[[tool.ty.overrides]]
+include = ["src/services/**/*.py"]
+rules.unresolved-attribute = "ignore"  # Service inheritance patterns
+
+# Override for repositories - SQLAlchemy Row types are complex
+[[tool.ty.overrides]]
+include = ["src/repositories/**/*.py"]
+rules.possibly-missing-attribute = "ignore"  # SQLAlchemy Row attribute access
+
+# Override for schemas - Pydantic v1 validators (migration planned)
+[[tool.ty.overrides]]
+include = ["src/schemas/**/*.py"]
+rules.deprecated = "ignore"  # Pydantic v1 validators work fine, v2 migration planned
+
+# Override for main.py - framework-specific patterns
+[[tool.ty.overrides]]
+include = ["src/main.py"]
+rules.possibly-missing-attribute = "ignore"  # FastAPI request.client can be None
+rules.unresolved-import = "ignore"  # Dynamic imports
 

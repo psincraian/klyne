@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,7 +33,7 @@ class EmailSignupRepository(BaseRepository[EmailSignup]):
 
     async def get_recent_signups(self, days: int = 7) -> List[EmailSignup]:
         """Get recent signups within specified days."""
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
         result = await self.db.execute(
             select(EmailSignup)
             .filter(EmailSignup.created_at >= cutoff_date)
@@ -63,7 +63,7 @@ class EmailSignupRepository(BaseRepository[EmailSignup]):
 
     async def get_daily_signup_counts(self, days: int = 30) -> List[tuple]:
         """Get daily signup counts for the last N days."""
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
         result = await self.db.execute(
             select(
                 func.date(EmailSignup.created_at).label("signup_date"),

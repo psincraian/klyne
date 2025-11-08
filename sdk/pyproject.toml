@@ -43,7 +43,13 @@ dev = [
 ]
 
 [tool.ty]
-# Type checking configuration
-rules.unresolved-import = "ignore"  # Optional dependencies may not be installed
-rules.invalid-return-type = "ignore"  # Complex return types with optional dependencies
-rules.invalid-assignment = "ignore"  # sys.modules manipulation in tests
+# Type checking configuration for SDK
+
+# SDK has optional dependencies (distro, psutil) that may not be installed
+rules.unresolved-import = "ignore"
+
+# Transport layer has complex optional return types
+rules.invalid-return-type = "ignore"
+
+# Test files manipulate sys.modules for dependency testing
+rules.invalid-assignment = "ignore"

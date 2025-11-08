@@ -100,7 +100,7 @@ async def create_analytics_event(
         "os_type": "Linux",
         "os_version": "Ubuntu 20.04",
         "architecture": "x86_64",
-        "event_timestamp": datetime.utcnow().isoformat() + "Z"
+        "event_timestamp": datetime.now(timezone.utc).isoformat() + "Z"
     }
 
     response = requests.post("https://wwww.klyne.dev/api/analytics",
