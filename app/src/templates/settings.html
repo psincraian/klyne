@@ -104,6 +104,101 @@
             </div>
         </div>
 
+        <!-- User Count Badge Card -->
+        <div class="klyne-card mb-8">
+            <div class="card-body">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-badge text-secondary"></i>
+                    </div>
+                    <h2 class="card-title text-2xl">User Count Badge</h2>
+                </div>
+
+                <p class="text-base-content/80 mb-6">
+                    Generate a shareable badge that displays the total number of Klyne users.
+                    Perfect for your project README, documentation, or website.
+                </p>
+
+                <div id="badge-content">
+                    <div class="text-center py-8">
+                        <div class="loading loading-spinner loading-lg text-primary"></div>
+                        <p class="mt-4 text-base-content/60">Loading badge information...</p>
+                    </div>
+                </div>
+
+                <div id="badge-error" class="hidden">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <h3 class="font-bold">No badge generated yet</h3>
+                            <div class="text-sm">Click the button below to generate your badge token</div>
+                        </div>
+                    </div>
+                    <button id="generate-badge-btn" class="btn btn-primary mt-4">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Generate Badge
+                    </button>
+                </div>
+
+                <div id="badge-display" class="hidden">
+                    <div class="mb-4 p-4 bg-base-200 rounded-lg flex items-center justify-center">
+                        <img id="badge-preview" src="" alt="Klyne Users Badge">
+                    </div>
+
+                    <div class="grid gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Badge URL</span>
+                            </label>
+                            <div class="join w-full">
+                                <input id="badge-url" type="text" readonly class="klyne-input join-item flex-1" value="">
+                                <button class="btn btn-primary join-item" onclick="copyToClipboard('badge-url', this)">
+                                    <i class="fas fa-copy"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Markdown</span>
+                            </label>
+                            <div class="join w-full">
+                                <input id="badge-markdown" type="text" readonly class="klyne-input join-item flex-1 font-mono text-sm" value="">
+                                <button class="btn btn-primary join-item" onclick="copyToClipboard('badge-markdown', this)">
+                                    <i class="fas fa-copy"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">HTML</span>
+                            </label>
+                            <div class="join w-full">
+                                <input id="badge-html" type="text" readonly class="klyne-input join-item flex-1 font-mono text-sm" value="">
+                                <button class="btn btn-primary join-item" onclick="copyToClipboard('badge-html', this)">
+                                    <i class="fas fa-copy"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-6">
+                        <button id="regenerate-badge-btn" class="btn btn-warning">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Regenerate Badge
+                        </button>
+                        <button id="revoke-badge-btn" class="btn btn-error btn-outline">
+                            <i class="fas fa-trash mr-2"></i>
+                            Revoke Badge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Usage Statistics Card -->
         <div class="klyne-card">
@@ -162,5 +257,128 @@
         </div>
     </div>
 </div>
+
+<script>
+// Badge management functionality
+async function loadBadgeInfo() {
+    try {
+        const response = await fetch('/api/badge-token');
+        if (response.ok) {
+            const data = await response.json();
+            displayBadge(data);
+        } else if (response.status === 404) {
+            showNoBadge();
+        } else {
+            console.error('Failed to load badge info');
+            showNoBadge();
+        }
+    } catch (error) {
+        console.error('Error loading badge info:', error);
+        showNoBadge();
+    }
+    document.getElementById('badge-content').classList.add('hidden');
+}
+
+function displayBadge(data) {
+    const baseUrl = window.location.origin;
+    const badgeUrl = `${baseUrl}/badge/${data.token}`;
+    const markdown = `![Klyne Users](${badgeUrl})`;
+    const html = `<img src="${badgeUrl}" alt="Klyne Users">`;
+
+    document.getElementById('badge-preview').src = badgeUrl;
+    document.getElementById('badge-url').value = badgeUrl;
+    document.getElementById('badge-markdown').value = markdown;
+    document.getElementById('badge-html').value = html;
+
+    document.getElementById('badge-error').classList.add('hidden');
+    document.getElementById('badge-display').classList.remove('hidden');
+}
+
+function showNoBadge() {
+    document.getElementById('badge-error').classList.remove('hidden');
+    document.getElementById('badge-display').classList.add('hidden');
+}
+
+async function generateBadge() {
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Generating...';
+
+    try {
+        const response = await fetch('/api/badge-token', {
+            method: 'POST',
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayBadge({
+                token: data.token,
+                badge_url: data.badge_url,
+                markdown: data.markdown,
+                html: data.html
+            });
+        } else {
+            alert('Failed to generate badge. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error generating badge:', error);
+        alert('An error occurred while generating the badge.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function revokeBadge() {
+    if (!confirm('Are you sure you want to revoke your badge? This will make your current badge URL stop working.')) {
+        return;
+    }
+
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Revoking...';
+
+    try {
+        const response = await fetch('/api/badge-token', {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            showNoBadge();
+        } else {
+            alert('Failed to revoke badge. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error revoking badge:', error);
+        alert('An error occurred while revoking the badge.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function copyToClipboard(elementId, btn) {
+    const input = document.getElementById(elementId);
+    input.select();
+    document.execCommand('copy');
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+    }, 2000);
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    loadBadgeInfo();
+
+    document.getElementById('generate-badge-btn')?.addEventListener('click', generateBadge);
+    document.getElementById('regenerate-badge-btn')?.addEventListener('click', generateBadge);
+    document.getElementById('revoke-badge-btn')?.addEventListener('click', revokeBadge);
+});
+</script>
 
 {% endblock %}

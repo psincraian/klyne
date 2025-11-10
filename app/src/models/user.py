@@ -26,6 +26,7 @@ class User(Base):
 
     api_keys = relationship("APIKey", back_populates="user")
     emails = relationship("Email", back_populates="user")
+    badge_tokens = relationship("BadgeToken", back_populates="user")
 
     @property
     def is_free_plan(self) -> bool:

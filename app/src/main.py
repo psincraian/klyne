@@ -20,6 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from src.api.analytics import router as analytics_router
 from src.api.backoffice import router as backoffice_router
+from src.api.badge import router as badge_router
 from src.api.dashboard import router as dashboard_router
 from src.core.auth import (
     create_session,
@@ -216,6 +217,7 @@ app.mount(
 app.include_router(analytics_router)
 app.include_router(dashboard_router, include_in_schema=False)
 app.include_router(backoffice_router, include_in_schema=False)
+app.include_router(badge_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
