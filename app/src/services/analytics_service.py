@@ -104,7 +104,7 @@ class AnalyticsService:
         return overview_data
 
     async def get_timeseries_data(self, user_id: int, package_name: Optional[str] = None,
-                                 start_date: Optional[date] = None, 
+                                 start_date: Optional[date] = None,
                                  end_date: Optional[date] = None) -> TimeSeriesData:
         """Get time-series data for package usage over time."""
         # Default to last 30 days if no date range provided
@@ -164,14 +164,33 @@ class AnalyticsService:
                 "sessions": stat["total_sessions"],
             }
 
-        # Convert to lists for frontend consumption
-        sorted_dates = sorted(dates_data.keys())
+        # Build complete date range (fill gaps with zeros)
+        date_range = []
+        current_date = start_date
+        while current_date <= end_date:
+            date_range.append(current_date.isoformat())
+            current_date += timedelta(days=1)
+
+        # Fill in missing dates with zeros
+        events_list = []
+        sessions_list = []
+        unique_users_list = []
+
+        for date_str in date_range:
+            if date_str in dates_data:
+                events_list.append(dates_data[date_str]["events"])
+                sessions_list.append(dates_data[date_str]["sessions"])
+                unique_users_list.append(dates_data[date_str]["unique_users"])
+            else:
+                events_list.append(0)
+                sessions_list.append(0)
+                unique_users_list.append(0)
 
         return TimeSeriesData(
-            dates=sorted_dates,
-            events=[dates_data[d]["events"] for d in sorted_dates],
-            sessions=[dates_data[d]["sessions"] for d in sorted_dates],
-            unique_users=[dates_data[d]["unique_users"] for d in sorted_dates],
+            dates=date_range,
+            events=events_list,
+            sessions=sessions_list,
+            unique_users=unique_users_list,
             packages=list(package_names),
             package_data=dates_data,
         )
