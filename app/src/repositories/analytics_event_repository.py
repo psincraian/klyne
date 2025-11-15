@@ -57,13 +57,20 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
             "active_days": int(stats.active_days or 0)  # type: ignore[possibly-missing-attribute]
         }
 
-    async def get_python_version_distribution(self, api_keys: List[str], 
-                                            start_date: datetime, 
+    async def get_python_version_distribution(self, api_keys: List[str],
+                                            start_date: datetime,
                                             end_date: datetime) -> List[Dict[str, Any]]:
         """Get Python version distribution for given API keys."""
+        # Extract minor version (e.g., "3.14" from "3.14.1")
+        minor_version = func.regexp_replace(
+            AnalyticsEvent.python_version,
+            r'^(\d+\.\d+).*$',
+            r'\1'
+        ).label("minor_version")
+
         python_stats_query = (
             select(
-                AnalyticsEvent.python_version,
+                minor_version,
                 func.count(AnalyticsEvent.id).label("total_events"),
                 func.count(func.distinct(AnalyticsEvent.session_id)).label("total_sessions"),
             )
@@ -74,14 +81,14 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
                     AnalyticsEvent.event_timestamp <= end_date,
                 )
             )
-            .group_by(AnalyticsEvent.python_version)
+            .group_by(minor_version)
             .order_by(desc("total_events"))
         )
 
         result = await self.db.execute(python_stats_query)
         return [
             {
-                "python_version": row.python_version,
+                "python_version": row.minor_version,
                 "total_events": row.total_events,
                 "total_sessions": row.total_sessions
             }
@@ -210,11 +217,18 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
         )
         return result.scalar()
 
-    async def get_unique_python_versions_count(self, api_key: str, 
+    async def get_unique_python_versions_count(self, api_key: str,
                                              start_date: datetime) -> int:
-        """Get count of unique Python versions for an API key."""
+        """Get count of unique Python versions (by minor version) for an API key."""
+        # Extract minor version (e.g., "3.14" from "3.14.1")
+        minor_version = func.regexp_replace(
+            AnalyticsEvent.python_version,
+            r'^(\d+\.\d+).*$',
+            r'\1'
+        )
+
         result = await self.db.execute(
-            select(func.count(func.distinct(AnalyticsEvent.python_version))).filter(
+            select(func.count(func.distinct(minor_version))).filter(
                 and_(
                     AnalyticsEvent.api_key == api_key,
                     AnalyticsEvent.event_timestamp >= start_date,
@@ -445,6 +459,14 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
 
         # Map dimension field to model attribute
         dimension_column = getattr(AnalyticsEvent, dimension_field)
+
+        # Special handling for python_version: group by minor version
+        if dimension_field == "python_version":
+            dimension_column = func.regexp_replace(
+                dimension_column,
+                r'^(\d+\.\d+).*$',
+                r'\1'
+            )
 
         query = (
             select(
