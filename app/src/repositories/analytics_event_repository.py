@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select, func, desc, and_, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.analytics_event import AnalyticsEvent
@@ -23,6 +23,43 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
 
     def __init__(self, db: AsyncSession):
         super().__init__(db, AnalyticsEvent)
+
+    def _extract_minor_version(self, version_column):
+        """
+        Extract minor version (e.g., "3.14" from "3.14.1") in a database-agnostic way.
+
+        Uses PostgreSQL's regexp_replace for PostgreSQL databases,
+        and a substring approach for SQLite.
+        """
+        # Detect database type from the session's bind
+        dialect_name = self.db.bind.dialect.name if self.db.bind else 'postgresql'
+
+        if dialect_name == 'postgresql':
+            # PostgreSQL: Use regexp_replace
+            return func.regexp_replace(
+                version_column,
+                r'^(\d+\.\d+).*$',
+                r'\1'
+            )
+        else:
+            # SQLite: Use substr and instr to extract major.minor
+            # Find the position of the second dot, then extract substring before it
+            # E.g., "3.14.1" -> find second "." at position 5 -> substr(0, 4) -> "3.14"
+            second_dot_pos = func.instr(
+                func.substr(version_column, func.instr(version_column, '.') + 1),
+                '.'
+            ) + func.instr(version_column, '.')
+
+            return func.substr(
+                version_column,
+                1,
+                case(
+                    # If there's a second dot, extract up to it
+                    (second_dot_pos > func.instr(version_column, '.'), second_dot_pos - 1),
+                    # Otherwise, return the whole version (it's already major.minor)
+                    else_=func.length(version_column)
+                )
+            )
 
     async def get_by_api_key(self, api_key: str, limit: Optional[int] = None) -> List[AnalyticsEvent]:
         """Get events by API key."""
@@ -62,11 +99,7 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
                                             end_date: datetime) -> List[Dict[str, Any]]:
         """Get Python version distribution for given API keys."""
         # Extract minor version (e.g., "3.14" from "3.14.1")
-        minor_version = func.regexp_replace(
-            AnalyticsEvent.python_version,
-            r'^(\d+\.\d+).*$',
-            r'\1'
-        ).label("minor_version")
+        minor_version = self._extract_minor_version(AnalyticsEvent.python_version).label("minor_version")
 
         python_stats_query = (
             select(
@@ -221,11 +254,7 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
                                              start_date: datetime) -> int:
         """Get count of unique Python versions (by minor version) for an API key."""
         # Extract minor version (e.g., "3.14" from "3.14.1")
-        minor_version = func.regexp_replace(
-            AnalyticsEvent.python_version,
-            r'^(\d+\.\d+).*$',
-            r'\1'
-        )
+        minor_version = self._extract_minor_version(AnalyticsEvent.python_version)
 
         result = await self.db.execute(
             select(func.count(func.distinct(minor_version))).filter(
@@ -462,11 +491,7 @@ class AnalyticsEventRepository(BaseRepository[AnalyticsEvent]):
 
         # Special handling for python_version: group by minor version
         if dimension_field == "python_version":
-            dimension_column = func.regexp_replace(
-                dimension_column,
-                r'^(\d+\.\d+).*$',
-                r'\1'
-            )
+            dimension_column = self._extract_minor_version(dimension_column)
 
         query = (
             select(
