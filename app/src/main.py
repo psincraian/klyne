@@ -16,6 +16,7 @@ from fastapi.responses import (
 )
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.api.analytics import router as analytics_router
@@ -570,8 +571,12 @@ async def analytics_dashboard(request: Request, db: AsyncSession = Depends(get_d
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
 
-    # Get user's API keys
-    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
+    # Get user's API keys with badge relationship eagerly loaded
+    api_keys_result = await db.execute(
+        select(APIKey)
+        .filter(APIKey.user_id == user_id)
+        .options(selectinload(APIKey.badge))
+    )
     api_keys = api_keys_result.scalars().all()
 
     # Get package usage information
@@ -610,8 +615,12 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
 
-    # Get user's API keys
-    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
+    # Get user's API keys with badge relationship eagerly loaded
+    api_keys_result = await db.execute(
+        select(APIKey)
+        .filter(APIKey.user_id == user_id)
+        .options(selectinload(APIKey.badge))
+    )
     api_keys = api_keys_result.scalars().all()
 
     # Get package usage information
@@ -656,8 +665,12 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
         logout_user(request)
         return RedirectResponse(url="/login", status_code=302)
 
-    # Get user's API keys for usage statistics
-    api_keys_result = await db.execute(select(APIKey).filter(APIKey.user_id == user_id))
+    # Get user's API keys for usage statistics with badge relationship eagerly loaded
+    api_keys_result = await db.execute(
+        select(APIKey)
+        .filter(APIKey.user_id == user_id)
+        .options(selectinload(APIKey.badge))
+    )
     api_keys = api_keys_result.scalars().all()
 
     return templates.TemplateResponse(
