@@ -267,14 +267,16 @@ async def get_custom_events_timeseries(
     package_name: Optional[str] = Query(None),
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
+    aggregation: str = Query("day", description="Aggregation period: day, week, or month"),
     user_id: int = Depends(require_authentication),
     analytics_service: AnalyticsService = Depends(get_analytics_service),
 ) -> CustomEventTimeSeries:
     """
     Get time series data for selected custom event types.
     Event types must contain only alphanumeric characters, underscores, hyphens, and dots.
+    Supports aggregation by day, week, or month.
     """
-    logger.info(f"Getting custom events timeseries for user {user_id}, events: {event_types}")
+    logger.info(f"Getting custom events timeseries for user {user_id}, events: {event_types}, aggregation: {aggregation}")
 
     # Parse and validate comma-separated event types
     import re
@@ -303,7 +305,8 @@ async def get_custom_events_timeseries(
         event_types=event_types_list,
         package_name=package_name,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        aggregation=aggregation
     )
 
 
