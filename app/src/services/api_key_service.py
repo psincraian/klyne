@@ -251,12 +251,50 @@ class APIKeyService:
 
         return await self.uow.api_keys.get_by_user_and_package(user_id, package_name)
 
-    async def ensure_api_key_exists(self, user_id: int, package_name: str, 
+    async def ensure_api_key_exists(self, user_id: int, package_name: str,
                                   description: Optional[str] = None) -> APIKey:
         """Ensure an API key exists for user and package, create if it doesn't exist."""
         existing_key = await self.uow.api_keys.get_by_user_and_package(user_id, package_name)
-        
+
         if existing_key:
             return existing_key
-            
+
         return await self.create_api_key(user_id, package_name, description)
+
+    async def update_badge_visibility(self, user_id: int, api_key_id: int, badge_public: bool) -> APIKey:
+        """Update badge visibility for an API key."""
+        # Get the API key
+        api_key = await self.uow.api_keys.get_by_id(api_key_id)
+        if not api_key:
+            raise HTTPException(status_code=404, detail="API key not found")
+
+        # Check if the API key belongs to the user
+        if api_key.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to modify this API key")
+
+        # Update the badge_public field
+        updated_key = await self.uow.api_keys.update(api_key_id, {"badge_public": badge_public})
+        await self.uow.commit()
+
+        logger.info(f"Updated badge visibility to {badge_public} for API key {api_key.key}, user {user_id}")
+        return updated_key
+
+    async def get_badge_data(self, api_key: str) -> Optional[dict]:
+        """Get badge data for a public badge."""
+        # Get the API key object
+        api_key_obj = await self.uow.api_keys.get_by_key(api_key)
+        if not api_key_obj:
+            return None
+
+        # Check if badge is public
+        if not api_key_obj.badge_public:
+            return None
+
+        # Get unique users count (all time)
+        unique_users = await self.uow.analytics_events.get_unique_users_count([api_key])
+
+        return {
+            "package_name": api_key_obj.package_name,
+            "unique_users": unique_users,
+            "badge_public": True
+        }

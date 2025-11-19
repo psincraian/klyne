@@ -10,13 +10,16 @@ class APIKeyBase(BaseModel):
 
 
 class APIKeyCreate(APIKeyBase):
-    pass
+    description: Optional[str] = None
 
 
 class APIKeyResponse(APIKeyBase):
     id: int
     key: str
     user_id: int
+    is_active: bool
+    description: Optional[str] = None
+    badge_public: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -26,3 +29,16 @@ class APIKeyResponse(APIKeyBase):
 
 class APIKeyInDB(APIKeyResponse):
     pass
+
+
+class APIKeyUpdate(BaseModel):
+    """Schema for updating API key settings."""
+    description: Optional[str] = None
+    badge_public: Optional[bool] = None
+
+
+class BadgeResponse(BaseModel):
+    """Schema for badge metadata response."""
+    package_name: str
+    unique_users: int
+    badge_public: bool
