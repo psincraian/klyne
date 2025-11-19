@@ -20,8 +20,6 @@ class APIKeyResponse(APIKeyBase):
     user_id: int
     is_active: bool
     description: Optional[str] = None
-    badge_public: bool
-    badge_uuid: Optional[UUID] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -36,11 +34,3 @@ class APIKeyInDB(APIKeyResponse):
 class APIKeyUpdate(BaseModel):
     """Schema for updating API key settings."""
     description: Optional[str] = None
-    badge_public: Optional[bool] = None
-
-
-class BadgeResponse(BaseModel):
-    """Schema for badge metadata response."""
-    package_name: str
-    unique_users: int
-    badge_public: bool

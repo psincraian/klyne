@@ -4,7 +4,7 @@ from fastapi.responses import Response
 
 from src.core.auth import get_current_user_id
 from src.core.service_dependencies import get_api_key_service
-from src.schemas.api_key import BadgeResponse, APIKeyUpdate
+from src.schemas.badge import BadgePublicResponse, BadgeUpdate
 from src.services.api_key_service import APIKeyService
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,7 @@ async def get_badge_svg(
 async def get_badge_data(
     badge_uuid: str,
     api_key_service: APIKeyService = Depends(get_api_key_service)
-) -> BadgeResponse:
+) -> BadgePublicResponse:
     """
     Get badge data as JSON for a specific badge UUID.
     This is a public endpoint that only works if the badge is marked as public.
@@ -103,14 +103,14 @@ async def get_badge_data(
     if not badge_data:
         raise HTTPException(status_code=404, detail="Badge not found or not public")
 
-    return BadgeResponse(**badge_data)
+    return BadgePublicResponse(**badge_data)
 
 
 @router.patch("/{api_key_id}/visibility")
 async def update_badge_visibility(
     request: Request,
     api_key_id: int,
-    update: APIKeyUpdate,
+    update: BadgeUpdate,
     api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
@@ -123,17 +123,10 @@ async def update_badge_visibility(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     # Update badge visibility
-    if update.badge_public is None:
-        raise HTTPException(status_code=400, detail="badge_public field is required")
-
-    updated_key = await api_key_service.update_badge_visibility(
-        user_id, api_key_id, update.badge_public
+    result = await api_key_service.update_badge_visibility(
+        user_id, api_key_id, update.is_public
     )
 
-    logger.info(f"Updated badge visibility for API key {api_key_id} to {update.badge_public}")
+    logger.info(f"Updated badge visibility for API key {api_key_id} to {update.is_public}")
 
-    return {
-        "success": True,
-        "api_key_id": api_key_id,
-        "badge_public": updated_key.badge_public
-    }
+    return result

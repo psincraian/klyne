@@ -261,8 +261,8 @@ class APIKeyService:
 
         return await self.create_api_key(user_id, package_name, description)
 
-    async def update_badge_visibility(self, user_id: int, api_key_id: int, badge_public: bool) -> APIKey:
-        """Update badge visibility for an API key."""
+    async def update_badge_visibility(self, user_id: int, api_key_id: int, is_public: bool) -> dict:
+        """Update or create badge visibility for an API key."""
         # Get the API key
         api_key = await self.uow.api_keys.get_by_id(api_key_id)
         if not api_key:
@@ -272,18 +272,32 @@ class APIKeyService:
         if api_key.user_id != user_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this API key")
 
-        # Generate badge UUID if making public and doesn't have one yet
-        update_data = {"badge_public": badge_public}
-        if badge_public and not api_key.badge_uuid:
-            from src.models.api_key import APIKey as APIKeyModel
-            update_data["badge_uuid"] = APIKeyModel.generate_badge_uuid()
+        # Get or create badge
+        badge = await self.uow.badges.get_by_api_key_id(api_key_id)
 
-        # Update the badge_public field (and badge_uuid if needed)
-        updated_key = await self.uow.api_keys.update(api_key_id, update_data)
+        if badge:
+            # Update existing badge
+            badge = await self.uow.badges.update_visibility(badge.id, is_public)
+        else:
+            # Create new badge when making public
+            if is_public:
+                from src.models.badge import Badge
+                badge_uuid = Badge.generate_uuid()
+                badge = await self.uow.badges.create_badge(api_key_id, badge_uuid, is_public)
+            else:
+                # If setting to private and no badge exists, nothing to do
+                await self.uow.commit()
+                logger.info(f"No badge to update for API key {api_key.key}, user {user_id}")
+                return {"success": True, "badge_public": False}
+
         await self.uow.commit()
+        logger.info(f"Updated badge visibility to {is_public} for API key {api_key.key}, user {user_id}")
 
-        logger.info(f"Updated badge visibility to {badge_public} for API key {api_key.key}, user {user_id}")
-        return updated_key
+        return {
+            "success": True,
+            "badge_public": badge.is_public if badge else False,
+            "badge_uuid": str(badge.badge_uuid) if badge else None
+        }
 
     async def get_badge_data_by_uuid(self, badge_uuid: str) -> Optional[dict]:
         """Get badge data for a public badge using UUID."""
@@ -295,20 +309,25 @@ class APIKeyService:
         except (ValueError, AttributeError):
             return None
 
-        # Get the API key object by badge_uuid
-        api_key_obj = await self.uow.api_keys.get_by_badge_uuid(uuid_obj)
-        if not api_key_obj:
+        # Get the badge by UUID
+        badge = await self.uow.badges.get_by_uuid(uuid_obj)
+        if not badge:
             return None
 
         # Check if badge is public
-        if not api_key_obj.badge_public:
+        if not badge.is_public:
+            return None
+
+        # Get the API key to get package name
+        api_key = await self.uow.api_keys.get_by_id(badge.api_key_id)
+        if not api_key:
             return None
 
         # Get unique users count (all time)
-        unique_users = await self.uow.analytics_events.get_unique_users_count([api_key_obj.key])
+        unique_users = await self.uow.analytics_events.get_unique_users_count([api_key.key])
 
         return {
-            "package_name": api_key_obj.package_name,
+            "package_name": api_key.package_name,
             "unique_users": unique_users,
-            "badge_public": True
+            "is_public": True
         }

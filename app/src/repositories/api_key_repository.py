@@ -1,5 +1,4 @@
 from typing import Optional, List
-from uuid import UUID
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -145,10 +144,3 @@ class APIKeyRepository(BaseRepository[APIKey]):
 
         result = await self.db.execute(query)
         return list(result.scalars().all())
-
-    async def get_by_badge_uuid(self, badge_uuid: UUID) -> Optional[APIKey]:
-        """Get API key by badge UUID."""
-        result = await self.db.execute(
-            select(APIKey).filter(APIKey.badge_uuid == badge_uuid)
-        )
-        return result.scalar_one_or_none()

@@ -7,18 +7,20 @@ from src.repositories.api_key_repository import APIKeyRepository
 from src.repositories.analytics_event_repository import AnalyticsEventRepository
 from src.repositories.email_signup_repository import EmailSignupRepository
 from src.repositories.email_repository import EmailRepository
+from src.repositories.badge_repository import BadgeRepository
 
 logger = logging.getLogger(__name__)
 
 
 class AbstractUnitOfWork(ABC):
     """Abstract Unit of Work pattern for managing database transactions."""
-    
+
     users: UserRepository
     api_keys: APIKeyRepository
     analytics_events: AnalyticsEventRepository
     email_signups: EmailSignupRepository
     emails: EmailRepository
+    badges: BadgeRepository
 
     async def __aenter__(self):
         return self
@@ -49,6 +51,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self.analytics_events = AnalyticsEventRepository(self.session)
         self.email_signups = EmailSignupRepository(self.session)
         self.emails = EmailRepository(self.session)
+        self.badges = BadgeRepository(self.session)
         
     async def __aenter__(self):
         return self
