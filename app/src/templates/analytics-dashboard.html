@@ -780,6 +780,19 @@ block title %}Analytics Dashboard - Klyne{% endblock %} {% block extra_head %}
                     />
                 </div>
                 <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-chart-line"></i> Aggregation
+                    </label>
+                    <select
+                        id="aggregation-period"
+                        class="select select-bordered w-full"
+                    >
+                        <option value="day" selected>Daily</option>
+                        <option value="week">Weekly</option>
+                        <option value="month">Monthly</option>
+                    </select>
+                </div>
+                <div class="control-group">
                     <button id="refresh-data" class="btn btn-primary w-full">
                         <i class="fas fa-sync-alt"></i> Refresh Data
                     </button>

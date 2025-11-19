@@ -105,8 +105,17 @@ class AnalyticsService:
 
     async def get_timeseries_data(self, user_id: int, package_name: Optional[str] = None,
                                  start_date: Optional[date] = None,
-                                 end_date: Optional[date] = None) -> TimeSeriesData:
-        """Get time-series data for package usage over time."""
+                                 end_date: Optional[date] = None,
+                                 aggregation: str = "day") -> TimeSeriesData:
+        """Get time-series data for package usage over time.
+
+        Args:
+            user_id: User ID for authentication
+            package_name: Optional package filter
+            start_date: Start date for the range
+            end_date: End date for the range
+            aggregation: Aggregation period - "day", "week", or "month"
+        """
         # Default to last 30 days if no date range provided
         if not end_date:
             end_date = date.today()
@@ -164,27 +173,63 @@ class AnalyticsService:
                 "sessions": stat["total_sessions"],
             }
 
-        # Build complete date range (fill gaps with zeros)
-        date_range = []
-        current_date = start_date
-        while current_date <= end_date:
-            date_range.append(current_date.isoformat())
-            current_date += timedelta(days=1)
+        # Apply aggregation based on period
+        if aggregation == "day":
+            # Build complete date range (fill gaps with zeros)
+            date_range = []
+            current_date = start_date
+            while current_date <= end_date:
+                date_range.append(current_date.isoformat())
+                current_date += timedelta(days=1)
 
-        # Fill in missing dates with zeros
-        events_list = []
-        sessions_list = []
-        unique_users_list = []
+            # Fill in missing dates with zeros
+            events_list = []
+            sessions_list = []
+            unique_users_list = []
 
-        for date_str in date_range:
-            if date_str in dates_data:
-                events_list.append(dates_data[date_str]["events"])
-                sessions_list.append(dates_data[date_str]["sessions"])
-                unique_users_list.append(dates_data[date_str]["unique_users"])
-            else:
-                events_list.append(0)
-                sessions_list.append(0)
-                unique_users_list.append(0)
+            for date_str in date_range:
+                if date_str in dates_data:
+                    events_list.append(dates_data[date_str]["events"])
+                    sessions_list.append(dates_data[date_str]["sessions"])
+                    unique_users_list.append(dates_data[date_str]["unique_users"])
+                else:
+                    events_list.append(0)
+                    sessions_list.append(0)
+                    unique_users_list.append(0)
+
+        elif aggregation == "week":
+            # Aggregate by week (Monday as start of week)
+            date_range, events_list, sessions_list, unique_users_list = self._aggregate_by_week(
+                dates_data, start_date, end_date
+            )
+
+        elif aggregation == "month":
+            # Aggregate by month
+            date_range, events_list, sessions_list, unique_users_list = self._aggregate_by_month(
+                dates_data, start_date, end_date
+            )
+
+        else:
+            # Default to daily if invalid aggregation
+            date_range = []
+            current_date = start_date
+            while current_date <= end_date:
+                date_range.append(current_date.isoformat())
+                current_date += timedelta(days=1)
+
+            events_list = []
+            sessions_list = []
+            unique_users_list = []
+
+            for date_str in date_range:
+                if date_str in dates_data:
+                    events_list.append(dates_data[date_str]["events"])
+                    sessions_list.append(dates_data[date_str]["sessions"])
+                    unique_users_list.append(dates_data[date_str]["unique_users"])
+                else:
+                    events_list.append(0)
+                    sessions_list.append(0)
+                    unique_users_list.append(0)
 
         return TimeSeriesData(
             dates=date_range,
@@ -194,6 +239,100 @@ class AnalyticsService:
             packages=list(package_names),
             package_data=dates_data,
         )
+
+    def _aggregate_by_week(self, dates_data: dict, start_date: date, end_date: date):
+        """Aggregate data by week (Monday as start of week)."""
+        from collections import defaultdict
+
+        # Group data by week
+        weekly_data = defaultdict(lambda: {"events": 0, "sessions": 0, "unique_users": set()})
+
+        for date_str, data in dates_data.items():
+            dt = date.fromisoformat(date_str)
+            # Get Monday of the week
+            week_start = dt - timedelta(days=dt.weekday())
+            week_key = week_start.isoformat()
+
+            weekly_data[week_key]["events"] += data["events"]
+            weekly_data[week_key]["sessions"] += data["sessions"]
+            # For unique users, we can't accurately aggregate, so we take max
+            if data["unique_users"] > 0:
+                weekly_data[week_key]["unique_users"].add(data["unique_users"])
+
+        # Build complete week range
+        date_range = []
+        current_date = start_date - timedelta(days=start_date.weekday())  # Start from Monday
+
+        while current_date <= end_date:
+            date_range.append(current_date.isoformat())
+            current_date += timedelta(days=7)
+
+        # Fill in data
+        events_list = []
+        sessions_list = []
+        unique_users_list = []
+
+        for week_str in date_range:
+            if week_str in weekly_data:
+                events_list.append(weekly_data[week_str]["events"])
+                sessions_list.append(weekly_data[week_str]["sessions"])
+                # Use max of unique users for the week
+                unique_users_list.append(max(weekly_data[week_str]["unique_users"]) if weekly_data[week_str]["unique_users"] else 0)
+            else:
+                events_list.append(0)
+                sessions_list.append(0)
+                unique_users_list.append(0)
+
+        return date_range, events_list, sessions_list, unique_users_list
+
+    def _aggregate_by_month(self, dates_data: dict, start_date: date, end_date: date):
+        """Aggregate data by month."""
+        from collections import defaultdict
+
+        # Group data by month
+        monthly_data = defaultdict(lambda: {"events": 0, "sessions": 0, "unique_users": set()})
+
+        for date_str, data in dates_data.items():
+            dt = date.fromisoformat(date_str)
+            # Get first day of the month
+            month_start = date(dt.year, dt.month, 1)
+            month_key = month_start.isoformat()
+
+            monthly_data[month_key]["events"] += data["events"]
+            monthly_data[month_key]["sessions"] += data["sessions"]
+            # For unique users, we can't accurately aggregate, so we take max
+            if data["unique_users"] > 0:
+                monthly_data[month_key]["unique_users"].add(data["unique_users"])
+
+        # Build complete month range
+        date_range = []
+        current_date = date(start_date.year, start_date.month, 1)
+
+        while current_date <= end_date:
+            date_range.append(current_date.isoformat())
+            # Move to next month
+            if current_date.month == 12:
+                current_date = date(current_date.year + 1, 1, 1)
+            else:
+                current_date = date(current_date.year, current_date.month + 1, 1)
+
+        # Fill in data
+        events_list = []
+        sessions_list = []
+        unique_users_list = []
+
+        for month_str in date_range:
+            if month_str in monthly_data:
+                events_list.append(monthly_data[month_str]["events"])
+                sessions_list.append(monthly_data[month_str]["sessions"])
+                # Use max of unique users for the month
+                unique_users_list.append(max(monthly_data[month_str]["unique_users"]) if monthly_data[month_str]["unique_users"] else 0)
+            else:
+                events_list.append(0)
+                sessions_list.append(0)
+                unique_users_list.append(0)
+
+        return date_range, events_list, sessions_list, unique_users_list
 
     async def get_python_version_distribution(self, user_id: int, package_name: Optional[str] = None,
                                             start_date: Optional[date] = None,

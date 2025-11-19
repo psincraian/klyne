@@ -4,6 +4,7 @@ Refactored Dashboard API endpoints using the new architecture with services and 
 
 from datetime import date
 from typing import Optional, List, Annotated
+from enum import Enum
 from fastapi import APIRouter, Depends, Query, Path
 import logging
 
@@ -24,6 +25,13 @@ from src.schemas.dashboard import (
     CustomEventTimeSeries,
     CustomEventDetails,
 )
+
+
+class AggregationPeriod(str, Enum):
+    """Time period for data aggregation."""
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 logger = logging.getLogger(__name__)
@@ -47,18 +55,21 @@ async def get_timeseries_data(
     package_name: Optional[str] = Query(None),
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
+    aggregation: AggregationPeriod = Query(AggregationPeriod.DAY, description="Aggregation period (day, week, month)"),
     user_id: int = Depends(require_authentication),
     analytics_service: AnalyticsService = Depends(get_analytics_service),
 ) -> TimeSeriesData:
     """
     Get time-series data for package usage over time.
+    Supports daily, weekly, and monthly aggregation.
     """
-    logger.info(f"Getting timeseries data for user {user_id}, package: {package_name}")
+    logger.info(f"Getting timeseries data for user {user_id}, package: {package_name}, aggregation: {aggregation}")
     return await analytics_service.get_timeseries_data(
         user_id=user_id,
         package_name=package_name,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        aggregation=aggregation.value
     )
 
 

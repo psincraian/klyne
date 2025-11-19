@@ -11,6 +11,7 @@ const charts = {};
 
 // State management
 let currentPackage = '';
+let currentAggregation = 'day';
 let packages = [];
 
 // Initialize dashboard when DOM is loaded
@@ -30,14 +31,22 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     const refreshBtn = document.getElementById('refresh-data');
     const packageFilter = document.getElementById('package-filter');
-    
+    const aggregationSelector = document.getElementById('aggregation-period');
+
     if (refreshBtn) {
         refreshBtn.addEventListener('click', refreshData);
     }
-    
+
     if (packageFilter) {
         packageFilter.addEventListener('change', function() {
             currentPackage = this.value;
+            refreshData();
+        });
+    }
+
+    if (aggregationSelector) {
+        aggregationSelector.addEventListener('change', function() {
+            currentAggregation = this.value;
             refreshData();
         });
     }
@@ -111,16 +120,17 @@ async function loadOverviewData() {
 async function loadTimeSeriesData() {
     const params = new URLSearchParams();
     if (currentPackage) params.append('package_name', currentPackage);
-    
+    if (currentAggregation) params.append('aggregation', currentAggregation);
+
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
-    
+
     if (startDateInput?.value) params.append('start_date', startDateInput.value);
     if (endDateInput?.value) params.append('end_date', endDateInput.value);
-    
+
     const response = await fetch(`/api/dashboard/timeseries?${params}`);
     if (!response.ok) throw new Error('Failed to load time series data');
-    
+
     const data = await response.json();
     renderTimeSeriesChart(data);
 }
