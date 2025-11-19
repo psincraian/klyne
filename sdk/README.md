@@ -50,15 +50,14 @@ The SDK automatically collects:
 
 ## Click CLI Integration
 
-Klyne provides automatic tracking for Click-based CLI applications. Just wrap your CLI with `ClickModule`:
+Klyne provides automatic tracking for Click-based CLI applications. Just use `client.track_click()`:
 
 ```python
 import click
 import klyne
-from klyne.click_adapter import ClickModule
 
 # Initialize Klyne
-klyne.init(api_key="klyne_your_key", project="my-cli")
+client = klyne.init(api_key="klyne_your_key", project="my-cli")
 
 # Create your Click CLI as usual
 @click.group()
@@ -71,9 +70,9 @@ def cli():
 def hello(name):
     click.echo(f'Hello {name}!')
 
-# Wrap with ClickModule for automatic tracking
+# Use client.track_click() for automatic tracking
 if __name__ == '__main__':
-    ClickModule(cli)()
+    client.track_click(cli)()
 ```
 
 **Automatically tracks:**

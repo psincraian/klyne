@@ -19,11 +19,10 @@ sys.path.insert(0, ".")
 import click
 
 import klyne
-from klyne.click_adapter import ClickModule
 
 # Initialize Klyne (do this before creating your CLI)
 print("🚀 Initializing Klyne...")
-klyne.init(
+client = klyne.init(
     api_key="klyne__HVqua3oQTYeF_w_u_dCh4JmA21KMcwL6j5gmPNsEvU",
     project="example-cli",
     package_version="1.0.0",
@@ -31,7 +30,7 @@ klyne.init(
     enabled=True,
     debug=True,
 )
-print(f"✓ Klyne initialized (enabled: {klyne.is_enabled()})\n")
+print(f"✓ Klyne initialized (enabled: {client.is_enabled()})\n")
 
 
 # Create your Click CLI as usual
@@ -182,11 +181,11 @@ def calculate(value):
 
 # Main entry point with Klyne tracking
 if __name__ == '__main__':
-    # Wrap the CLI with ClickModule for automatic tracking
+    # Use client.track_click() for automatic tracking
     # This is the only change needed to enable tracking!
-    ClickModule(cli)()
+    client.track_click(cli)()
 
     # Flush events before exit
     print("\n📤 Flushing Klyne events...")
-    klyne.flush(timeout=2.0)
+    client.flush(timeout=2.0)
     print("✓ Events sent to Klyne")

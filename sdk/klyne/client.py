@@ -170,6 +170,61 @@ class KlyneClient:
         """Check if analytics are enabled."""
         return self.enabled and self.transport and self.transport.is_enabled()
 
+    def track_click(
+        self,
+        cli: Any,
+        track_arguments: bool = True,
+        track_options: bool = True,
+    ) -> Any:
+        """
+        Enable automatic tracking for Click CLI applications.
+
+        This method wraps a Click Group or Command to automatically track all
+        command invocations with detailed metadata.
+
+        Args:
+            cli: Click Group or Command instance to track
+            track_arguments: Whether to track command arguments (default: True)
+            track_options: Whether to track command options (default: True)
+
+        Returns:
+            Callable wrapper that can be invoked like the original CLI
+
+        Example:
+            import click
+            import klyne
+
+            client = klyne.init(api_key="...", project="my-cli")
+
+            @click.group()
+            def cli():
+                pass
+
+            @cli.command()
+            def hello():
+                click.echo("Hello!")
+
+            if __name__ == '__main__':
+                client.track_click(cli)()
+
+        Note:
+            Click must be installed: pip install click
+        """
+        try:
+            from .click_adapter import ClickModule
+        except ImportError:
+            raise ImportError(
+                "Click adapter requires the 'click' package. "
+                "Install it with: pip install click"
+            )
+
+        return ClickModule(
+            cli,
+            track_arguments=track_arguments,
+            track_options=track_options,
+            client=self,
+        )
+
     def _cleanup(self):
         """Cleanup on exit."""
         if self.transport:

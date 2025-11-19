@@ -32,10 +32,9 @@ Here's the simplest way to add Klyne tracking to your Click CLI:
 ```python
 import click
 import klyne
-from klyne.click_adapter import ClickModule
 
 # 1. Initialize Klyne
-klyne.init(api_key="klyne_your_key", project="my-cli")
+client = klyne.init(api_key="klyne_your_key", project="my-cli")
 
 # 2. Create your Click CLI (as usual)
 @click.group()
@@ -49,9 +48,9 @@ def hello(name):
     '''Say hello'''
     click.echo(f'Hello {name}!')
 
-# 3. Wrap with ClickModule - that's it!
+# 3. Use client.track_click() - that's it!
 if __name__ == '__main__':
-    ClickModule(cli)()
+    client.track_click(cli)()
 ```
 
 That's all you need! Every command invocation is now automatically tracked.
@@ -91,7 +90,9 @@ When a user runs a command, Klyne automatically tracks:
 
 ```python
 import click
-from klyne.click_adapter import ClickModule
+import klyne
+
+client = klyne.init(api_key="...", project="my-cli")
 
 @click.command()
 def deploy():
@@ -99,12 +100,14 @@ def deploy():
     click.echo("Deploying...")
 
 if __name__ == '__main__':
-    ClickModule(deploy)()
+    client.track_click(deploy)()
 ```
 
 ### Command with Options
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.command()
 @click.option('--env', type=click.Choice(['dev', 'prod']))
 @click.option('--force', is_flag=True)
@@ -113,12 +116,14 @@ def deploy(env, force):
     click.echo(f"Deploying to {env}...")
 
 # Tracks: command name, env value, force flag
-ClickModule(deploy)()
+client.track_click(deploy)()
 ```
 
 ### Command with Arguments
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.command()
 @click.argument('filename')
 @click.option('--format', default='json')
@@ -127,12 +132,14 @@ def process(filename, format):
     click.echo(f"Processing {filename} as {format}")
 
 # Tracks: filename argument and format option
-ClickModule(process)()
+client.track_click(process)()
 ```
 
 ### Command Groups (Multi-command CLI)
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.group()
 def cli():
     '''Multi-command CLI'''
@@ -150,12 +157,14 @@ def restart(force):
     click.echo("Restarting...")
 
 # Wrap the entire group - all commands are tracked
-ClickModule(cli)()
+client.track_click(cli)()
 ```
 
 ### Nested Command Groups
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.group()
 def cli():
     '''Main CLI'''
@@ -177,12 +186,14 @@ def seed():
     click.echo("Seeding...")
 
 # Command path is tracked: "cli database migrate"
-ClickModule(cli)()
+client.track_click(cli)()
 ```
 
 ### Error Tracking
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.command()
 @click.argument('value', type=int)
 def divide(value):
@@ -196,7 +207,7 @@ def divide(value):
 #   "error_type": "ZeroDivisionError",
 #   "error_message": "division by zero"
 # }
-ClickModule(divide)()
+client.track_click(divide)()
 ```
 
 ## Privacy and Security
@@ -206,6 +217,8 @@ ClickModule(divide)()
 If your commands accept sensitive data (passwords, tokens, etc.), you can disable tracking of arguments and options:
 
 ```python
+client = klyne.init(api_key="...", project="my-cli")
+
 @click.command()
 @click.argument('username')
 @click.option('--password')
@@ -215,7 +228,7 @@ def login(username, password):
     pass
 
 # Don't track arguments or options (only command name and success/failure)
-ClickModule(
+client.track_click(
     login,
     track_arguments=False,  # Don't track username
     track_options=False      # Don't track password
@@ -298,10 +311,9 @@ My CLI application with Klyne tracking.
 """
 import click
 import klyne
-from klyne.click_adapter import ClickModule
 
 # Initialize Klyne
-klyne.init(
+client = klyne.init(
     api_key="klyne_your_api_key",
     project="my-cli",
     package_version="1.0.0"
@@ -334,16 +346,49 @@ def seed():
     click.echo("Seeding database...")
 
 if __name__ == '__main__':
-    # Wrap with ClickModule for automatic tracking
-    ClickModule(cli)()
+    # Use client.track_click() for automatic tracking
+    client.track_click(cli)()
 
     # Flush events before exit
-    klyne.flush(timeout=2.0)
+    client.flush(timeout=2.0)
 ```
 
 ## API Reference
 
-### ClickModule
+### client.track_click()
+
+**Recommended API** - Use this method on your KlyneClient instance:
+
+```python
+client.track_click(
+    cli,                      # Click Group or Command
+    track_arguments=True,     # Track command arguments
+    track_options=True,       # Track command options
+)
+```
+
+**Parameters:**
+- `cli` - Click Group or Command instance to track
+- `track_arguments` - Whether to track command arguments (default: True)
+- `track_options` - Whether to track command options/flags (default: True)
+
+**Returns:** Callable wrapper that can be invoked like the original CLI
+
+**Example:**
+```python
+client = klyne.init(api_key="...", project="my-cli")
+
+@click.group()
+def cli():
+    pass
+
+if __name__ == '__main__':
+    client.track_click(cli)()
+```
+
+### ClickModule (Alternative API)
+
+For backward compatibility, you can also use `ClickModule` directly:
 
 ```python
 ClickModule(

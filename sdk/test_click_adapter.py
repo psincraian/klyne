@@ -444,6 +444,74 @@ def test_execution_time_tracking():
     print("   ✓ Execution time tracked accurately")
 
 
+def test_client_track_click_api():
+    """Test the new client.track_click() API."""
+    print("\n13. Testing client.track_click() API...")
+
+    # Initialize Klyne client
+    client = klyne.init(
+        api_key="test_key",
+        project="test-cli",
+        package_version="1.0.0",
+        enabled=False
+    )
+
+    # Enable for testing
+    client.enable()
+
+    @click.command()
+    @click.option('--message', default='Hello')
+    def greet(message):
+        """Greet command."""
+        click.echo(message)
+
+    # Use the new client.track_click() API
+    cli_wrapped = client.track_click(greet)
+
+    runner = CliRunner()
+    result = runner.invoke(cli_wrapped.cli, ['--message', 'Hi!'])
+
+    assert result.exit_code == 0
+    assert "Hi!" in result.output
+
+    print("   ✓ client.track_click() API works")
+
+
+def test_client_track_click_with_group():
+    """Test client.track_click() with command groups."""
+    print("\n14. Testing client.track_click() with groups...")
+
+    client = klyne.init(
+        api_key="test_key",
+        project="test-cli-2",
+        package_version="1.0.0",
+        enabled=False
+    )
+
+    client.enable()
+
+    @click.group()
+    def cli():
+        """Main CLI."""
+        pass
+
+    @cli.command()
+    def status():
+        """Show status."""
+        click.echo("Status: OK")
+
+    # Use the new API with a group
+    cli_wrapped = client.track_click(cli)
+
+    runner = CliRunner()
+    result = runner.invoke(cli_wrapped.cli, ['status'])
+
+    assert result.exit_code == 0
+    assert "Status: OK" in result.output
+
+    print("   ✓ client.track_click() works with groups")
+
+
 def main():
     """Run all tests."""
     print("🧪 Klyne Click Adapter Tests")
@@ -462,6 +530,8 @@ def main():
         test_click_module_privacy_options()
         test_integration_with_klyne_init()
         test_execution_time_tracking()
+        test_client_track_click_api()
+        test_client_track_click_with_group()
 
         print("\n✅ All Click adapter tests passed!")
         print("\nClick Adapter Features:")
@@ -473,6 +543,7 @@ def main():
         print("  • Privacy options: ✓")
         print("  • Decorator support: ✓")
         print("  • Graceful degradation: ✓")
+        print("  • client.track_click() API: ✓")
 
         return True
 
