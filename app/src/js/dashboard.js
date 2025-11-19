@@ -668,6 +668,12 @@ async function loadCustomEventsTimeseries() {
     try {
         const params = buildQueryParams();
         const eventTypesParam = Array.from(selectedEventTypes).join(',');
+
+        // Add aggregation parameter
+        if (currentAggregation) {
+            params.append('aggregation', currentAggregation);
+        }
+
         const response = await fetch(`/api/dashboard/custom-events/timeseries?event_types=${encodeURIComponent(eventTypesParam)}&${params}`);
 
         if (!response.ok) {
@@ -718,6 +724,18 @@ function renderCustomEventsChart(data) {
         };
     });
 
+    // Determine time unit based on aggregation
+    let timeUnit = 'day';
+    let displayFormat = 'MMM d';
+
+    if (currentAggregation === 'week') {
+        timeUnit = 'week';
+        displayFormat = 'MMM d';
+    } else if (currentAggregation === 'month') {
+        timeUnit = 'month';
+        displayFormat = 'MMM yyyy';
+    }
+
     // Create chart
     customEventsChart = new Chart(ctx, {
         type: 'line',
@@ -754,9 +772,11 @@ function renderCustomEventsChart(data) {
                 x: {
                     type: 'time',
                     time: {
-                        unit: 'day',
+                        unit: timeUnit,
                         displayFormats: {
-                            day: 'MMM d'
+                            day: 'MMM d',
+                            week: 'MMM d',
+                            month: 'MMM yyyy'
                         }
                     },
                     grid: {
