@@ -9,7 +9,7 @@ from src.services.api_key_service import APIKeyService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/badge", tags=["badge"])
+router = APIRouter(prefix="/badge", tags=["badge"])
 
 
 def generate_badge_svg(package_name: str, unique_users: int) -> str:
@@ -60,7 +60,7 @@ async def get_badge_svg(
     This is a public endpoint that only works if the badge is marked as public.
 
     Usage:
-    - Embed in README: ![Users](https://klyne.app/api/badge/{badge_uuid}.svg)
+    - Embed in README: ![Users](https://klyne.app/badge/{badge_uuid}.svg)
     """
     logger.debug(f"Badge request for UUID {badge_uuid}")
 

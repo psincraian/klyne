@@ -271,7 +271,7 @@ active_tab="dashboard") }}
                         Embed this badge in your README to show unique user count:
                       </p>
                       <div class="bg-base-300 rounded-lg p-3 text-xs font-mono">
-                        <code class="text-base-content select-all" id="badge-markdown-{{ api_key.id }}">![Users]({{ request.url.scheme }}://{{ request.url.netloc }}/api/badge/{{ api_key.badge_uuid }}.svg)</code>
+                        <code class="text-base-content select-all" id="badge-markdown-{{ api_key.id }}">![Users]({{ request.url.scheme }}://{{ request.url.netloc }}/badge/{{ api_key.badge_uuid }}.svg)</code>
                         <button
                           class="btn btn-ghost btn-xs ml-2"
                           onclick="copyBadgeMarkdown('{{ api_key.badge_uuid }}', {{ api_key.id }})"
@@ -281,7 +281,7 @@ active_tab="dashboard") }}
                       </div>
                       <div class="mt-2">
                         <img
-                          src="/api/badge/{{ api_key.badge_uuid }}.svg"
+                          src="/badge/{{ api_key.badge_uuid }}.svg"
                           alt="User count badge"
                           class="inline-block"
                         />
@@ -686,7 +686,7 @@ active_tab="dashboard") }}
 
   // Toggle badge visibility
   function toggleBadge(apiKeyId, isPublic) {
-    fetch(`/api/badge/${apiKeyId}/visibility`, {
+    fetch(`/badge/${apiKeyId}/visibility`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
