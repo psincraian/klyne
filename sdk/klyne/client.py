@@ -11,8 +11,9 @@ from .installation import get_or_create_installation_id, get_user_identifier
 from .transport import HTTPTransport
 
 # Global SDK state
-_client = None
-_internal_client = None  # Separate client for internal analytics
+_clients: Dict[str, "KlyneClient"] = {}  # Registry of all clients by project name
+_default_client: Optional["KlyneClient"] = None  # Most recent client (for backward compat)
+_internal_client: Optional["KlyneClient"] = None  # Separate client for internal analytics
 _logger = logging.getLogger(__name__)
 
 
@@ -184,7 +185,7 @@ def init(
     enabled: bool = True,
     debug: bool = False,
     _internal: bool = False,
-) -> None:
+) -> Optional[KlyneClient]:
     """
     Initialize Klyne analytics for your package.
 
@@ -197,20 +198,34 @@ def init(
         debug: Enable debug logging (default: False)
         _internal: Internal flag for SDK self-analytics (private)
 
+    Returns:
+        KlyneClient instance for this project (or None on failure)
+
     Example:
         import klyne
+
+        # Option 1: Module-level API (backward compatible)
         klyne.init(
             api_key="klyne_your_api_key_here",
             project="your-package-name",
             package_version="1.0.0"
         )
+        klyne.track("event_name")
+
+        # Option 2: Instance-based API (recommended for libraries)
+        client = klyne.init(
+            api_key="klyne_your_api_key_here",
+            project="your-package-name",
+            package_version="1.0.0"
+        )
+        client.track("event_name")
     """
-    global _client, _internal_client
+    global _clients, _default_client, _internal_client
 
     # Handle internal analytics separately
     if _internal:
         if _internal_client is not None:
-            return  # Internal client already initialized
+            return _internal_client  # Internal client already initialized
         try:
             _internal_client = KlyneClient(
                 api_key=api_key,
@@ -220,17 +235,19 @@ def init(
                 enabled=enabled,
                 debug=debug,
             )
+            return _internal_client
         except Exception as e:
             _logger.debug(f"Failed to initialize internal Klyne: {e}")
-        return
+            return None
 
-    # Handle customer analytics
-    if _client is not None:
-        _logger.warning("Klyne already initialized for this project, skipping")
-        return
+    # Check if client already exists for this project
+    if project in _clients:
+        _logger.info(f"Klyne already initialized for project '{project}', returning existing client")
+        return _clients[project]
 
+    # Create new client for this project
     try:
-        _client = KlyneClient(
+        client = KlyneClient(
             api_key=api_key,
             project=project,
             package_version=package_version,
@@ -238,8 +255,15 @@ def init(
             enabled=enabled,
             debug=debug,
         )
+
+        # Register the client
+        _clients[project] = client
+        _default_client = client  # Set as default for backward compatibility
+
+        return client
     except Exception as e:
         _logger.warning(f"Failed to initialize Klyne: {e}")
+        return None
 
 
 def track(
@@ -273,8 +297,8 @@ def track(
             'file_format': 'csv'
         })
     """
-    if _client:
-        _client.track(event_name, properties, session_id)
+    if _default_client:
+        _default_client.track(event_name, properties, session_id)
 
 
 def flush(timeout: float = 10.0) -> None:
@@ -284,20 +308,20 @@ def flush(timeout: float = 10.0) -> None:
     Args:
         timeout: Maximum time to wait for flush completion
     """
-    if _client:
-        _client.flush(timeout)
+    if _default_client:
+        _default_client.flush(timeout)
 
 
 def disable() -> None:
     """Disable Klyne analytics tracking."""
-    if _client:
-        _client.disable()
+    if _default_client:
+        _default_client.disable()
 
 
 def enable() -> None:
     """Enable Klyne analytics tracking."""
-    if _client:
-        _client.enable()
+    if _default_client:
+        _default_client.enable()
 
 
 def is_enabled() -> bool:
@@ -307,7 +331,7 @@ def is_enabled() -> bool:
     Returns:
         True if analytics are enabled and working
     """
-    return _client.is_enabled() if _client else False
+    return _default_client.is_enabled() if _default_client else False
 
 
 def _init_internal(

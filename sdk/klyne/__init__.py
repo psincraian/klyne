@@ -32,7 +32,12 @@ __all__ = [
 
 # Self-analytics initialization for Klyne SDK
 def _init_self_analytics():
-    """Initialize analytics for the Klyne SDK itself."""
+    """
+    Initialize analytics for the Klyne SDK itself.
+
+    This is now opt-in via the KLYNE_SELF_ANALYTICS environment variable
+    to prevent unwanted side effects when multiple libraries use Klyne.
+    """
     try:
         # Determine the base URL based on environment
         # Use localhost for development, production API otherwise
@@ -54,6 +59,7 @@ def _init_self_analytics():
         pass
 
 
-# Initialize self-analytics when the module is imported (skip during testing)
-if not os.getenv("KLYNE_ENV", "prod").lower() == "test":
+# Self-analytics is now opt-in to prevent conflicts when multiple libraries use Klyne
+# Set KLYNE_SELF_ANALYTICS=1 to enable SDK usage tracking
+if os.getenv("KLYNE_SELF_ANALYTICS") == "1":
     _init_self_analytics()
