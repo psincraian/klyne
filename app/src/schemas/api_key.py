@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 
 class APIKeyBase(BaseModel):
@@ -10,13 +11,15 @@ class APIKeyBase(BaseModel):
 
 
 class APIKeyCreate(APIKeyBase):
-    pass
+    description: Optional[str] = None
 
 
 class APIKeyResponse(APIKeyBase):
     id: int
     key: str
     user_id: int
+    is_active: bool
+    description: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -26,3 +29,8 @@ class APIKeyResponse(APIKeyBase):
 
 class APIKeyInDB(APIKeyResponse):
     pass
+
+
+class APIKeyUpdate(BaseModel):
+    """Schema for updating API key settings."""
+    description: Optional[str] = None

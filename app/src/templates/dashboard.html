@@ -243,6 +243,57 @@ active_tab="dashboard") }}
                       api_key.created_at.strftime('%I:%M %p') }}</span
                     >
                   </div>
+
+                  <!-- Badge Section -->
+                  <div class="mt-4 pt-4 border-t border-base-300">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-award text-accent"></i>
+                        <span class="font-semibold text-sm">User Count Badge</span>
+                      </div>
+                      <div class="form-control">
+                        <label class="label cursor-pointer gap-2">
+                          <span class="label-text text-xs">Public</span>
+                          <input
+                            type="checkbox"
+                            class="toggle toggle-primary toggle-sm"
+                            id="badge-toggle-{{ api_key.id }}"
+                            {% if api_key.badge and api_key.badge.is_public %}checked{% endif %}
+                            onchange="toggleBadge('{{ api_key.id }}', this.checked)"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div id="badge-info-{{ api_key.id }}" class="{% if not (api_key.badge and api_key.badge.is_public) %}hidden{% endif %}">
+                      {% if api_key.badge and api_key.badge.badge_uuid %}
+                      <p class="text-xs text-base-content/60 mb-2">
+                        Embed this badge in your README to show unique user count:
+                      </p>
+                      <div class="bg-base-300 rounded-lg p-3 text-xs font-mono">
+                        <code class="text-base-content select-all" id="badge-markdown-{{ api_key.id }}">![Users]({{ request.url.scheme }}://{{ request.url.netloc }}/badge/{{ api_key.badge.badge_uuid }}.svg)</code>
+                        <button
+                          class="btn btn-ghost btn-xs ml-2"
+                          onclick="copyBadgeMarkdown('{{ api_key.badge.badge_uuid }}', {{ api_key.id }})"
+                        >
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                      <div class="mt-2">
+                        <img
+                          src="/badge/{{ api_key.badge.badge_uuid }}.svg"
+                          alt="User count badge"
+                          class="inline-block"
+                        />
+                      </div>
+                      {% else %}
+                      <p class="text-xs text-base-content/60">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Badge URL will be generated when you make it public.
+                      </p>
+                      {% endif %}
+                    </div>
+                  </div>
                 </div>
 
                 <div class="dropdown dropdown-end">
@@ -631,6 +682,58 @@ active_tab="dashboard") }}
     setTimeout(() => {
       toast.remove();
     }, 3000);
+  }
+
+  // Toggle badge visibility
+  function toggleBadge(apiKeyId, isPublic) {
+    fetch(`/badge/${apiKeyId}/visibility`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ is_public: isPublic }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update badge visibility");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          showToast(
+            `Badge is now ${isPublic ? "public" : "private"}`,
+            "success"
+          );
+
+          // Reload the page to show the generated UUID
+          // This ensures the badge URL is displayed after enabling
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        } else {
+          throw new Error("Server returned failure status");
+        }
+      })
+      .catch((error) => {
+        console.error("Error toggling badge:", error);
+        showToast("Failed to update badge visibility. Please try again.", "error");
+        // Revert the toggle
+        const toggle = document.getElementById(`badge-toggle-${apiKeyId}`);
+        if (toggle) {
+          toggle.checked = !isPublic;
+        }
+      });
+  }
+
+  // Copy badge markdown to clipboard
+  function copyBadgeMarkdown(apiKey, apiKeyId) {
+    const markdownElement = document.getElementById(`badge-markdown-${apiKeyId}`);
+    const markdown = markdownElement.textContent;
+
+    navigator.clipboard.writeText(markdown).then(function () {
+      showToast("Badge markdown copied to clipboard!", "success");
+    });
   }
 </script>
 
