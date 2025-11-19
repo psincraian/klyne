@@ -48,6 +48,48 @@ The SDK automatically collects:
 
 **No personally identifiable information is collected.**
 
+## Click CLI Integration
+
+Klyne provides automatic tracking for Click-based CLI applications. Just wrap your CLI with `ClickModule`:
+
+```python
+import click
+import klyne
+from klyne.click_adapter import ClickModule
+
+# Initialize Klyne
+klyne.init(api_key="klyne_your_key", project="my-cli")
+
+# Create your Click CLI as usual
+@click.group()
+def cli():
+    '''My CLI application'''
+    pass
+
+@cli.command()
+@click.option('--name', default='World')
+def hello(name):
+    click.echo(f'Hello {name}!')
+
+# Wrap with ClickModule for automatic tracking
+if __name__ == '__main__':
+    ClickModule(cli)()
+```
+
+**Automatically tracks:**
+- Command names and hierarchy
+- Options and arguments
+- Success/failure status
+- Execution time
+- Error details
+
+**Installation with Click:**
+```bash
+pip install klyne click
+```
+
+See [CLICK_ADAPTER.md](CLICK_ADAPTER.md) for complete documentation and examples.
+
 ## Advanced Usage
 
 ### Custom Event Tracking
