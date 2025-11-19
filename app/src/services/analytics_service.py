@@ -145,17 +145,23 @@ class AnalyticsService:
         )
 
         # Create a map of date -> unique_users for quick lookup
-        unique_users_map = {
-            item["date"].isoformat(): item["unique_users"]
-            for item in daily_unique_users
-        }
+        unique_users_map = {}
+        for item in daily_unique_users:
+            date_key = item["date"]
+            # Handle both date objects (PostgreSQL) and strings (SQLite)
+            if isinstance(date_key, str):
+                unique_users_map[date_key] = item["unique_users"]
+            else:
+                unique_users_map[date_key.isoformat()] = item["unique_users"]
 
         # Organize data by date
         dates_data = {}
         package_names = set()
 
         for stat in daily_stats:
-            date_str = stat["date"].isoformat()
+            # Handle both date objects (PostgreSQL) and strings (SQLite)
+            date_key = stat["date"]
+            date_str = date_key if isinstance(date_key, str) else date_key.isoformat()
             package_names.add(stat["package_name"])
 
             if date_str not in dates_data:
