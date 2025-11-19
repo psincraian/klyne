@@ -266,25 +266,32 @@ active_tab="dashboard") }}
                     </div>
 
                     <div id="badge-info-{{ api_key.id }}" class="{% if not api_key.badge_public %}hidden{% endif %}">
+                      {% if api_key.badge_uuid %}
                       <p class="text-xs text-base-content/60 mb-2">
                         Embed this badge in your README to show unique user count:
                       </p>
                       <div class="bg-base-300 rounded-lg p-3 text-xs font-mono">
-                        <code class="text-base-content select-all" id="badge-markdown-{{ api_key.id }}">![Users]({{ request.url.scheme }}://{{ request.url.netloc }}/api/badge/{{ api_key.key }}.svg)</code>
+                        <code class="text-base-content select-all" id="badge-markdown-{{ api_key.id }}">![Users]({{ request.url.scheme }}://{{ request.url.netloc }}/api/badge/{{ api_key.badge_uuid }}.svg)</code>
                         <button
                           class="btn btn-ghost btn-xs ml-2"
-                          onclick="copyBadgeMarkdown('{{ api_key.key }}', {{ api_key.id }})"
+                          onclick="copyBadgeMarkdown('{{ api_key.badge_uuid }}', {{ api_key.id }})"
                         >
                           <i class="fas fa-copy"></i>
                         </button>
                       </div>
                       <div class="mt-2">
                         <img
-                          src="/api/badge/{{ api_key.key }}.svg"
+                          src="/api/badge/{{ api_key.badge_uuid }}.svg"
                           alt="User count badge"
                           class="inline-block"
                         />
                       </div>
+                      {% else %}
+                      <p class="text-xs text-base-content/60">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Badge URL will be generated when you make it public.
+                      </p>
+                      {% endif %}
                     </div>
                   </div>
                 </div>
@@ -694,19 +701,16 @@ active_tab="dashboard") }}
       })
       .then((data) => {
         if (data.success) {
-          // Show/hide badge info
-          const badgeInfo = document.getElementById(`badge-info-${apiKeyId}`);
-          if (badgeInfo) {
-            if (isPublic) {
-              badgeInfo.classList.remove("hidden");
-            } else {
-              badgeInfo.classList.add("hidden");
-            }
-          }
           showToast(
             `Badge is now ${isPublic ? "public" : "private"}`,
             "success"
           );
+
+          // Reload the page to show the generated UUID
+          // This ensures the badge URL is displayed after enabling
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         } else {
           throw new Error("Server returned failure status");
         }

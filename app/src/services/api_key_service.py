@@ -272,17 +272,31 @@ class APIKeyService:
         if api_key.user_id != user_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this API key")
 
-        # Update the badge_public field
-        updated_key = await self.uow.api_keys.update(api_key_id, {"badge_public": badge_public})
+        # Generate badge UUID if making public and doesn't have one yet
+        update_data = {"badge_public": badge_public}
+        if badge_public and not api_key.badge_uuid:
+            from src.models.api_key import APIKey as APIKeyModel
+            update_data["badge_uuid"] = APIKeyModel.generate_badge_uuid()
+
+        # Update the badge_public field (and badge_uuid if needed)
+        updated_key = await self.uow.api_keys.update(api_key_id, update_data)
         await self.uow.commit()
 
         logger.info(f"Updated badge visibility to {badge_public} for API key {api_key.key}, user {user_id}")
         return updated_key
 
-    async def get_badge_data(self, api_key: str) -> Optional[dict]:
-        """Get badge data for a public badge."""
-        # Get the API key object
-        api_key_obj = await self.uow.api_keys.get_by_key(api_key)
+    async def get_badge_data_by_uuid(self, badge_uuid: str) -> Optional[dict]:
+        """Get badge data for a public badge using UUID."""
+        import uuid as uuid_lib
+
+        # Parse UUID
+        try:
+            uuid_obj = uuid_lib.UUID(badge_uuid)
+        except (ValueError, AttributeError):
+            return None
+
+        # Get the API key object by badge_uuid
+        api_key_obj = await self.uow.api_keys.get_by_badge_uuid(uuid_obj)
         if not api_key_obj:
             return None
 
@@ -291,7 +305,7 @@ class APIKeyService:
             return None
 
         # Get unique users count (all time)
-        unique_users = await self.uow.analytics_events.get_unique_users_count([api_key])
+        unique_users = await self.uow.analytics_events.get_unique_users_count([api_key_obj.key])
 
         return {
             "package_name": api_key_obj.package_name,

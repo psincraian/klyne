@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 
 class APIKeyBase(BaseModel):
@@ -20,6 +21,7 @@ class APIKeyResponse(APIKeyBase):
     is_active: bool
     description: Optional[str] = None
     badge_public: bool
+    badge_uuid: Optional[UUID] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 

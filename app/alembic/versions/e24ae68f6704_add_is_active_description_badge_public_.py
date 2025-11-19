@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -19,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add is_active, description, and badge_public columns to api_keys table."""
+    """Add is_active, description, badge_public, and badge_uuid columns to api_keys table."""
     # Add is_active column (default True)
     op.add_column('api_keys', sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'))
 
@@ -29,9 +30,17 @@ def upgrade() -> None:
     # Add badge_public column (default False)
     op.add_column('api_keys', sa.Column('badge_public', sa.Boolean(), nullable=False, server_default='false'))
 
+    # Add badge_uuid column (unique identifier for badge access)
+    op.add_column('api_keys', sa.Column('badge_uuid', postgresql.UUID(as_uuid=True), nullable=True))
+
+    # Create unique index on badge_uuid
+    op.create_index(op.f('ix_api_keys_badge_uuid'), 'api_keys', ['badge_uuid'], unique=True)
+
 
 def downgrade() -> None:
-    """Remove is_active, description, and badge_public columns from api_keys table."""
+    """Remove is_active, description, badge_public, and badge_uuid columns from api_keys table."""
+    op.drop_index(op.f('ix_api_keys_badge_uuid'), table_name='api_keys')
+    op.drop_column('api_keys', 'badge_uuid')
     op.drop_column('api_keys', 'badge_public')
     op.drop_column('api_keys', 'description')
     op.drop_column('api_keys', 'is_active')

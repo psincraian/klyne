@@ -1,4 +1,5 @@
 from typing import Optional, List
+from uuid import UUID
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -138,9 +139,16 @@ class APIKeyRepository(BaseRepository[APIKey]):
     async def get_user_api_keys_with_filter(self, user_id: int, package_name: Optional[str] = None) -> List[APIKey]:
         """Get user's API keys with optional package filter."""
         query = select(APIKey).filter(APIKey.user_id == user_id)
-        
+
         if package_name:
             query = query.filter(APIKey.package_name == package_name)
-            
+
         result = await self.db.execute(query)
         return list(result.scalars().all())
+
+    async def get_by_badge_uuid(self, badge_uuid: UUID) -> Optional[APIKey]:
+        """Get API key by badge UUID."""
+        result = await self.db.execute(
+            select(APIKey).filter(APIKey.badge_uuid == badge_uuid)
+        )
+        return result.scalar_one_or_none()

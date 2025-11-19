@@ -50,25 +50,25 @@ def generate_badge_svg(package_name: str, unique_users: int) -> str:
     return svg
 
 
-@router.get("/{api_key}.svg", response_class=Response)
+@router.get("/{badge_uuid}.svg", response_class=Response)
 async def get_badge_svg(
-    api_key: str,
+    badge_uuid: str,
     api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
-    Get badge SVG for a specific API key.
+    Get badge SVG for a specific badge UUID.
     This is a public endpoint that only works if the badge is marked as public.
 
     Usage:
-    - Embed in README: ![Users](https://klyne.app/api/badge/{api_key}.svg)
+    - Embed in README: ![Users](https://klyne.app/api/badge/{badge_uuid}.svg)
     """
-    logger.debug(f"Badge request for API key {api_key}")
+    logger.debug(f"Badge request for UUID {badge_uuid}")
 
-    # Get badge data (returns None if not public)
-    badge_data = await api_key_service.get_badge_data(api_key)
+    # Get badge data (returns None if not public or invalid UUID)
+    badge_data = await api_key_service.get_badge_data_by_uuid(badge_uuid)
 
     if not badge_data:
-        logger.debug(f"Badge not found or not public for API key {api_key}")
+        logger.debug(f"Badge not found or not public for UUID {badge_uuid}")
         # Return a "badge not public" SVG instead of 404
         svg = generate_badge_svg("unique users", 0)
         return Response(content=svg, media_type="image/svg+xml")
@@ -87,18 +87,18 @@ async def get_badge_svg(
     )
 
 
-@router.get("/{api_key}/data")
+@router.get("/{badge_uuid}/data")
 async def get_badge_data(
-    api_key: str,
+    badge_uuid: str,
     api_key_service: APIKeyService = Depends(get_api_key_service)
 ) -> BadgeResponse:
     """
-    Get badge data as JSON for a specific API key.
+    Get badge data as JSON for a specific badge UUID.
     This is a public endpoint that only works if the badge is marked as public.
     """
-    logger.debug(f"Badge data request for API key {api_key}")
+    logger.debug(f"Badge data request for UUID {badge_uuid}")
 
-    badge_data = await api_key_service.get_badge_data(api_key)
+    badge_data = await api_key_service.get_badge_data_by_uuid(badge_uuid)
 
     if not badge_data:
         raise HTTPException(status_code=404, detail="Badge not found or not public")
