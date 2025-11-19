@@ -45,6 +45,221 @@ from . import client as klyne_client
 _logger = logging.getLogger(__name__)
 
 
+def instrument_click_cli(
+    cli: Any,
+    track_arguments: bool = True,
+    track_options: bool = True,
+    client: Optional[Any] = None,
+) -> None:
+    """
+    Instrument a Click CLI in-place for automatic command tracking.
+
+    This function modifies the CLI's commands to track invocations. After calling
+    this function, you can invoke the CLI normally and all commands will be tracked.
+
+    Args:
+        cli: Click Group or Command instance to instrument
+        track_arguments: Whether to track command arguments (default: True)
+        track_options: Whether to track command options (default: True)
+        client: Optional KlyneClient instance (uses default client if not provided)
+
+    Example:
+        import click
+        import klyne
+
+        client = klyne.init(api_key="...", project="my-cli")
+
+        @click.group()
+        def cli():
+            pass
+
+        # Instrument the CLI
+        instrument_click_cli(cli, client=client)
+
+        # Now just call it normally
+        if __name__ == '__main__':
+            cli()
+    """
+    if click is None:
+        raise ImportError(
+            "Click is not installed. Install it with: pip install click"
+        )
+
+    tracking_client = client or klyne_client._default_client
+
+    if tracking_client is None:
+        _logger.warning(
+            "Klyne not initialized. Call klyne.init() before instrumenting Click CLI. "
+            "Commands will not be tracked."
+        )
+        return
+
+    # Use ClickModule's instrumentation logic
+    _instrument_cli_recursive(
+        cli,
+        track_arguments=track_arguments,
+        track_options=track_options,
+        client=tracking_client,
+    )
+
+
+def _instrument_cli_recursive(
+    cli: Any,
+    track_arguments: bool,
+    track_options: bool,
+    client: Any,
+) -> None:
+    """Recursively instrument all commands in the CLI."""
+    if isinstance(cli, click.Group):
+        _instrument_group(cli, track_arguments, track_options, client)
+    elif isinstance(cli, click.Command):
+        _instrument_command(cli, track_arguments, track_options, client)
+
+
+def _instrument_group(
+    group: click.Group,
+    track_arguments: bool,
+    track_options: bool,
+    client: Any,
+) -> None:
+    """Instrument a Click Group and all its commands."""
+    # Instrument all commands in the group
+    for name, command in group.commands.items():
+        if isinstance(command, click.Group):
+            _instrument_group(command, track_arguments, track_options, client)
+        else:
+            _instrument_command(command, track_arguments, track_options, client)
+
+
+def _instrument_command(
+    command: click.Command,
+    track_arguments: bool,
+    track_options: bool,
+    client: Any,
+    parent_name: Optional[str] = None,
+) -> None:
+    """Instrument a Click Command to track its invocations."""
+    # Skip if already instrumented
+    if hasattr(command, '_klyne_instrumented'):
+        return
+
+    original_invoke = command.invoke
+
+    @functools.wraps(original_invoke)
+    def wrapped_invoke(ctx: click.Context) -> Any:
+        """Wrapped invoke that tracks command execution."""
+        # Build command name with parent hierarchy
+        command_parts = []
+
+        # Walk up the context chain to build full command path
+        context = ctx
+        while context is not None:
+            if context.info_name:
+                command_parts.insert(0, context.info_name)
+            context = context.parent
+
+        command_name = " ".join(command_parts) if command_parts else command.name
+
+        # Start timing
+        start_time = time.time()
+        error_info = None
+        success = True
+
+        try:
+            # Execute the original command
+            result = original_invoke(ctx)
+            return result
+
+        except Exception as e:
+            # Track error information
+            success = False
+            error_info = {
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+            }
+            raise
+
+        finally:
+            # Calculate execution time
+            execution_time_ms = (time.time() - start_time) * 1000
+
+            # Track the command invocation
+            _track_command_invocation(
+                command_name=command_name,
+                ctx=ctx,
+                success=success,
+                execution_time_ms=execution_time_ms,
+                error_info=error_info,
+                track_arguments=track_arguments,
+                track_options=track_options,
+                client=client,
+            )
+
+    command.invoke = wrapped_invoke
+    command._klyne_instrumented = True  # Mark as instrumented
+
+
+def _track_command_invocation(
+    command_name: str,
+    ctx: click.Context,
+    success: bool,
+    execution_time_ms: float,
+    error_info: Optional[dict],
+    track_arguments: bool,
+    track_options: bool,
+    client: Any,
+) -> None:
+    """Track a command invocation event."""
+    if client is None or not client.is_enabled():
+        return
+
+    try:
+        # Build properties dictionary
+        properties = {
+            "command_name": command_name,
+            "success": success,
+            "execution_time_ms": round(execution_time_ms, 2),
+        }
+
+        # Add arguments if tracking enabled
+        if track_arguments and ctx.params:
+            # Separate arguments and options
+            arguments = {}
+            options = {}
+
+            for param_name, param_value in ctx.params.items():
+                # Find the parameter definition
+                param_obj = None
+                for param in ctx.command.params:
+                    if param.name == param_name:
+                        param_obj = param
+                        break
+
+                # Classify as argument or option
+                if param_obj and isinstance(param_obj, click.Argument):
+                    arguments[param_name] = param_value
+                else:
+                    options[param_name] = param_value
+
+            if arguments:
+                properties["arguments"] = arguments
+
+            if options and track_options:
+                properties["options"] = options
+
+        # Add error information if present
+        if error_info:
+            properties.update(error_info)
+
+        # Track the event
+        event_name = f"cli.{command_name.replace(' ', '.')}"
+        client.track(event_name, properties)
+
+    except Exception as e:
+        # Silently fail - don't break the CLI if tracking fails
+        _logger.debug(f"Failed to track Click command: {e}")
+
+
 class ClickModule:
     """
     Wrapper for Click CLI applications that enables automatic command tracking.

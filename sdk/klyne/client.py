@@ -175,20 +175,17 @@ class KlyneClient:
         cli: Any,
         track_arguments: bool = True,
         track_options: bool = True,
-    ) -> Any:
+    ) -> None:
         """
         Enable automatic tracking for Click CLI applications.
 
-        This method wraps a Click Group or Command to automatically track all
-        command invocations with detailed metadata.
+        This method instruments a Click Group or Command in-place to automatically
+        track all command invocations with detailed metadata.
 
         Args:
             cli: Click Group or Command instance to track
             track_arguments: Whether to track command arguments (default: True)
             track_options: Whether to track command options (default: True)
-
-        Returns:
-            Callable wrapper that can be invoked like the original CLI
 
         Example:
             import click
@@ -205,20 +202,21 @@ class KlyneClient:
                 click.echo("Hello!")
 
             if __name__ == '__main__':
-                client.track_click(cli)()
+                client.track_click(cli)
+                cli()
 
         Note:
             Click must be installed: pip install click
         """
         try:
-            from .click_adapter import ClickModule
+            from .click_adapter import instrument_click_cli
         except ImportError:
             raise ImportError(
                 "Click adapter requires the 'click' package. "
                 "Install it with: pip install click"
             )
 
-        return ClickModule(
+        instrument_click_cli(
             cli,
             track_arguments=track_arguments,
             track_options=track_options,

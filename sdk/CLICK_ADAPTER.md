@@ -48,9 +48,10 @@ def hello(name):
     '''Say hello'''
     click.echo(f'Hello {name}!')
 
-# 3. Use client.track_click() - that's it!
+# 3. Enable tracking and run your CLI
 if __name__ == '__main__':
-    client.track_click(cli)()
+    client.track_click(cli)
+    cli()
 ```
 
 That's all you need! Every command invocation is now automatically tracked.
@@ -100,7 +101,8 @@ def deploy():
     click.echo("Deploying...")
 
 if __name__ == '__main__':
-    client.track_click(deploy)()
+    client.track_click(deploy)
+    deploy()
 ```
 
 ### Command with Options
@@ -116,7 +118,8 @@ def deploy(env, force):
     click.echo(f"Deploying to {env}...")
 
 # Tracks: command name, env value, force flag
-client.track_click(deploy)()
+client.track_click(deploy)
+deploy()
 ```
 
 ### Command with Arguments
@@ -132,7 +135,8 @@ def process(filename, format):
     click.echo(f"Processing {filename} as {format}")
 
 # Tracks: filename argument and format option
-client.track_click(process)()
+client.track_click(process)
+process()
 ```
 
 ### Command Groups (Multi-command CLI)
@@ -156,8 +160,9 @@ def restart(force):
     '''Restart service'''
     click.echo("Restarting...")
 
-# Wrap the entire group - all commands are tracked
-client.track_click(cli)()
+# Instrument the entire group - all commands are tracked
+client.track_click(cli)
+cli()
 ```
 
 ### Nested Command Groups
@@ -186,7 +191,8 @@ def seed():
     click.echo("Seeding...")
 
 # Command path is tracked: "cli database migrate"
-client.track_click(cli)()
+client.track_click(cli)
+cli()
 ```
 
 ### Error Tracking
@@ -207,7 +213,8 @@ def divide(value):
 #   "error_type": "ZeroDivisionError",
 #   "error_message": "division by zero"
 # }
-client.track_click(divide)()
+client.track_click(divide)
+divide()
 ```
 
 ## Privacy and Security
@@ -232,7 +239,8 @@ client.track_click(
     login,
     track_arguments=False,  # Don't track username
     track_options=False      # Don't track password
-)()
+)
+login()
 ```
 
 ### Selective Tracking with Decorator
@@ -346,8 +354,11 @@ def seed():
     click.echo("Seeding database...")
 
 if __name__ == '__main__':
-    # Use client.track_click() for automatic tracking
-    client.track_click(cli)()
+    # Use client.track_click() to enable tracking
+    client.track_click(cli)
+
+    # Now call your CLI normally
+    cli()
 
     # Flush events before exit
     client.flush(timeout=2.0)
@@ -368,11 +379,11 @@ client.track_click(
 ```
 
 **Parameters:**
-- `cli` - Click Group or Command instance to track
+- `cli` - Click Group or Command instance to instrument
 - `track_arguments` - Whether to track command arguments (default: True)
 - `track_options` - Whether to track command options/flags (default: True)
 
-**Returns:** Callable wrapper that can be invoked like the original CLI
+**Returns:** None (instruments the CLI in-place)
 
 **Example:**
 ```python
@@ -383,7 +394,8 @@ def cli():
     pass
 
 if __name__ == '__main__':
-    client.track_click(cli)()
+    client.track_click(cli)
+    cli()
 ```
 
 ### ClickModule (Alternative API)

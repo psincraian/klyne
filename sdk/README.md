@@ -70,9 +70,10 @@ def cli():
 def hello(name):
     click.echo(f'Hello {name}!')
 
-# Use client.track_click() for automatic tracking
+# Use client.track_click() to enable tracking
 if __name__ == '__main__':
-    client.track_click(cli)()
+    client.track_click(cli)
+    cli()
 ```
 
 **Automatically tracks:**

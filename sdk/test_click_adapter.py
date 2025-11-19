@@ -466,10 +466,10 @@ def test_client_track_click_api():
         click.echo(message)
 
     # Use the new client.track_click() API
-    cli_wrapped = client.track_click(greet)
+    client.track_click(greet)
 
     runner = CliRunner()
-    result = runner.invoke(cli_wrapped.cli, ['--message', 'Hi!'])
+    result = runner.invoke(greet, ['--message', 'Hi!'])
 
     assert result.exit_code == 0
     assert "Hi!" in result.output
@@ -501,10 +501,10 @@ def test_client_track_click_with_group():
         click.echo("Status: OK")
 
     # Use the new API with a group
-    cli_wrapped = client.track_click(cli)
+    client.track_click(cli)
 
     runner = CliRunner()
-    result = runner.invoke(cli_wrapped.cli, ['status'])
+    result = runner.invoke(cli, ['status'])
 
     assert result.exit_code == 0
     assert "Status: OK" in result.output

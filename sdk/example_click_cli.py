@@ -181,9 +181,12 @@ def calculate(value):
 
 # Main entry point with Klyne tracking
 if __name__ == '__main__':
-    # Use client.track_click() for automatic tracking
+    # Use client.track_click() to instrument the CLI
     # This is the only change needed to enable tracking!
-    client.track_click(cli)()
+    client.track_click(cli)
+
+    # Now just call the CLI normally
+    cli()
 
     # Flush events before exit
     print("\n📤 Flushing Klyne events...")
