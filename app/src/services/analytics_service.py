@@ -340,6 +340,76 @@ class AnalyticsService:
 
         return date_range, events_list, sessions_list, unique_users_list
 
+    def _aggregate_custom_events_by_week(self, daily_data: dict, start_date: date, end_date: date):
+        """Aggregate custom event counts by week (Monday as start of week)."""
+        from collections import defaultdict
+
+        # Group data by week
+        weekly_data = defaultdict(int)
+
+        for date_str, count in daily_data.items():
+            dt = date.fromisoformat(date_str)
+            # Get Monday of the week
+            week_start = dt - timedelta(days=dt.weekday())
+            week_key = week_start.isoformat()
+            weekly_data[week_key] += count
+
+        # Build complete week range
+        date_range = self._build_week_range(start_date, end_date)
+
+        # Fill in data with zeros for missing weeks
+        counts_list = [weekly_data.get(week_str, 0) for week_str in date_range]
+
+        return date_range, counts_list
+
+    def _aggregate_custom_events_by_month(self, daily_data: dict, start_date: date, end_date: date):
+        """Aggregate custom event counts by month."""
+        from collections import defaultdict
+
+        # Group data by month
+        monthly_data = defaultdict(int)
+
+        for date_str, count in daily_data.items():
+            dt = date.fromisoformat(date_str)
+            # Get first day of the month
+            month_start = date(dt.year, dt.month, 1)
+            month_key = month_start.isoformat()
+            monthly_data[month_key] += count
+
+        # Build complete month range
+        date_range = self._build_month_range(start_date, end_date)
+
+        # Fill in data with zeros for missing months
+        counts_list = [monthly_data.get(month_str, 0) for month_str in date_range]
+
+        return date_range, counts_list
+
+    def _build_week_range(self, start_date: date, end_date: date):
+        """Build a list of week start dates (Mondays) for the given date range."""
+        date_range = []
+        current_date = start_date - timedelta(days=start_date.weekday())  # Start from Monday
+
+        while current_date <= end_date:
+            date_range.append(current_date.isoformat())
+            current_date += timedelta(days=7)
+
+        return date_range
+
+    def _build_month_range(self, start_date: date, end_date: date):
+        """Build a list of month start dates (1st of each month) for the given date range."""
+        date_range = []
+        current_date = date(start_date.year, start_date.month, 1)
+
+        while current_date <= end_date:
+            date_range.append(current_date.isoformat())
+            # Move to next month
+            if current_date.month == 12:
+                current_date = date(current_date.year + 1, 1, 1)
+            else:
+                current_date = date(current_date.year, current_date.month + 1, 1)
+
+        return date_range
+
     async def get_python_version_distribution(self, user_id: int, package_name: Optional[str] = None,
                                             start_date: Optional[date] = None,
                                             end_date: Optional[date] = None) -> List[PythonVersionDistribution]:
@@ -910,38 +980,80 @@ class AnalyticsService:
     async def get_custom_events_timeseries(self, api_keys: List[str],
                                           event_types: List[str],
                                           start_date: datetime,
-                                          end_date: datetime) -> CustomEventTimeSeries:
-        """Get time series data for selected custom event types."""
+                                          end_date: datetime,
+                                          aggregation: str = "day") -> CustomEventTimeSeries:
+        """Get time series data for selected custom event types with aggregation support."""
         from src.schemas.dashboard import CustomEventTimeSeries
         from collections import defaultdict
 
-        # Get raw time series data
+        # Get raw time series data (always daily from repository)
         raw_data = await self.uow.analytics_events.get_custom_events_timeseries(
             api_keys, event_types, start_date, end_date
         )
 
-        # Build date range
-        date_range = []
-        current_date = start_date.date()
-        while current_date <= end_date.date():
-            date_range.append(current_date.isoformat())
-            current_date += timedelta(days=1)
-
-        # Organize data by event type
+        # Organize data by event type and date
         data_by_type = defaultdict(lambda: defaultdict(int))
         for row in raw_data:
-            date_str = row["date"].isoformat()
+            # Date is already returned as a string from the repository
+            date_str = row["date"] if isinstance(row["date"], str) else row["date"].isoformat()
             event_type = row["event_type"]
             count = row["count"]
             data_by_type[event_type][date_str] = count
 
-        # Build series data with zeros for missing dates
+        # Apply aggregation for each event type
         series_data = {}
+        date_range = None
+
         for event_type in event_types:
-            series_data[event_type] = [
-                data_by_type[event_type].get(date_str, 0)
-                for date_str in date_range
-            ]
+            # Get daily data for this event type
+            event_daily_data = {date_str: {"count": count}
+                              for date_str, count in data_by_type[event_type].items()}
+
+            # Build complete daily date range with zeros
+            daily_dates_data = {}
+            current_date = start_date.date()
+            while current_date <= end_date.date():
+                date_str = current_date.isoformat()
+                if date_str in event_daily_data:
+                    daily_dates_data[date_str] = event_daily_data[date_str]["count"]
+                else:
+                    daily_dates_data[date_str] = 0
+                current_date += timedelta(days=1)
+
+            # Apply aggregation
+            if aggregation == "week":
+                aggregated_dates, aggregated_counts = self._aggregate_custom_events_by_week(
+                    daily_dates_data, start_date.date(), end_date.date()
+                )
+            elif aggregation == "month":
+                aggregated_dates, aggregated_counts = self._aggregate_custom_events_by_month(
+                    daily_dates_data, start_date.date(), end_date.date()
+                )
+            else:  # Default to daily
+                aggregated_dates = list(daily_dates_data.keys())
+                aggregated_counts = list(daily_dates_data.values())
+
+            series_data[event_type] = aggregated_counts
+            # Use the same date range for all event types
+            if date_range is None:
+                date_range = aggregated_dates
+
+        # If no data, return empty structure with appropriate date range
+        if date_range is None:
+            if aggregation == "week":
+                date_range = self._build_week_range(start_date.date(), end_date.date())
+            elif aggregation == "month":
+                date_range = self._build_month_range(start_date.date(), end_date.date())
+            else:
+                date_range = []
+                current_date = start_date.date()
+                while current_date <= end_date.date():
+                    date_range.append(current_date.isoformat())
+                    current_date += timedelta(days=1)
+
+            # Fill series_data with zeros for all event types
+            for event_type in event_types:
+                series_data[event_type] = [0] * len(date_range)
 
         return CustomEventTimeSeries(
             dates=date_range,
@@ -1015,16 +1127,11 @@ class AnalyticsService:
                                                    event_types: List[str],
                                                    package_name: Optional[str] = None,
                                                    start_date: Optional[date] = None,
-                                                   end_date: Optional[date] = None) -> CustomEventTimeSeries:
+                                                   end_date: Optional[date] = None,
+                                                   aggregation: str = "day") -> CustomEventTimeSeries:
         """Get custom events timeseries for a user's packages."""
         # Get user's API keys
         api_keys = await self.uow.api_keys.get_user_api_keys_with_filter(user_id, package_name)
-
-        if not api_keys:
-            # Return empty time series
-            return CustomEventTimeSeries(dates=[], event_types=event_types, series_data={})
-
-        api_key_values = [key.key for key in api_keys]
 
         # Use default date range if not provided
         if not end_date:
@@ -1036,7 +1143,10 @@ class AnalyticsService:
         start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=tz.utc)
         end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=tz.utc)
 
-        return await self.get_custom_events_timeseries(api_key_values, event_types, start_datetime, end_datetime)
+        # If no API keys, pass empty list (will return zeros for date range)
+        api_key_values = [key.key for key in api_keys] if api_keys else []
+
+        return await self.get_custom_events_timeseries(api_key_values, event_types, start_datetime, end_datetime, aggregation)
 
     async def get_custom_event_details_for_user(self, user_id: int,
                                                event_type: str,

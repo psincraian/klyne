@@ -332,3 +332,372 @@ class TestDashboardAggregation:
         assert result.sessions == []
         assert result.unique_users == []
         assert result.packages == []
+
+
+class TestCustomEventAggregation:
+    """Test suite for custom event aggregation by day, week, and month."""
+
+    @pytest_asyncio.fixture
+    async def test_user_with_custom_events(self, async_session):
+        """Create a test user with API key and custom analytics events."""
+        # Create test user
+        user = User(
+            email="custom_event_test@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            is_verified=True,
+            is_active=True,
+        )
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Create test API key
+        api_key = APIKey(
+            package_name="test-package",
+            key="klyne_test_custom_events_key",
+            user_id=user.id,
+        )
+        async_session.add(api_key)
+        await async_session.commit()
+        await async_session.refresh(api_key)
+
+        # Create custom events over a 30-day period
+        base_date = date.today() - timedelta(days=30)
+        events = []
+
+        for day in range(30):
+            event_date = base_date + timedelta(days=day)
+            event_datetime = datetime.combine(
+                event_date, datetime.min.time()
+            ).replace(tzinfo=timezone.utc)
+
+            # Create custom events with different event types
+            # user_login events: 2-3 per day
+            for i in range((day % 2) + 2):
+                event = AnalyticsEvent(
+                    api_key=api_key.key,
+                    session_id=uuid4(),
+                    package_name="test-package",
+                    package_version="1.0.0",
+                    python_version="3.11.5",
+                    os_type="Linux",
+                    event_timestamp=event_datetime + timedelta(hours=i),
+                    received_at=datetime.now(timezone.utc),
+                    user_identifier=f"user_{day % 10}",
+                    entry_point="user_login",  # Custom event type
+                    extra_data={"source": "web", "device": "desktop"},
+                )
+                events.append(event)
+                async_session.add(event)
+
+            # feature_used events: 1-2 per day
+            for i in range((day % 2) + 1):
+                event = AnalyticsEvent(
+                    api_key=api_key.key,
+                    session_id=uuid4(),
+                    package_name="test-package",
+                    package_version="1.0.0",
+                    python_version="3.11.5",
+                    os_type="Linux",
+                    event_timestamp=event_datetime + timedelta(hours=i + 6),
+                    received_at=datetime.now(timezone.utc),
+                    user_identifier=f"user_{day % 10}",
+                    entry_point="feature_used",  # Custom event type
+                    extra_data={"feature": "analytics", "action": "view"},
+                )
+                events.append(event)
+                async_session.add(event)
+
+        await async_session.commit()
+
+        return user, api_key, events
+
+    async def test_custom_event_daily_aggregation(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test that custom events use daily aggregation by default."""
+        user, api_key, _ = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with default (daily) aggregation
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date
+        )
+
+        # Should have dates array with daily data
+        assert len(result.dates) > 0
+        assert len(result.dates) == 31  # inclusive range
+
+        # Should have data for both event types
+        assert "user_login" in result.series_data
+        assert "feature_used" in result.series_data
+        assert len(result.series_data["user_login"]) == 31
+        assert len(result.series_data["feature_used"]) == 31
+
+        # Should have some events
+        assert sum(result.series_data["user_login"]) > 0
+        assert sum(result.series_data["feature_used"]) > 0
+
+    async def test_custom_event_weekly_aggregation(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test weekly aggregation of custom events."""
+        user, api_key, _ = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with weekly aggregation
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date, "week"
+        )
+
+        # Should have dates array with weekly data
+        assert len(result.dates) > 0
+
+        # Weekly aggregation should have fewer data points than daily (4-6 weeks)
+        assert 4 <= len(result.dates) <= 6
+
+        # All dates should be Mondays (weekday() == 0)
+        for date_str in result.dates:
+            dt = date.fromisoformat(date_str)
+            assert dt.weekday() == 0  # Monday
+
+        # Should have data for both event types with same length
+        assert "user_login" in result.series_data
+        assert "feature_used" in result.series_data
+        assert len(result.series_data["user_login"]) == len(result.dates)
+        assert len(result.series_data["feature_used"]) == len(result.dates)
+
+        # Events should be aggregated (summed) per week
+        assert all(isinstance(count, int) for count in result.series_data["user_login"])
+        assert sum(result.series_data["user_login"]) > 0
+        assert sum(result.series_data["feature_used"]) > 0
+
+    async def test_custom_event_monthly_aggregation(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test monthly aggregation of custom events."""
+        user, api_key, _ = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with monthly aggregation (extending to 60 days for clearer test)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=60)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date, "month"
+        )
+
+        # Should have dates array with monthly data
+        assert len(result.dates) > 0
+
+        # Monthly aggregation should have 2-3 data points for 60 days
+        assert 2 <= len(result.dates) <= 3
+
+        # All dates should be first day of month
+        for date_str in result.dates:
+            dt = date.fromisoformat(date_str)
+            assert dt.day == 1  # First day of month
+
+        # Should have data for both event types
+        assert "user_login" in result.series_data
+        assert "feature_used" in result.series_data
+        assert len(result.series_data["user_login"]) == len(result.dates)
+        assert len(result.series_data["feature_used"]) == len(result.dates)
+
+        # Events should be aggregated per month
+        assert all(isinstance(count, int) for count in result.series_data["user_login"])
+
+    async def test_custom_event_aggregation_preserves_totals(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test that aggregation preserves total event counts."""
+        user, api_key, events = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with different aggregations
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        daily_data = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date, "day"
+        )
+        weekly_data = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date, "week"
+        )
+        monthly_data = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login", "feature_used"], None, start_date, end_date, "month"
+        )
+
+        # Total events should be the same across all aggregations for each event type
+        for event_type in ["user_login", "feature_used"]:
+            daily_total = sum(daily_data.series_data[event_type])
+            weekly_total = sum(weekly_data.series_data[event_type])
+            monthly_total = sum(monthly_data.series_data[event_type])
+
+            assert daily_total == weekly_total, f"Daily vs Weekly totals differ for {event_type}"
+            assert daily_total == monthly_total, f"Daily vs Monthly totals differ for {event_type}"
+
+    async def test_custom_event_aggregation_with_single_event_type(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test aggregation works with a single event type."""
+        user, api_key, _ = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with weekly aggregation for single event type
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login"], None, start_date, end_date, "week"
+        )
+
+        assert len(result.dates) > 0
+        assert "user_login" in result.series_data
+        assert len(result.series_data["user_login"]) == len(result.dates)
+
+    async def test_custom_event_empty_data_aggregation(self, async_session):
+        """Test aggregation with no custom events returns empty results."""
+        # Create user without events
+        user = User(
+            email="empty_custom_test@example.com",
+            hashed_password=get_password_hash("testpassword123"),
+            is_verified=True,
+            is_active=True,
+        )
+        async_session.add(user)
+        await async_session.commit()
+        await async_session.refresh(user)
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with weekly aggregation
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login"], None, start_date, end_date, "week"
+        )
+
+        # Should return empty data structure with appropriate date range
+        assert len(result.dates) > 0  # Should still have date range
+        assert "user_login" in result.series_data
+        assert all(count == 0 for count in result.series_data["user_login"])
+
+    async def test_custom_event_invalid_aggregation_defaults_to_daily(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test that invalid aggregation period defaults to daily."""
+        user, api_key, _ = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Get data with invalid aggregation (should default to daily)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+
+        result = await service.get_custom_events_timeseries_for_user(
+            user.id, ["user_login"], None, start_date, end_date, "invalid"
+        )
+
+        # Should default to daily aggregation (31 days inclusive)
+        assert len(result.dates) == 31
+
+    async def test_custom_event_service_aggregate_by_week(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test the _aggregate_custom_events_by_week service method directly."""
+        user, api_key, events = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Create sample daily data
+        today = date.today()
+        daily_data = {}
+        for i in range(14):  # 2 weeks of data
+            date_str = (today - timedelta(days=i)).isoformat()
+            daily_data[date_str] = 10 + i  # Some event count
+
+        start_date = today - timedelta(days=13)
+        end_date = today
+
+        # Call the aggregation method
+        date_range, counts_list = service._aggregate_custom_events_by_week(
+            daily_data, start_date, end_date
+        )
+
+        # Should have 2-3 weeks of data
+        assert 2 <= len(date_range) <= 3
+        assert len(date_range) == len(counts_list)
+
+        # All dates should be Mondays (weekday() == 0)
+        for date_str in date_range:
+            dt = date.fromisoformat(date_str)
+            assert dt.weekday() == 0  # Monday
+
+        # Verify counts are summed correctly
+        assert all(isinstance(count, int) for count in counts_list)
+
+    async def test_custom_event_service_aggregate_by_month(
+        self, async_session, test_user_with_custom_events
+    ):
+        """Test the _aggregate_custom_events_by_month service method directly."""
+        user, api_key, events = test_user_with_custom_events
+
+        # Create service
+        uow = SqlAlchemyUnitOfWork(async_session)
+        service = AnalyticsService(uow)
+
+        # Create sample daily data spanning 2 months
+        today = date.today()
+        daily_data = {}
+        for i in range(60):  # 2 months of data
+            date_str = (today - timedelta(days=i)).isoformat()
+            daily_data[date_str] = 10 + i  # Some event count
+
+        start_date = today - timedelta(days=59)
+        end_date = today
+
+        # Call the aggregation method
+        date_range, counts_list = service._aggregate_custom_events_by_month(
+            daily_data, start_date, end_date
+        )
+
+        # Should have 2-3 months of data
+        assert 2 <= len(date_range) <= 3
+        assert len(date_range) == len(counts_list)
+
+        # All dates should be first day of month
+        for date_str in date_range:
+            dt = date.fromisoformat(date_str)
+            assert dt.day == 1  # First day of month
+
+        # Verify counts are summed correctly
+        assert all(isinstance(count, int) for count in counts_list)
