@@ -27,7 +27,17 @@ __all__ = [
     "enable",
     "is_enabled",
     "__version__",
+    "adapters",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy loading for adapters module."""
+    if name == "adapters":
+        from . import adapters
+
+        return adapters
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # Self-analytics initialization for Klyne SDK
