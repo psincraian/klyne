@@ -22,6 +22,9 @@
                 <li><a href="/backoffice/api-keys" class="{% if '/api-keys' in request.url.path %}active{% endif %}">
                     <i class="fas fa-key"></i> API Keys
                 </a></li>
+                <li><a href="/backoffice/packages" class="{% if '/packages' in request.url.path %}active{% endif %}">
+                    <i class="fas fa-box"></i> Packages
+                </a></li>
                 <li><a href="/backoffice/events" class="{% if '/events' in request.url.path %}active{% endif %}">
                     <i class="fas fa-chart-line"></i> Events
                 </a></li>
@@ -47,6 +50,7 @@
             <li><a href="/backoffice" class="{% if request.url.path == '/backoffice' %}active{% endif %}">Dashboard</a></li>
             <li><a href="/backoffice/users" class="{% if '/users' in request.url.path %}active{% endif %}">Users</a></li>
             <li><a href="/backoffice/api-keys" class="{% if '/api-keys' in request.url.path %}active{% endif %}">API Keys</a></li>
+            <li><a href="/backoffice/packages" class="{% if '/packages' in request.url.path %}active{% endif %}">Packages</a></li>
             <li><a href="/backoffice/events" class="{% if '/events' in request.url.path %}active{% endif %}">Events</a></li>
         </ul>
     </div>

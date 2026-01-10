@@ -235,3 +235,37 @@ async def backoffice_events(
             "unique_packages_from_events": unique_packages_from_events or 0,
         },
     )
+
+
+@router.get("/packages", response_class=HTMLResponse)
+async def backoffice_packages(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin_user_id: int = Depends(require_admin),
+):
+    """List all tracked packages with statistics."""
+
+    # Query packages with aggregated stats
+    packages_result = await db.execute(
+        select(
+            AnalyticsEvent.package_name,
+            func.count(AnalyticsEvent.id).label("nr_events"),
+            func.max(AnalyticsEvent.received_at).label("last_ingested"),
+        )
+        .group_by(AnalyticsEvent.package_name)
+        .order_by(func.count(AnalyticsEvent.id).desc())
+    )
+    packages = packages_result.all()
+
+    total_packages = len(packages)
+    total_events = sum(p.nr_events for p in packages)
+
+    return templates.TemplateResponse(
+        "backoffice/packages.html",
+        {
+            "request": request,
+            "packages": packages,
+            "total_packages": total_packages,
+            "total_events": total_events,
+        },
+    )
