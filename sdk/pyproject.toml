@@ -40,6 +40,9 @@ packages = ["klyne"]
 dev = [
     "ruff>=0.14.4",
     "ty>=0.0.1a25",
+    "pytest>=8.0.0",
+    "click>=8.0.0",
+    "typer>=0.9.0",
 ]
 
 [tool.ty]
