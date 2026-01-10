@@ -1,0 +1,57 @@
+{% extends "backoffice/layout.html" %}
+
+{% block page_title %}Packages{% endblock %}
+
+{% block backoffice_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-base-content">Packages</h1>
+    <p class="text-base-content/70 mt-2">All tracked packages with analytics</p>
+</div>
+
+<div class="stats shadow mb-8 stats-vertical sm:stats-horizontal">
+    <div class="stat">
+        <div class="stat-title">Total Packages</div>
+        <div class="stat-value">{{ total_packages }}</div>
+        <div class="stat-figure text-primary">
+            <i class="fas fa-box text-2xl"></i>
+        </div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Total Events</div>
+        <div class="stat-value">{{ total_events }}</div>
+        <div class="stat-figure text-secondary">
+            <i class="fas fa-chart-line text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<div class="overflow-x-auto">
+    <table class="table table-zebra">
+        <thead>
+            <tr>
+                <th>Package Name</th>
+                <th>Nr Events</th>
+                <th>Last Ingested</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for package in packages %}
+            <tr class="hover">
+                <td>
+                    <span class="badge badge-secondary">{{ package.package_name }}</span>
+                </td>
+                <td class="font-mono">{{ package.nr_events }}</td>
+                <td class="font-mono text-sm">{{ package.last_ingested.strftime('%Y-%m-%d %H:%M') if package.last_ingested else '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not packages %}
+<div class="text-center py-12 text-base-content/60">
+    <i class="fas fa-box text-5xl mb-4 opacity-50"></i>
+    <p class="text-lg">No packages tracked yet.</p>
+</div>
+{% endif %}
+{% endblock %}
