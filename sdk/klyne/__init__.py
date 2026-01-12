@@ -34,8 +34,11 @@ __all__ = [
 def __getattr__(name: str):
     """Lazy loading for adapters module."""
     if name == "adapters":
-        from . import adapters
+        import importlib
 
+        adapters = importlib.import_module(".adapters", __name__)
+        # Cache the module to prevent recursion on subsequent accesses
+        globals()["adapters"] = adapters
         return adapters
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
